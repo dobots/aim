@@ -19,11 +19,11 @@ The abstractions are written in IDL and look like a Java or C++ interface. The c
 ## Usage
 The RurBuilder can be used together with AIM (Artificial Intelligence Modules) utility tools:
 
-- aimcreate-pkg Creates a new module from template. This contains a "manifest.xml" file for use in ROS, a "CMakeLists.txt" file for use in YARP, a default Makefile, a few scripts to build and run using "default.mk" to retrieve the location of the RurBuilder and which backend to use.
-- aimregister Register new module. This extracts ports (input and output) and command-line parameters. It can be used by for example the AIM GUI to visualize the right number of ports with the proper names.
-- aimrun Run a module. The command-line parameters it expects must be part of the IDL description. One parameter that is required, is a "module_id" to be able to run multiple instances of the same AI module.
-- aimstop Stops a module. This can be done using the "module_id" defined at aimrun.
-- aimconnect Connects port/channel on one module to port on another module. The additional abstraction of ports/channels above only modules gives enough flexibility for most real-life situations. It is clear that the middleware only sets up how the AI modules are connected to each other, but does not dictate how the data is processed through this network of modules. This is left to the middleware.
+- aimcreate-pkg: Creates a new module from template. This contains a "manifest.xml" file for use in ROS, a "CMakeLists.txt" file for use in YARP, a default Makefile, a few scripts to build and run using "default.mk" to retrieve the location of the RurBuilder and which backend to use.
+- aimregister: Register new module. This extracts ports (input and output) and command-line parameters. It can be used by for example the AIM GUI to visualize the right number of ports with the proper names.
+- aimrun: Run a module. The command-line parameters it expects must be part of the IDL description. One parameter that is required, is a "module_id" to be able to run multiple instances of the same AI module.
+- aimstop: Stops a module. This can be done using the "module_id" defined at aimrun.
+- aimconnect: Connects port/channel on one module to port on another module. The additional abstraction of ports/channels above only modules gives enough flexibility for most real-life situations. It is clear that the middleware only sets up how the AI modules are connected to each other, but does not dictate how the data is processed through this network of modules. This is left to the middleware.
 
 Obviously, these tools are similar to the ones used in the ROS environment. Instead of creating ROS nodes, AI modules are created, etc.
 
