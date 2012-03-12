@@ -3,6 +3,7 @@ RurBuilder is a generator of (AI) modules or agents for different types of middl
 
 ## Middleware support
 RurBuilder uses omniIDL and supports the following middlewares:
+
 1. YARP, Yet Another Robot Platform
 2. ROS, Robotic Operating System
 3. AgentScape (to be implemented)
@@ -16,6 +17,7 @@ The abstractions are written in IDL and look like a Java or C++ interface. The c
 
 ## Usage
 The RurBuilder can be used together with AIM (Artificial Intelligence Modules) utility tools:
+
 - aimcreate-pkg Creates a new module from template
 - aimregister Register new module (extracts ports and command-line parameters) 
 - aimrun Run a module
@@ -33,6 +35,7 @@ The RurBuilder is integrated with the AIM GUI at https://github.com/mrquincle/Th
 
 ## Copyrights
 The copyrights (2012) belong to:
-  Author: Anne van Rossum
-  Almende B.V. and DO bots B.V.
-  Rotterdam, The Netherlands
+
+- Author: Anne van Rossum
+- Almende B.V. and DO bots B.V.
+- Rotterdam, The Netherlands
