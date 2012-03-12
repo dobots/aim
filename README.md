@@ -25,7 +25,8 @@ The RurBuilder can be used together with AIM (Artificial Intelligence Modules) u
 Obviously, these tools are similar to the ones used in the ROS environment. Instead of creating ROS nodes, AI modules are created, etc.
 
 ## Example
-![alt text](doc/rur_idl2yarp.jpg "IDL to YARP example")
+An example that shows the first automatically generated structures, instances, and functions of a so-called ARTMAP module to be used in YARP middleware:
+![alt text](https://github.com/mrquincle/rur-builder/raw/master/doc/rur_idl2yarp.jpg "IDL to YARP example")
 
 ## Visualisation
 The RurBuilder is integrated with the AIM GUI at https://github.com/mrquincle/ThreeNodes.js
