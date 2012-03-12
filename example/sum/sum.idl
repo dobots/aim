@@ -1,0 +1,21 @@
+// The recommended namespace is Rur
+module Rur {
+
+// There is a dedicate Param struct that can be used to define command-line
+// parameters
+struct Param {
+	long sensor_id;
+};
+
+// The name of the module (should end with Module)
+interface SumModule {
+
+  // This channel goes "in" and will become the method "int *readInput()".
+  void Input(in long data_in);
+
+  // This becomes the method "writeOutput(const int data_out)"
+  void Output(out long data_out);
+
+};
+
+};
