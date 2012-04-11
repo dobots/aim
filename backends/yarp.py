@@ -380,10 +380,13 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      self.st.out( "Bottle *b = " + portname + "->read();")
                      self.st.out("for (int i = 0; i < b->size(); ++i) {")
                      self.st.inc_indent()
+                     # Here we have YARP specific data types
                      if seq_type == "int":
                          asValue = "asInt"
                      elif seq_type == "float":
                          asValue = "asFloat"
+                     elif seq_type == "double":
+                         asValue = "asDouble"
                      self.st.out( portname + "Values->push_back(b->get(i)." + asValue + "());")
                      self.st.dec_indent()
                      self.st.out("}")            
@@ -397,6 +400,8 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 if p.is_out():
                   # function signature
                   if p.paramType().kind() == 21: # sequence
+                      self.getSeqType(param_type)
+                      seq_type = self.__result_type
                       self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " &" + param_name + ") {" )
                   else:
                       self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " " + param_name + ") {" )

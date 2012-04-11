@@ -3,13 +3,14 @@
 echo "We make the example \"sum\"" 
 export PATH=$PATH:/opt/omniORB-4.1.6/bin
 
-. ../local.mk
-
 # The different backends can be:
 #BACKEND=yarp
 #BACKEND=ros
 BACKEND=standard
 #BACKEND=extract
+
+# Use, however, $BACKEND from local.mk
+. ../local.mk
 
 # Use a script argument
 backend=${BACKEND,,}

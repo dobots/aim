@@ -7,11 +7,13 @@ struct Param {
 	long sensor_id;
 };
 
+typedef sequence<double> long_seq;
+
 // The name of the module (should end with Module)
 interface SumModule {
 
   // This channel goes "in" and will become the method "int *readInput()".
-  void Input(in long data_in);
+  void Input(in long_seq data_in);
 
   // This becomes the method "writeOutput(const int data_out)"
   void Output(out long data_out);

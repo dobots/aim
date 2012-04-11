@@ -28,14 +28,19 @@ using namespace std;
 
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
 
+/**
+ * Calculates the sum over a vector and returns this as a scalar. 
+ */
 void SumModule::Tick() {
-	int current_value = 0;
-	current_value = *readInput();
-	cout << "Read value: " << current_value << endl;
-//	if (t != 0) {
-		writeOutput(2 * current_value);
-		cout << "Write value: " << 2 * current_value << endl;
-//	}
-
+	// does not need to be deallocated, so just dereference and work on it 
+	long_seq &input = *readInput();
+	int sum = 0;
+	for (int i = 0; i < input.size(); ++i) {
+		cout << "Read value: " << input[i] << endl;
+		sum+=input[i];
+	}
+	writeOutput(sum);
+	cout << "Write value: " << sum << endl;
 }
