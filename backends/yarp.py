@@ -384,7 +384,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      if seq_type == "int":
                          asValue = "asInt"
                      elif seq_type == "float":
-                         asValue = "asFloat"
+                         asValue = "asDouble" # floats will be communicated as doubles
                      elif seq_type == "double":
                          asValue = "asDouble"
                      self.st.out( portname + "Values->push_back(b->get(i)." + asValue + "());")
@@ -420,7 +420,9 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      if seq_type == "int":
                          capValue = "Int"
                      elif seq_type == "float":
-                         capValue = "Float"
+                         capValue = "Double" # float's will be communicated as doubles
+                     elif seq_type == "double":
+                         capValue = "Double"
                      self.st.out( param_name + "Prepare.add" + capValue + "(output[i]);")                     
                      self.st.dec_indent()
                      self.st.out("}")
