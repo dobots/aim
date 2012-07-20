@@ -50,7 +50,7 @@ Then, for an incoming channel, you write this in the YourModule.idl file:
 		void Input(in long data);
 	};
 
-This will automatically generate a "/data" channel for you in YARP (prepended with the name of your module). The only thing you will need to do now is to write functional code that uses the channels in the stub file YourModule.cpp, for example:
+This will automatically generate a "/data" channel for you in the case YARP is chosen as backend (more specifically, it will be /yourmodule{id}/data). The only thing you will need to do now is to write functional code that uses the channels in the stub file YourModule.cpp, for example:
 
 	void WriteToFileModule::Tick() {
 		double input = *readInput();
@@ -60,6 +60,8 @@ This will automatically generate a "/data" channel for you in YARP (prepended wi
 	}
 
 As you can see the "Input" function in the YourModule.idl file has become something you can read from and which returns the proper type. All conversions necessary are done in the automatically generated header file (for example YARP does use Bottle's to communicate such datatypes, and you don't need to know anything about that using this framework).
+
+Note: this example illustrates that a filestream is created and closed each "Tick()". To remedy this you should not add anything to the header file because that file should be automatically be regenerated as soon as you change the idl description of the module. Hence, the recommended method is to subclass YourModule to add state information to it. And you have subsequently to adjust the YourModuleMain.cpp file to call this subclass. If you have already an existing important class, this is also an easy way to integrate this middleware-agnostic layer. Just add also YourModule as a parent to that class.
 
 ## Where can I read more?
 * [Wikipedia (YARP)](http://en.wikipedia.org/wiki/YARP)
