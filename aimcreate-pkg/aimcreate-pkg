@@ -30,11 +30,11 @@ if [[ "$mn_sanity_check" == "$1" ]]; then
 		echo "Thanks, $1 is a proper module name"
 	else
 		echo "Please, end the module with \"Module\"" 
-		read -p "We will keep it at a warning" 
+		read -p "We will keep it at a warning (to use your module with Threenodes.js and aimregister)" 
 	fi
 else
 	echo "Please, do not use whitespaces" 
-	read -p "Subsequent errors or at your own risk" 
+	read -p "Subsequent errors or at your own risk (to use your module with Threenodes.js and aimregister)" 
 fi
 
 # Create the proper directory
