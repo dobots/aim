@@ -25,7 +25,7 @@ fi
 echo "We will use backend \"$backend\""
 
 IDL_FILE="../idl/TemplateModule.idl"
-RESULT="../inc/TemplateModule.h"
+RESULT="../aim/TemplateModule.h"
 
 ./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT}" 
 

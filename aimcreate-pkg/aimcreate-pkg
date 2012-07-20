@@ -65,8 +65,9 @@ else
 fi
 
 mkdir -p src
-mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
-mv TemplateModule.cpp "src/${modulename}.cpp"
-
+mkdir -p aim
 mkdir -p inc
+
+mv TemplateModuleMain.cpp "aim/${modulename}Main.cpp"
+mv TemplateModule.cpp "aim/${modulename}.cpp"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ####################################################################################
-# Warning! Do not output anything in this script, it will end up in the generated
+# Warning! Do not "echo" anything in this script, it will end up in the generated
 # header file(s)!
 ####################################################################################
 
@@ -31,7 +31,7 @@ backend_path=$3
 omniidl -p${backend_path} -b${backend} "${idl_file}"
 
 ####################################################################################
-# Warning! Do not output anything in this script, it will end up in the generated
+# Warning! Do not "echo" anything in this script, it will end up in the generated
 # header file(s)!
 ####################################################################################
 

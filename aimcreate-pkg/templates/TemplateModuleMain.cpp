@@ -12,12 +12,12 @@
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
  *
- * Copyright © 2011 Anne van Rossum <anne@almende.com>
+ * Copyright © 2012 Your Name <your@email.address>
  *
  * @author  ...
  * @date    ...
- * @company Almende B.V.
- * @case    Artificial Intelligence Framework
+ * @company Almende B.V. (or your university, institute or company)
+ * @case    Artificial Intelligence Module
  */
 #include <TemplateModule.h>
 
@@ -28,7 +28,9 @@ using namespace rur;
 using namespace std;
 
 /**
- * Every module is a separate binary and hence has its own main method.
+ * Every module is a separate binary and hence has its own main method. It is recommended
+ * to have a version of your code running without any middleware wrappers, so preferably
+ * have this file and the TemplateModule header and code in a separate "aim" directory.
  */
 int main(int argc, char *argv[])  {
 	TemplateModule *m = new TemplateModule();
@@ -42,7 +44,7 @@ int main(int argc, char *argv[])  {
 
 	do {
 		m->Tick();
-	} while (true); // (!m->Finished());
+	} while (true); 
 
 	delete m;
 

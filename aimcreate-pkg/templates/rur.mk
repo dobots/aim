@@ -22,4 +22,4 @@ BACKEND=YARP
 
 #RUR_BACKENDS depends on your system configuration and should end with something like
 # rur-builder/backends.
-RUR_BACKENDS=/home/anne/myworkspace/rur/RurBuilder/backends
+RUR_BACKENDS=/home/anne/myworkspace/rur/rurbuilder-git/backends
