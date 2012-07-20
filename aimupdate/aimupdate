@@ -1,0 +1,93 @@
+#!/bin/bash
+
+PROGRAM="aimupdate"
+
+VERSION="$PROGRAM 0.1"
+
+if [[ "$1" == "" ]]
+then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM \"ModuleName\"
+	echo
+#	echo \* recipient_number - The recipients phone number. Without the country number
+#	echo \* \"message\" - Defines the message to send. The \"\" are mandatory
+	exit 0 
+fi 
+
+modulename="$1"
+
+# Check if there are no whitespaces
+mn_sanity_check=${modulename//[[:space:]]}
+
+if [[ "$mn_sanity_check" == "$1" ]]; then
+	if [[ "$1" == *Module ]]; then
+		echo "Update $1"
+	else
+		echo "Please, end the module with \"Module\""
+		exit 1
+	fi
+else
+	echo "Please, do not use whitespaces"
+	exit 1
+fi
+
+# Copy from template directory
+RUR_TEMPLATES=/var/lib/rur
+
+cp $RUR_TEMPLATES/build.sh $modulename/scripts
+cp $RUR_TEMPLATES/run.sh $modulename/scripts
+cp $RUR_TEMPLATES/local.mk $modulename
+cp $RUR_TEMPLATES/default.mk $modulename
+cp $RUR_TEMPLATES/local.sh $modulename
+cp $RUR_TEMPLATES/default.sh $modulename
+cp $RUR_TEMPLATES/Makefile $modulename
+
+# We do not update CMakeLists.txt because this is probably adjusted
+#cp $RUR_TEMPLATES/CMakeLists.txt $modulename
+
+cd "$modulename"
+
+# Replace "template module name" by real name
+sed -i "s/TemplateModule/$modulename/g" scripts/build.sh
+#sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
+sed -i "s/TemplateModule/$modulename/g" Makefile
+
+exit
+
+mv rur "$modulename"
+cd "$modulename"
+
+# Adapt scripts to $modulename
+sed -i "s/TemplateModule/$modulename/g" build.sh
+sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
+sed -i "s/TemplateModule/$modulename/g" Makefile
+sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
+sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
+sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
+
+mkdir -p scripts
+mv build.sh scripts
+mv run.sh scripts
+
+mkdir -p idl
+if [ -a "idl/$modulename.idl" ]; then
+	echo "The idl file exists, will not be overwritten"	
+else
+	mv TemplateModule.idl "idl/$modulename.idl"
+fi
+
+exit
+
+mkdir -p src
+mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
+mv TemplateModule.cpp "src/${modulename}.cpp"
+
+mkdir -p inc
+

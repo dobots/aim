@@ -1,0 +1,71 @@
+#!/bin/bash
+
+PROGRAM="aimlist"
+
+VERSION="$PROGRAM 0.1"
+
+
+#echo $1
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM 
+	echo
+	exit 0 
+elif [ $# -ne 1 ]
+then
+	echo "One and only one argument is expected!"
+	exit 1
+fi 
+
+
+# Configuration directory for RUR
+RUR_HOME=~/.rur
+mkdir -p ${RUR_HOME}
+
+AIM_REGISTRY=aim_registry.txt
+
+# echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+
+MODULE_FULLNAME=
+FirstTwo=
+index=0
+while read LINE; 
+do
+	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+        MODULE_I=${MODULE_I%/}
+        FirstTwo=`echo "$MODULE_I" | cut -c1-2`
+        MiddleFive=`echo "$MODULE_I" | cut -c3-7`
+        if [ "$1" -eq 0 ]; then
+          if [[ "$FirstTwo" != "CS" ]]; then 
+             Registered_Module[$index]=$MODULE_I
+             # echo $index
+	     index=$(($index + 1))
+          fi
+        elif [ "$1" -eq 1 ]; then
+          if [[ "$MiddleFive" != "Login" ]]
+          then
+          	Registered_Module[$index]=$MODULE_I
+          	index=$(($index + 1))
+          fi
+        else
+          echo "Only two modes (0 and 1) are expected, please check!"
+	  exit 1
+        fi
+
+#	echo $LINE
+#	echo $M_I_STRIPPED
+done < "${RUR_HOME}/${AIM_REGISTRY}"
+#echo $index
+#echo "success!!"
+
+tLen=${#Registered_Module[@]}
+# use for loop read all nameservers
+for (( i=0; i<${tLen}; i++ ));
+do
+  echo ${Registered_Module[$i]}
+done
+
+
+

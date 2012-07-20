@@ -1,0 +1,59 @@
+#!/bin/bash
+
+PROGRAM="aimports"
+
+VERSION="$PROGRAM 0.1"
+
+
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM 
+	echo
+	exit 0 
+elif [ $# -ne 1 ]
+then
+	echo "One and only one argument should be supplied!"
+	exit 1
+fi 
+
+
+
+
+# Configuration directory for RUR
+RUR_HOME=~/.rur/registry
+mkdir -p ${RUR_HOME}
+
+AIM_REGISTRY=$1.ports
+# echo ${AIM_REGISTRY}
+
+# echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+
+index=0
+while read LINE; 
+do
+	port=$LINE
+        # port=`echo "$LINE" | cut -d' ' -f 1`
+        #if port -e "in"
+        #elif port -e "out"
+        #fi
+	Registered_port[$index]=$port
+	index=$(($index + 1))
+#	echo $LINE
+#	echo $M_I_STRIPPED
+done < "${RUR_HOME}/${AIM_REGISTRY}"
+
+#echo "success!!"
+
+tLen=${#Registered_port[@]}
+# use for loop read all nameservers
+for (( i=0; i<${tLen}; i++ ));
+do
+  echo ${Registered_port[$i]}
+done
+
+
+
+
