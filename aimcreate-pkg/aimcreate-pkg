@@ -38,12 +38,17 @@ else
 	exit 1
 fi
 
+# Create the proper directory
+mkdir -p "$modulename"
+cd "$modulename"
+
 # Copy from template directory
 RUR_TEMPLATES=/var/lib/rur
 cp -r $RUR_TEMPLATES .
 
-mv rur "$modulename"
-cd "$modulename"
+# Have all AIM relevant stuff collected in one directory "aim"
+mv rur aim
+cd aim
 
 # Adapt scripts to $modulename
 sed -i "s/TemplateModule/$modulename/g" build.sh
@@ -65,9 +70,8 @@ else
 fi
 
 mkdir -p src
-mkdir -p aim
 mkdir -p inc
 
-mv TemplateModuleMain.cpp "aim/${modulename}Main.cpp"
-mv TemplateModule.cpp "aim/${modulename}.cpp"
+mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
+mv TemplateModule.cpp "src/${modulename}.cpp"
 

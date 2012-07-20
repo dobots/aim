@@ -58,6 +58,7 @@ rm -f ${RUR_TEMPLATES}/rur.mk
 rm -f ${RUR_TEMPLATES}/rur_header.mk
 
 # Copy aimcreate-pkg itself
+echo "Copy aimcreate-pkg to /usr/bin"
 cp aimcreate-pkg /usr/bin
 
 cp -f ${RUR_MK} ${RUR_HOME}/rur.mk
