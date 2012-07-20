@@ -47,16 +47,16 @@ Subsequently in your YourModuleMain.cpp file you will need to set it:
 Then, for an incoming channel, you write this in the YourModule.idl file:
 
 	interface WriteToFileModule {
-  		void Input(in long data);
+		void Input(in long data);
 	};
 
 This will automatically generate a "/data" channel for you in YARP (prepended with the name of your module). The only thing you will need to do now is to write functional code that uses the channels in the stub file YourModule.cpp, for example:
 
 	void WriteToFileModule::Tick() {
 		double input = *readInput();
-	        ofstream myfile(cliParam->filename.c_str(), ios::app);
-        	myfile << input << '\n';
-        	myfile.close();
+		ofstream myfile(cliParam->filename.c_str(), ios::app);
+		myfile << input << '\n';
+		myfile.close();
 	}
 
 As you can see the "Input" function in the YourModule.idl file has become something you can read from and which returns the proper type. All conversions necessary are done in the automatically generated header file (for example YARP does use Bottle's to communicate such datatypes, and you don't need to know anything about that using this framework).
