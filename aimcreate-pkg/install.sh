@@ -47,6 +47,7 @@ else
 	echo "No zenity installed, you will need to set RUR_BACKENDS=... yourself in ${RUR_TEMPLATES}/local.mk"
 fi
 
+echo "SET(BACKENDS_PATH $BACKENDS_PATH)" > "${BACKENDS_PATH_FILE}.cmake" 
 echo "RUR_BACKENDS=$BACKENDS_PATH" >> ${RUR_MK}
 
 # Copy to system-wide directories

@@ -14,7 +14,7 @@
 # 
 
 # Default backend to be used, it can also be YARP or ROS
-BACKEND=STANDARD
+set(BUILD_STANDARD on)
 
 #RUR_BACKENDS is impossible to set here, because it depends on your system configuration
 # it should end with something like rur-builder/backends.

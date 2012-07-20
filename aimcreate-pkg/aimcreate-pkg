@@ -51,11 +51,15 @@ cd aim
 
 # Adapt scripts to $modulename
 sed -i "s/TemplateModule/$modulename/g" build.sh
-sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
-sed -i "s/TemplateModule/$modulename/g" Makefile
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
+
+sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
+sed -i "s/TemplateModule/$modulename/g" Makefile.parent
+
+mv CMakeLists.txt.parent ../CMakeLists.txt
+mv Makefile.parent ../Makefile
 
 mkdir -p scripts
 mv build.sh scripts
@@ -73,4 +77,9 @@ mkdir -p inc
 
 mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
 mv TemplateModule.cpp "src/${modulename}.cpp"
+
+mkdir -p ../src
+
+cp "src/${modulename}Main.cpp" "../src/${modulename}Main.cpp"
+cp "src/${modulename}.cpp" "../src/${modulename}.cpp"
 
