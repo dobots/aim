@@ -25,17 +25,16 @@ modulename="$1"
 
 # Check if there are no whitespaces
 mn_sanity_check=${modulename//[[:space:]]}
-
 if [[ "$mn_sanity_check" == "$1" ]]; then
 	if [[ "$1" == *Module ]]; then
 		echo "Thanks, $1 is a proper module name"
 	else
-		echo "Please, end the module with \"Module\""
-		exit 1
+		echo "Please, end the module with \"Module\"" 
+		read -p "We will keep it at a warning" 
 	fi
 else
-	echo "Please, do not use whitespaces"
-	exit 1
+	echo "Please, do not use whitespaces" 
+	read -p "Subsequent errors or at your own risk" 
 fi
 
 # Create the proper directory
