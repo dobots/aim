@@ -440,7 +440,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   elif p.paramType().kind() == 21: # sequence
                      self.st.out( "Bottle &" + param_name + "Prepare = " + portname + "->prepare();")
                      self.st.out( param_name + "Prepare.clear();")
-                     self.st.out("for (int i = 0; i < output.size(); ++i) {")
+                     self.st.out("for (int i = 0; i < " + param_name + ".size(); ++i) {")
                      self.st.inc_indent()
                      if seq_type == "int":
                          capValue = "Int"
@@ -448,7 +448,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                          capValue = "Double" # float's will be communicated as doubles
                      elif seq_type == "double":
                          capValue = "Double"
-                     self.st.out( param_name + "Prepare.add" + capValue + "(output[i]);")                     
+                     self.st.out( param_name + "Prepare.add" + capValue + "(" + param_name + "[i]);")                     
                      self.st.dec_indent()
                      self.st.out("}")
                   else:
