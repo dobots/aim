@@ -16,3 +16,6 @@ all:
 install:
 	@sh install.sh ${RUR_TEMPLATES}
 
+deinstall:
+	@sh deinstall.sh ${RUR_TEMPLATES}
+
