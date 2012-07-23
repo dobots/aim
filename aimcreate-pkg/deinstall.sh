@@ -4,10 +4,15 @@ RUR_TEMPLATES="$1"
 
 # Check if we have sudo rights
 if [ `id -u` -eq 0 ]; then
-	echo "Remove everything in ${RUR_TEMPLATES}"
+	read -p "Remove everything in ${RUR_TEMPLATES} [y/N]?: " goon
 else
 	echo "Sorry, super user rights needed (run with sudo)"
 	exit 1
+fi
+
+if [ "${goon}" != "y" ]; then
+	echo "Sorry, type \"y\" next time if you want to deinstall"
+	exit 0
 fi
 
 # Configuration directory for RUR
