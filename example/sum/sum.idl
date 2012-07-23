@@ -18,6 +18,8 @@ interface SumModule {
   // This becomes the method "writeOutput(const int data_out)"
   void Output(out long data_out);
 
+  // And just for testing purposes
+  void Test(in long just_test);
 };
 
 };

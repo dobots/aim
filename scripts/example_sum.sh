@@ -23,4 +23,4 @@ EXAMPLE_RESULT="SumModule.h"
 echo "./run.sh \"${EXAMPLE_DIR}/${EXAMPLE_FILE}\" > \"${EXAMPLE_DIR}/${EXAMPLE_RESULT}\""
 ./run.sh "${EXAMPLE_DIR}/${EXAMPLE_FILE}" "$backend" > "${EXAMPLE_DIR}/${EXAMPLE_RESULT}" 
 
-#cat "${EXAMPLE_DIR}/${EXAMPLE_RESULT}"
+cat "${EXAMPLE_DIR}/${EXAMPLE_RESULT}"

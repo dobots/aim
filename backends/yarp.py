@@ -245,7 +245,13 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "}" )
 
     def writeDestructor(self):
-        self.st.out( "~" + self.classname + "() { }" )
+        self.st.out( "~" + self.classname + "() {" )
+        self.st.inc_indent()
+        for m in self.portList:
+            self.writePortDestruction(m)
+        self.st.dec_indent()
+        self.st.out( "}" )   
+        
         
     def writeInit(self):
         self.st.out( "// This is the function you will need to implement." )
@@ -299,7 +305,6 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     # In the constructor we allocate the port, most often we will need a new BufferedPort with a 
     # Bottle as parameter. In case of a sequence we need to allocate a corresponding vector
     def writePortAllocation(self, node):
-        #self.st.out("")
         for p in node.parameters():
             param_name = p.identifier()
             self.extractNr(param_name)
@@ -307,11 +312,9 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             if iterator == '': 
                 iterator = '1'
             
-            #self.__prefix = "struct "
             self.__prefix = ""
             p.paramType().accept(self)
             param_type = self.__result_type
-            #param_type = p.aramType()
             
             if p.paramType().kind() == 3:
                 param_type = "Bottle"
@@ -322,6 +325,20 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                     self.st.out("port" + node.identifier() + "Values = new std::vector<" + seq_type + ">();")
                 param_type = "Bottle"
             self.st.out( "port" + node.identifier() + " = new BufferedPort<" + param_type + ">();")
+
+    # In the constructor we allocate the port, most often we will need a new BufferedPort with a 
+    # Bottle as parameter. In case of a sequence we need to allocate a corresponding vector
+    def writePortDestruction(self, node):
+        for p in node.parameters():
+            self.__prefix = ""
+            p.paramType().accept(self)
+            param_type = self.__result_type
+            if p.paramType().kind() == 21:
+                if p.is_in():
+                    self.getSeqType(param_type)
+                    seq_type = self.__result_type
+                    self.st.out("delete port" + node.identifier() + "Values;")
+            self.st.out("delete port" + node.identifier() + ";" ) 
 
     # In the Init() routine we open the port and if necessary set the default values of the corresponding
     # data structures 
@@ -341,13 +358,11 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 
             self.st.out("{")
             self.st.inc_indent()
-
             self.st.out( "std::stringstream portName; portName.str(""); portName.clear();" )
             self.st.out( "portName << \"" + '/' + self.classname.lower() + '\" << module_id << \"/' + node.identifier().lower() + "\";") # << " + itIndex + ";")
             self.st.out( portname + "->open(portName.str().c_str());")
-            
-            self.st.dec_indent() 
-            self.st.out("}")                  
+            self.st.dec_indent()
+            self.st.out("}")
 
     # The ports themselves will become again functions, like readInput() or writeOutput()
     # The result of this function will be a list of such functions
@@ -366,6 +381,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   if p.paramType().kind() == 21: # sequence
                      self.getSeqType(param_type)
                      seq_type = self.__result_type
+                     self.st.out( "// Remark: caller is responsible for evoking vector.clear()" )
                      self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool blocking=true) {" ) 
                   else:
                      self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking=true) {" )
@@ -374,11 +390,21 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.inc_indent()
                   if p.paramType().kind() == 3:
                      self.st.out( "Bottle *b = " + portname + "->read(blocking);") 
+                     self.st.out( "if (b != NULL) { " )
+                     self.st.inc_indent()
                      self.st.out( portname + "Value = b->get(0).asInt();") 
+                     self.st.dec_indent()
+                     self.st.out( "} else { " )
+                     self.st.inc_indent()
+                     self.st.out( portname + "Value = (int)NULL;") 
+                     self.st.dec_indent()
+                     self.st.out("}")
                      self.st.out( "return &" + portname + "Value;") 
                   elif p.paramType().kind() == 21: # sequence
                      self.st.out( "Bottle *b = " + portname + "->read(blocking);")
-                     self.st.out("for (int i = 0; i < b->size(); ++i) {")
+                     self.st.out( "if (b != NULL) { " )
+                     self.st.inc_indent()
+                     self.st.out( "for (int i = 0; i < b->size(); ++i) {")
                      self.st.inc_indent()
                      # Here we have YARP specific data types
                      if seq_type == "int":
@@ -388,6 +414,8 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      elif seq_type == "double":
                          asValue = "asDouble"
                      self.st.out( portname + "Values->push_back(b->get(i)." + asValue + "());")
+                     self.st.dec_indent()
+                     self.st.out("}")            
                      self.st.dec_indent()
                      self.st.out("}")            
                      self.st.out( "return " + portname + "Values;")
