@@ -393,13 +393,10 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      self.st.out( "if (b != NULL) { " )
                      self.st.inc_indent()
                      self.st.out( portname + "Value = b->get(0).asInt();") 
-                     self.st.dec_indent()
-                     self.st.out( "} else { " )
-                     self.st.inc_indent()
-                     self.st.out( portname + "Value = (int)NULL;") 
+                     self.st.out( "return &" + portname + "Value;") 
                      self.st.dec_indent()
                      self.st.out("}")
-                     self.st.out( "return &" + portname + "Value;") 
+                     self.st.out("return NULL;")
                   elif p.paramType().kind() == 21: # sequence
                      self.st.out( "Bottle *b = " + portname + "->read(blocking);")
                      self.st.out( "if (b != NULL) { " )
@@ -415,9 +412,9 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                          asValue = "asDouble"
                      self.st.out( portname + "Values->push_back(b->get(i)." + asValue + "());")
                      self.st.dec_indent()
-                     self.st.out("}")            
+                     self.st.out("}")
                      self.st.dec_indent()
-                     self.st.out("}")            
+                     self.st.out("}")
                      self.st.out( "return " + portname + "Values;")
                   else:
                      self.st.out( "return " + portname + "[index]->read(blocking);")
