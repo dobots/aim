@@ -366,18 +366,18 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   if p.paramType().kind() == 21: # sequence
                      self.getSeqType(param_type)
                      seq_type = self.__result_type
-                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "() {" ) 
+                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool blocking=true) {" ) 
                   else:
-                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "() {" )
+                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking=true) {" )
                      
                   # function content 
                   self.st.inc_indent()
                   if p.paramType().kind() == 3:
-                     self.st.out( "Bottle *b = " + portname + "->read();") 
+                     self.st.out( "Bottle *b = " + portname + "->read(blocking);") 
                      self.st.out( portname + "Value = b->get(0).asInt();") 
                      self.st.out( "return &" + portname + "Value;") 
                   elif p.paramType().kind() == 21: # sequence
-                     self.st.out( "Bottle *b = " + portname + "->read();")
+                     self.st.out( "Bottle *b = " + portname + "->read(blocking);")
                      self.st.out("for (int i = 0; i < b->size(); ++i) {")
                      self.st.inc_indent()
                      # Here we have YARP specific data types
@@ -392,7 +392,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      self.st.out("}")            
                      self.st.out( "return " + portname + "Values;")
                   else:
-                     self.st.out( "return " + portname + "[index]->read();")
+                     self.st.out( "return " + portname + "[index]->read(blocking);")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
