@@ -453,7 +453,7 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      self.st.out("}")
                   else:
                      self.st.out( param_type + "& " + param_name + "Prepare = " + portname + "->prepare();")
-                  self.st.out( portname + "->write();")
+                  self.st.out( portname + "->write(true);")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
