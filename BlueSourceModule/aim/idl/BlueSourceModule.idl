@@ -1,0 +1,39 @@
+/**
+ * IDL description of the BlueSourceModule
+ *
+ * This file is automatically parsed by the rurbuilder backends for the omniidl 
+ * compiler. The names of the functions will become port identifiers. The names 
+ * of the function variables are not used. For now, if the function variable 
+ * ends with a number, like "void Sensor(in long input2);" there will be two
+ * portnames created.
+ *
+ *
+ * Author: Anne C. van Rossum
+ * Copyright: 2012 (c) Almende
+ * Date: 26 Juli 2012
+ * License: LGPLv3 or Apache (free to choose)
+ */
+
+// Recommended namespace "rur"
+module rur {
+
+// The command-line parameters
+struct Param {
+  // multiple modules can be addressed in parallel, killed, etc. using "module_id"
+  string module_id;
+  // a certain parameter over the command-line (long becomes int) 
+  long sensor_id;
+};
+
+// Typedef for array of integers
+//typedef sequence<long> long_seq;
+
+// We want to be able to give our class a name
+interface BlueSourceModule {
+
+  // Output is one value each time
+  void Result(out long output);
+
+};
+
+};
