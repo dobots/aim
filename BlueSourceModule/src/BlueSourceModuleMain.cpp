@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+//#include <algorithm>
 
 using namespace rur;
 using namespace std;
@@ -42,6 +43,12 @@ int main(int argc, char *argv[])  {
 	std::string identifier = argv[1];
 
 	std::string bluetooth = argv[2];
+
+//	std::string buffer;
+//	buffer = "3031080100016523812901216101340131029080000016523912901215401360137036012000001652401290121400135013403408020001652411290121590";
+//	replace( buffer.begin(), buffer.end(), '\xa5', '\n' );
+//	cout << buffer << endl;
+//	return 1;
 
 	bool success = m->Init(identifier, bluetooth);
 	if (success) {

@@ -31,8 +31,28 @@ struct Param {
 // We want to be able to give our class a name
 interface BlueSourceModule {
 
-  // Output is one value each time
-  void Result(out long output);
+  // One value each time
+  void Microphone(out long microphone);
+
+  void Battery(out long battery);
+
+  void Light(out long light);
+
+  void Infrared(out long infrared);
+
+  void MotorCurrent1(out long motorcurrent1);
+
+  void MotorCurrent2(out long motorcurrent2);
+
+  void Wheel1(out long wheel1);
+
+  void Wheel2(out long wheel2);
+
+  void Led1(out long led1);
+
+  void Led2(out long led2);
+
+  void Led3(out long led3);
 
 };
 

@@ -30,6 +30,8 @@
 #include <locale>
 #include <functional>
 #include <iomanip>
+#include <fstream>
+#include <istream>
 
 /**
  * Local class that knows that colons can be treated as white spaces. It is used by the input stream.
@@ -81,6 +83,12 @@ public:
 
 	void Tick();
 
+	//! Parse the bluetooth messages (in syntax provided by Bart)
+	void ParseSyntaxBart();
+
+	//! Parse the bluetooth messages (in syntax provided by Luis)
+	void ParseSyntaxLuis();
+
 	//! Connect to bluetooth device with given address e.g. "01:23:45:67:89:AB"
 	bool Init(std::string module_id, std::string device);
 
@@ -99,6 +107,9 @@ private:
 
 	//! Read buffer
 	char buf[1024];
+
+	//! Input stream
+	std::ifstream is;
 };
 
 
