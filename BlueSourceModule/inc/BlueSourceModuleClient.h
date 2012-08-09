@@ -24,52 +24,36 @@
 #ifndef BLUESOURCEMODULECLIENT_H_
 #define BLUESOURCEMODULECLIENT_H_
 
-#include <sstream>
-#include <string>
 #include <BlueSourceModule.h>
-#include <locale>
-#include <functional>
-#include <iomanip>
-#include <fstream>
-#include <istream>
+
+/****************************************************************************************************
+ * Configuration
+ ***************************************************************************************************/
 
 /**
- * Local class that knows that colons can be treated as white spaces. It is used by the input stream.
+ * There are basically two protocols:
+ * - Ascii:   human-friendly formatted string format, basically only sending battery and light values
+ * - Binary:  human-unfriendly unformatted binary data in specific format
  */
-struct tabsep: std::ctype<char> {
-	tabsep(): std::ctype<char>(get_table()) {}
-	static std::ctype_base::mask const* get_table() {
-		static std::vector<std::ctype_base::mask>
-		rc(std::ctype<char>::table_size,std::ctype_base::mask());
-		rc['\t'] = std::ctype_base::space;
-		rc['{'] = std::ctype_base::space;
-		rc[' '] = std::ctype_base::space;
-		rc[':'] = std::ctype_base::space;
-		rc['\n'] = std::ctype_base::space;
-		return &rc[0];
-	}
-};
 
-class RobotSensors {
-public:
-	double time;
+#define ASCII 			1
+#define BINARY 			2
 
-	int light;
+#define PROTOCOL		BINARY
 
-	int battery;
+/****************************************************************************************************
+ * Use configuration figures
+ ***************************************************************************************************/
 
-	std::string s_time;
-	std::string s_light;
-	std::string s_battery;
-//private:
-	// append
-	friend std::istream& operator>>( std::istream& is, RobotSensors& r) {
-		is.imbue(std::locale(std::locale(), new tabsep));
-		is >> r.s_time >> r.s_light >> r.light >> r.s_battery >> r.battery;
-//		is >> r.s_time >> r.s_light >> r.s_battery;
-		return is;
-	}
-};
+#if (PROTOCOL == 1)
+#include <AsciiStream.h>
+#endif
+#if (PROTOCOL == 2)
+#include <BinaryStream.h>
+#endif
+/****************************************************************************************************
+ * Definition bluetooth client (robot functions as server)
+ ***************************************************************************************************/
 
 /**
  * Class that fulfills the role of a bluetooth client, connects to a bluetooth device
@@ -83,17 +67,18 @@ public:
 
 	void Tick();
 
+#if (PROTOCOL == 1)
 	//! Parse the bluetooth messages (in syntax provided by Bart)
-	void ParseSyntaxBart();
+	void ParseSyntaxAscii();
+#endif
 
+#if (PROTOCOL == 2)
 	//! Parse the bluetooth messages (in syntax provided by Luis)
-	void ParseSyntaxLuis();
+	void ParseSyntaxBinary();
+#endif
 
 	//! Connect to bluetooth device with given address e.g. "01:23:45:67:89:AB"
 	bool Init(std::string module_id, std::string device);
-
-	//! Returns 0 if there is nothing to read
-	int Read(std::string &buffer);
 
 	bool Write(const std::string buffer);
 
@@ -105,11 +90,15 @@ private:
 	//! Bluetooth address of device to connect to
 	std::string device;
 
-	//! Read buffer
-	char buf[1024];
+#if (PROTOCOL == 1)
+	//! Process ascii stream
+	AsciiStream *astream;
+#endif
+#if (PROTOCOL == 2)
+	//! Process binary stream
+	BinaryStream *stream;
+#endif
 
-	//! Input stream
-	std::ifstream is;
 };
 
 

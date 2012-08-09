@@ -30,11 +30,13 @@
 #include <algorithm>
 
 #include <BlueSourceModuleClient.h>
-
 #include <DotRobotSensors.h>
 
 using namespace std;
 
+/**
+ * Helper function that copies and at the same time copes with endianness.
+ */
 void copy(uint16_t *to, char *from, std::size_t size) {
 	int skip = 2;
 	for (std::size_t pos = 0; pos != (size<<skip); pos+=skip) {
@@ -42,38 +44,46 @@ void copy(uint16_t *to, char *from, std::size_t size) {
 	}
 }
 
-//! Helper function that searches for "0xa5 or 165 or 10100101"
-int sync(char* buf, int start, int end) {
-	for (int i = start; i < end; ++i) {
-		if (buf[i] == '\xa5') return i;
-	}
-	return -1;
-}
-
 BlueSourceModuleClient::BlueSourceModuleClient() {
-
+#if (PROTOCOL == 1)
+	astream = new AsciiStream(1024*8); // make buffer of 8kB
+#endif
+#if (PROTOCOL == 2)
+	stream = new BinaryStream(1024*8); // make buffer of 8kB
+#endif
 }
 
 BlueSourceModuleClient::~BlueSourceModuleClient() {
 
 }
 
+/**
+ * The normal function to call, it will read over bluetooth in either ascii or binary
+ * format.
+ */
 void BlueSourceModuleClient::Tick() {
 	BlueSourceModule::Tick();
 
-	//	ParseSyntaxBart();
-
-	ParseSyntaxLuis();
+#if (PROTOCOL == 1)
+	ParseSyntaxAscii();
+#endif
+#if (PROTOCOL == 2)
+	ParseSyntaxBinary();
+#endif
 }
 
-void BlueSourceModuleClient::ParseSyntaxBart() {
+#if (PROTOCOL == 1)
+/**
+ * Read in ASCII format (provided by Bart).
+ */
+void BlueSourceModuleClient::ParseSyntaxAscii() {
 	std::string buffer;
-	if (!Read(buffer)) return;
+	if (!astream->Read(buffer)) return;
 
-	RobotSensors s;
+	RobotSensors sensors;
 	std::stringstream m; m.clear(); m.str("");
 	m << buffer;
-	m >> s;
+	m >> sensors;
 #ifdef DEBUG
 	cout << "Time = " << s.s_time << endl;
 	cout << "Time value = " << s.time << endl;
@@ -82,41 +92,25 @@ void BlueSourceModuleClient::ParseSyntaxBart() {
 	cout << "Battery = " << s.s_battery << endl;
 	cout << "Battery level = " << s.battery << endl;
 #endif
-	if (s.s_battery == "Battery") {
-		cout << "Battery level = " << s.battery << endl;
-		writeBattery(s.battery);
+	if (sensors.s_battery == "Battery") {
+		cout << "Battery level = " << sensors.battery << endl;
+		writeBattery(sensors.battery);
 	}
 }
+#endif
 
-void BlueSourceModuleClient::ParseSyntaxLuis() {
-	int bytes_read = read(s, buf, sizeof(buf));
+#if (PROTOCOL == 2)
+/**
+ * Read in binary format (provided by Luis).
+ */
+void BlueSourceModuleClient::ParseSyntaxBinary() {
+	stream->ExpectedPacketSize(28);
 
-//	(s);
-
-	//! check for start codon
-	int start = sync(buf, 0, bytes_read);
-	if (bytes_read <= 0) return;
-
-	if (start <= 0) return;
-
-	if ((bytes_read - start) < 28) {
-		cout << "Not enough bytes left" << endl;
-	}
-
-	uint16_t buffertemp[28];
-	copy(buffertemp, buf+start, bytes_read/2);
-
-//		for (int i = 0; i < bytes_read/2) {
-	//
-	//	}
-
-	if (bytes_read != 14) {
-		cerr << "Wrong number of bytes in buffer " << bytes_read << " instead of 14" << endl;
-	}
+	char *raw_buf = stream->Read();
 	RobotSensors s;
 
 	uint16_t buffer[14];
-	copy(buffer, buf, 14);
+	copy(buffer, raw_buf, 14);
 
 	uint16_t val = buffer[Counter+2];
 	cout << "Received message: " << val << endl;
@@ -154,6 +148,7 @@ void BlueSourceModuleClient::ParseSyntaxLuis() {
 	val = buffer[Led3+2];
 	writeLed3(val);
 }
+#endif
 
 /**
  * Try to connect to device and return status. The string "device" should be of
@@ -195,23 +190,6 @@ bool BlueSourceModuleClient::Init(std::string module_id, std::string device) {
 	}
 
 	return (status == 0);
-}
-
-/**
- * Just read the bytes from a buffer and drops into a string. If there is nothing to read
- * it returns 0, else way the number of bytes as returned.
- */
-int BlueSourceModuleClient::Read(std::string &buffer) {
-	int bytes_read = read(s, buf, sizeof(buf));
-	if( bytes_read > 0 ) {
-#ifdef DEBUG
-		printf("received [%s]\n", buf);
-#endif
-		buffer = std::string(buf);
-	} else {
-		buffer = "";
-	}
-	return bytes_read;
 }
 
 /**
