@@ -153,7 +153,11 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out("")
         self.writeDestructor()
         self.st.out("")
+        self.writeTick()
+        self.st.out("")
         self.writeInit()
+        self.st.out("")
+        self.writeClose()
         self.st.out("")
 
         self.writeStructParam();
@@ -249,14 +253,16 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.inc_indent()
         for m in self.portList:
             self.writePortDestruction(m)
+        self.st.out("delete cliParam;" ) 
         self.st.dec_indent()
         self.st.out( "}" )   
-        
-        
-    def writeInit(self):
+
+    def writeTick(self):
         self.st.out( "// This is the function you will need to implement." )
         self.st.out( "void Tick(); ")
         self.st.out("")
+        
+    def writeInit(self):
         self.st.out( "// After construction you will need to call this function first" )
         self.st.out( "// it opens the YARP ports" )
         self.st.out( "void Init(std::string module_id) {" )
@@ -265,6 +271,16 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out("")	
         for p in self.portList:
             self.writePortInit(p)
+        self.st.dec_indent()
+        self.st.out( "}" )   
+
+    def writeClose(self):
+        self.st.out( "// Before destruction you will need to call this function first" )
+        self.st.out( "// it closes the YARP ports" )
+        self.st.out( "void Close() {" )
+        self.st.inc_indent()
+        for p in self.portList:
+            self.writePortClose(p)
         self.st.dec_indent()
         self.st.out( "}" )   
 
@@ -363,6 +379,22 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.st.out( portname + "->open(portName.str().c_str());")
             self.st.dec_indent()
             self.st.out("}")
+
+    def writePortClose(self, node):
+        for p in node.parameters():
+            param_name = p.identifier()
+            self.extractNr(param_name)
+            
+            self.__prefix = "struct "
+            p.paramType().accept(self)
+            param_type = self.__result_type
+            
+            portname = "port" + node.identifier()
+            
+            if p.paramType().kind() == 3:
+                param_type = "Bottle"
+
+            self.st.out( portname + "->close();")
 
     # The ports themselves will become again functions, like readInput() or writeOutput()
     # The result of this function will be a list of such functions
