@@ -26,13 +26,13 @@
 /**
  * Just ordinary ring buffer of
  */
-template <typename T>
+//template <typename T>
 class ring_buffer {
 public:
 	/**
 	 * Create a ring buffer. Default size is 128.
 	 */
-	ring_buffer(int size = 128): length(size), buffer(new T[size]) {
+	ring_buffer(int size = 128): length(size), buffer(new BUFFER_TYPE[size]) {
 		this->length = size;
 //		buffer = new BUFFER_TYPE[size];
 		pbuf_w = 0;
