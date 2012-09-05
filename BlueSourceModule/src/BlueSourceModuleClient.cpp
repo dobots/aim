@@ -37,7 +37,7 @@ using namespace std;
 /**
  * Helper function that copies and at the same time copes with endianness.
  */
-void copy(uint16_t *to, char *from, std::size_t size) {
+void copy(uint16_t *to, BUFFER_TYPE *from, std::size_t size) {
 	int skip = 2;
 	for (std::size_t pos = 0; pos != (size<<skip); pos+=skip) {
 		to[pos] = (((uint16_t)from[pos]) << 8) + from[pos];
@@ -50,6 +50,8 @@ BlueSourceModuleClient::BlueSourceModuleClient() {
 #endif
 #if (PROTOCOL == 2)
 	stream = new BinaryStream(1024*8); // make buffer of 8kB
+	stream->SetStartByte('\xa5');
+	stream->ExpectedPacketSize(28);
 #endif
 }
 
@@ -104,10 +106,7 @@ void BlueSourceModuleClient::ParseSyntaxAscii() {
  * Read in binary format (provided by Luis).
  */
 void BlueSourceModuleClient::ParseSyntaxBinary() {
-	stream->ExpectedPacketSize(28);
-
-	char *raw_buf = stream->Read();
-	RobotSensors s;
+	BUFFER_TYPE *raw_buf = stream->Read();
 
 	uint16_t buffer[14];
 	copy(buffer, raw_buf, 14);
@@ -147,6 +146,10 @@ void BlueSourceModuleClient::ParseSyntaxBinary() {
 
 	val = buffer[Led3+2];
 	writeLed3(val);
+
+
+	cout << "Wrote all values over yarp" << endl;
+	cerr << "Should deallocate message" << endl;
 }
 #endif
 
@@ -188,6 +191,14 @@ bool BlueSourceModuleClient::Init(std::string module_id, std::string device) {
 			break;
 		}
 	}
+
+#if (PROTOCOL == 1)
+	astream->open(s);
+#endif
+#if (PROTOCOL == 2)
+	stream->open(s);
+#endif
+
 
 	return (status == 0);
 }

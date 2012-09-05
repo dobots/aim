@@ -21,17 +21,25 @@
  * @case    Artificial Intelligence Framework
  */
 
+#define BUFFER_TYPE unsigned char
+
 /**
  * Just ordinary ring buffer of
  */
-class RingBuffer {
+template <typename T>
+class ring_buffer {
 public:
-	RingBuffer(int size) {
+	/**
+	 * Create a ring buffer. Default size is 128.
+	 */
+	ring_buffer(int size = 128): length(size), buffer(new T[size]) {
 		this->length = size;
-		buffer = new char[size];
+//		buffer = new BUFFER_TYPE[size];
+		pbuf_w = 0;
+		pbuf_r = length - 1;
 	}
 
-	~RingBuffer() {
+	~ring_buffer() {
 		delete [] buffer;
 	}
 
@@ -40,13 +48,13 @@ public:
 
 protected:
 
-	inline char *getBuffer() { return buffer; }
+//	inline char *getBuffer() { return buffer; }
 
 	//! Returns number of bytes that can be read (can be larger than "count")
 	int readN(int count);
 
 	//! Get the last count bytes
-	char *getLast(int count);
+	BUFFER_TYPE *getLast(int count);
 
 	//! Advance the pointer
 	void advance(int count);
@@ -63,14 +71,16 @@ protected:
 	//! Only protected use allowed, be careful with it
 	void set_pbuf_r(int pbuf_r);
 
+	inline int get_length() { return length; }
+
 	//! Find a certain character from a certain index respecting circularity of buffer
-	int find(char ch, int index, int max_len = -1);
+	int find(BUFFER_TYPE ch, int index, int max_len = -1);
 private:
 	//! File descriptor to be used (or socket descriptor)
 	int fd;
 
 	//! The buffer itself
-	char* buffer;
+	BUFFER_TYPE* buffer;
 
 	//! Buffer length
 	int length;

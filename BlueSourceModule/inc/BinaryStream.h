@@ -32,23 +32,25 @@
 /**
  * Read a binary stream from a socket or file
  */
-class BinaryStream: public RingBuffer {
+class BinaryStream: public ring_buffer {
 public:
-	BinaryStream(int size): RingBuffer(size) { }
+	BinaryStream(int size): ring_buffer(size) {
+		packets.clear();
+	}
 
 	~BinaryStream() { }
 
 	inline void open(int fd) {
-		RingBuffer::open(fd);
+		ring_buffer::open(fd);
 	}
 
 	/**
-	 *
+	 * The final read function
 	 */
-	char *Read();
+	BUFFER_TYPE *Read();
 
 	//! In the dotty protocol, the delimiter is \xa5 (decimal: 165)
-	inline void SetStartByte(char start_byte) { this->start_byte = start_byte; }
+	inline void SetStartByte(BUFFER_TYPE start_byte) { this->start_byte = start_byte; }
 
 	//! Set the packet size to work with
 	inline void ExpectedPacketSize(unsigned int size) {
@@ -63,10 +65,10 @@ protected:
 	void Sync();
 
 	//! Check if the proper start byte is used
-	bool check(char *packet);
+	bool check(BUFFER_TYPE *packet);
 private:
 	//! Start byte
-	char start_byte;
+	BUFFER_TYPE start_byte;
 
 	//! The size of an individual packet
 	unsigned int packet_size;
@@ -75,7 +77,7 @@ private:
 	unsigned char packet_count_per_read;
 
 	//! Packet
-	std::list<char*> packets;
+	std::list<BUFFER_TYPE*> packets;
 
 };
 

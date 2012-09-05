@@ -32,39 +32,47 @@ using namespace std;
 /**
  * Read a new packet from the stream
  */
-char* BinaryStream::Read() {
+BUFFER_TYPE* BinaryStream::Read() {
 	if (!packets.empty()) {
-		char *result = packets.front();
+		cout << "Packet container not empty" << endl;
+		BUFFER_TYPE *result = packets.front();
 		packets.pop_front();
 		return result;
 	}
 	do {
-		Sync();
-		char *packet = getLast(packet_size);
-		if (check(packet)) {
+		cout << "Get last packet" << endl;
+		BUFFER_TYPE *packet = getLast(packet_size);
+		if ((packet != NULL) && check(packet)) {
 			packets.push_back(packet);
+		} else {
+			cout << "Sync" << endl;
+			Sync();
+			sleep(1);
 		}
 	}
 	while (packets.empty());
-	char *result = packets.front();
+
+	BUFFER_TYPE *result = packets.front();
 	packets.pop_front();
 	return result;
 }
 
 void BinaryStream::Sync() {
-	int ind0, ind1;
+	int ind0, ind1, diff;
 	readN(packet_size*1);
-	ind1 = get_pbuf_r();
+	ind1 = get_pbuf_r()-1;
 	do {
 		readN(packet_size*2);
-		ind0 = find(start_byte, ind1);
-		ind1 = find(start_byte, ind0);
+		ind0 = find(start_byte, ind1+1);
+		ind1 = find(start_byte, ind0+1);
+		diff = (ind1 - ind0 + get_length()) % get_length();
+		cout << "Compare " << ind1 << " and " << ind0 << " = " << diff << " with " << packet_size << endl;
 	}
-	while ((ind1 - ind0) != packet_size);
+	while (diff != (packet_size + 1));
 	cout << "Cool found two start bytes exactly packet size from each other" << endl;
 	set_pbuf_r(ind0);
 }
 
-bool BinaryStream::check(char *packet) {
+bool BinaryStream::check(BUFFER_TYPE *packet) {
 	return (packet[0] == start_byte);
 }
