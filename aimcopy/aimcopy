@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# Script to copy a module, so that you have the basic layout
+#
+
+PROGRAM="aimcopy" # or $0
+
+VERSION="$PROGRAM 0.1"
+
+sourcemodule=$1
+destmodule=$2
+
+if [ "$1" = "-h" ]; then
+	echo $VERSION \- Usage
+	echo
+	echo "$PROGRAM <source module name> <destination module name>"
+	exit 0
+elif [ $# -ne 2 ]
+then
+	echo "Two arguments expected"
+	echo "see $PROGRAM -h"
+	exit 1
+fi 
+
+
+if [ -s $destmodule ]; then
+	echo "${destmodule} already exists!"
+	exit 1
+fi
+
+mn_sanity_check=${destmodule//[[:space:]]}
+if [[ "$mn_sanity_check" == "$destmodule" ]]; then
+	if [[ "$destmodule" == *Module ]]; then
+		echo "Thanks, $destmodule is a proper module name"
+	else
+		echo "Please, end the module with \"Module\"" 
+		read -p "We will keep it at a warning (to use your module with Threenodes.js and aimregister)" 
+	fi
+else
+	echo "Please, do not use whitespaces" 
+	read -p "Subsequent errors or at your own risk (to use your module with Threenodes.js and aimregister)" 
+fi
+
+destname=`echo "$destmodule" | sed -e 's/Module//g'`
+sourcename=`echo "$sourcemodule" | sed -e 's/Module//g'`
+
+destsubmodule=${destname}SubModule
+sourcesubmodule=${sourcename}SubModule
+
+# Copy files
+rsync -r --exclude=.svn --exclude=build --exclude=aim/src/* --exclude=aim/inc/* ${sourcemodule}/* ${destmodule}
+
+# Replace occurances recursively 
+find ${destmodule}/ -type f -exec sed -i -r "s/${sourcemodule}/${destmodule}/g" {} \;
+find ${destmodule}/ -type f -exec sed -i -r "s/${sourcesubmodule}/${destsubmodule}/g" {} \;
+
+# Rename understands regular expressions, so easier than move, it is however not recursive
+# find is not used here, if destmodule happens to be empty somehow this would potentionally
+# run havoc on / recursively which we do not want :-)
+rename "s/${sourcemodule}/${destmodule}/g" ${destmodule}/*
+rename "s/${sourcemodule}/${destmodule}/g" ${destmodule}/inc/*
+rename "s/${sourcemodule}/${destmodule}/g" ${destmodule}/src/*
+rename "s/${sourcemodule}/${destmodule}/g" ${destmodule}/aim/idl/*
+
+rename "s/${sourcesubmodule}/${destsubmodule}/g" ${destmodule}/*
+rename "s/${sourcesubmodule}/${destsubmodule}/g" ${destmodule}/inc/*
+rename "s/${sourcesubmodule}/${destsubmodule}/g" ${destmodule}/src/*
+rename "s/${sourcesubmodule}/${destsubmodule}/g" ${destmodule}/aim/idl/*
+
+echo "Copied and renamed files (done)"
