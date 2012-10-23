@@ -27,6 +27,16 @@ echo "We will use backend \"$backend\""
 IDL_FILE="../idl/TemplateModule.idl"
 RESULT="../inc/TemplateModule.h"
 
+OMNIIDL=`which omniidl`
+if [[ $OMNIIDL == "" ]]; then
+	echo "[!] There is no omniidl installed!"
+	rm -f $RESULT.invalid
+	if [ -a $RESULT ]; then
+		mv -f $RESULT $RESULT.invalid
+	fi
+	exit 2
+fi
+
 ./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT}" 
 
 
