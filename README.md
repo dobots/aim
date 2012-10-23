@@ -16,6 +16,8 @@ There are no known alternatives. Most modular approaches tie the user to a certa
 
 ## How to install?
 The AIM tools work together with the [rur-builder](https://github.com/mrquincle/rur-builder). To install:
+
+* sudo apt-get install omniidl # the only dependency
 * cd /opt
 * git clone https://github.com/mrquincle/rur-builder.git
 * git clone https://github.com/mrquincle/aimtools.git
@@ -24,6 +26,14 @@ The AIM tools work together with the [rur-builder](https://github.com/mrquincle/
 * make; sudo make install # on the question fill in the proper rur-builder/backends directory
 * cd "your workspace"
 * aimcreate-pkg YourModule # convention: all AIM binaries end with "Module"
+
+## How to install YARP?
+The YARP middleware is optionally. To install on Ubuntu:
+
+* sudo add-apt-repository ppa:yarpers/yarp
+* sudo apt-get update
+* sudo apt-cache search yarp
+* sudo apt-get install libyarp yarp-bin # and perhaps yarp-view
 
 ## Example
 Now you will have a module created for you. You should be able to run "make" directly in it. This will use the default .idl file and generate the proper "YourModule.h" header file in the "aim" directory.
