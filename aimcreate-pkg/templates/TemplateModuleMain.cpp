@@ -44,7 +44,7 @@ int main(int argc, char *argv[])  {
 
 	do {
 		m->Tick();
-	} while (true); 
+	} while (!m->Stop()); 
 
 	delete m;
 

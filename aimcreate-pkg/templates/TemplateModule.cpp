@@ -27,3 +27,8 @@ using namespace rur;
 void TemplateModule::Tick() {
 
 }
+
+bool TemplateModule::Stop() {
+	return false;
+}
+
