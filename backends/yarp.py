@@ -261,6 +261,8 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "// This is the function you will need to implement." )
         self.st.out( "void Tick(); ")
         self.st.out("")
+        self.st.out( "bool Stop(); ")
+        self.st.out("")
         
     def writeInit(self):
         self.st.out( "// After construction you will need to call this function first" )

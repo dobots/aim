@@ -210,6 +210,8 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     def writeInit(self):
         self.st.out( "void Tick();" )
         self.st.out( "" )
+        self.st.out( "bool Stop();" )	
+        self.st.out( "" )
         self.st.out( "void Init(std::string & name) { }" )
     
     def writePorts(self):
