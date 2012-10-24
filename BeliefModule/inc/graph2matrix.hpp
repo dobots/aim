@@ -49,7 +49,8 @@ public:
 
 	~graph2matrix() {}
 
-	matrix* copy(const graph<T> &g) {
+	template <ClassImplType impl_type>
+	matrix* copy(const graph<T,impl_type> &g) {
 		matrix *m = new matrix(g.size(), g.size());
 
 		typename graph<T>::const_iterator i;

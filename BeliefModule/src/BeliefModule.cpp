@@ -33,9 +33,11 @@ using namespace std;
 
 typedef float ValueType;
 
+//! Define the type of implementation we want
+const ClassImplType impl_type = CIT_CHECK;
+
 void BeliefModule::Tick() {
-//	graph<ValueType, CIT_FAST> g;
-	graph<ValueType> g;
+	graph<ValueType, impl_type> g;
 	vertex<ValueType> *v1 = new vertex<ValueType>();
 	vertex<ValueType> *v2 = new vertex<ValueType>();
 	vertex<ValueType> *v3 = new vertex<ValueType>();
@@ -53,9 +55,9 @@ void BeliefModule::Tick() {
 #ifdef BUILD_EIGEN
 	graph2matrix<ValueType> g2m;
 	graph2matrix<ValueType>::matrix *m;
-
 	m = g2m.copy(g);
 
+	// print matrix
 	cout << *m << endl;
 #endif
 

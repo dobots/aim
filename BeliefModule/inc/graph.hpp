@@ -86,7 +86,11 @@ public:
     typedef vertex<T>                                               dereference;
     typedef const vertex<T>                                         const_dereference;
 
-	graph() {}
+	graph() {
+		if (impl_type == CIT_GPU) {
+			std::cerr << "Class not implemented in this way!" << std::endl;
+		}
+	}
 
 	~graph() {}
 
@@ -237,8 +241,11 @@ private:
 	vertex_container to;
 	vertex_container from;
 
+	//! Do we really have to list as friends all possible enum values?
 	friend class graph<T, CIT_CHECK>;
 	friend class graph<T, CIT_FAST>;
+	friend class graph<T, CIT_GPU>;
+	friend class graph<T, CIT_SSE>;
 };
 
 
