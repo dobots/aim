@@ -40,6 +40,11 @@
 
 #include <graph.hpp>
 
+/**
+ * A class that generates a sparse matrix from a graph. The resulting matrix is an
+ * adjacency matrix, so will just have "1s" at the locations where there is an edge.
+ * There are no actual edge labels or values.
+ */
 template <typename T>
 class graph2matrix {
 public:
@@ -49,23 +54,29 @@ public:
 
 	~graph2matrix() {}
 
+	/**
+	 * Copy the graph to a sparse matrix from the Eigen library. The sparse matrix is a
+	 * very specific structure, so inserting an element is of large order O(nmm), where
+	 * nmm stands for the number of non-zero elements already in the matrix. Hence, the
+	 * developers of Eigen recommend an intermediate structure, the triplet, to populate
+	 * the matrix at once.
+	 */
 	template <ClassImplType impl_type>
 	matrix* copy(const graph<T,impl_type> &g) {
 		matrix *m = new matrix(g.size(), g.size());
 
 		typename graph<T>::const_iterator i;
-		typename vertex<T>::iterator j;
+		typename vertex<T>::const_iterator j;
 
 		typedef Eigen::Triplet<double> triplet;
 		std::vector<triplet> triplets;
-		triplets.reserve(g.size());
+		triplets.reserve(g.size()*3); // assume three edges per vertex on average
 
 		for (i = g.begin(); i != g.end(); ++i) {
-			vertex<T> *v_src = *i;
-
-			for (j = v_src->to_begin(); j != v_src->to_end(); ++j) {
-				vertex<T> *v_dest = *j;
-				triplets.push_back(triplet(v_src->index(), v_dest->index(), 1));
+			const vertex<T> &v_src = **i;
+			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
+				long int dest_index = *j;
+				triplets.push_back(triplet(v_src.index(), dest_index, 1));
 			}
 		}
 		m->setFromTriplets(triplets.begin(), triplets.end());

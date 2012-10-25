@@ -38,34 +38,46 @@ const ClassImplType impl_type = CIT_CHECK;
 
 void BeliefModule::Tick() {
 	graph<ValueType, impl_type> g;
-	vertex<ValueType> *v1 = new vertex<ValueType>();
-	vertex<ValueType> *v2 = new vertex<ValueType>();
-	vertex<ValueType> *v3 = new vertex<ValueType>();
-	g.push(*v1);
-	g.push(*v2);
-	g.push(*v3);
-	g.push(*v1, *v3);
-	g.push(*v1, *v2);
-	g.push(*v3, *v2);
-	g.push(*v2, *v3);
+	vertex<ValueType> v0(VT_VARIABLE); // = new vertex<ValueType>();
+	vertex<ValueType> v1(VT_VARIABLE);
+	vertex<ValueType> v2(VT_FACTOR);
+	g.push(v0);
+	g.push(v1);
+	g.push(v2);
+	g.push(&v0, &v2);
+	g.push(&v1, &v2);
+
+	// i have to check if the references are actually properly updated after a copy
+	// because they should now refer to the newly created vertices
+//	vertex<ValueType> v3(VT_VARIABLE);
+//	v3 = v2;
+//	cout << "Vertex copy: " << v3.index() << endl;
 
 	//  print graph
-	cout << "Graph {src} {dest}: " << endl << g << endl;
+	cout << "Original graph " << endl << endl;
+	cout << g << endl;
+
+	cout << "Make the graph into a tree" << endl << endl;
+	tree<ValueType, impl_type> t(g);
+
+	cout << t << endl;
 
 #ifdef BUILD_EIGEN
+	cout << "Build matrix from graph" << endl << endl;
 	graph2matrix<ValueType> g2m;
 	graph2matrix<ValueType>::matrix *m;
 	m = g2m.copy(g);
+	cout << *m << endl;
 
-	// print matrix
+	cout << "Build matrix from tree" << endl << endl;
+	m = g2m.copy(t);
 	cout << *m << endl;
 #endif
-
-	delete v1;
-	delete v2;
-	delete v3;
 }
 
+/**
+ * Make the modules stop after one step by returning true directly.
+ */
 bool BeliefModule::Stop() {
 	return true;
 }
