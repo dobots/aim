@@ -33,6 +33,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <cassert>
 
 //! A virtual infinite supply of identifiers for vertices
 static long int uuid = -1;
@@ -108,7 +109,9 @@ public:
 		}
 	}
 
-	~graph() {}
+	~graph() {
+		erase();
+	}
 
 	/**
 	 * Copy all vertices individually or else way only the pointer is copied. This is also
@@ -137,8 +140,8 @@ public:
 				return false;
 			}
 		}
-		src->to.push_back(dest->id);
-		dest->from.push_back(src->id);
+		src->to.push_back(std::make_pair(dest->id,new T(0)));
+		dest->from.push_back(std::make_pair(src->id,new T(0)));
 		return true;
 	}
 
@@ -184,8 +187,18 @@ public:
 	reverse_iterator rend() { return vertices.rend(); }
 	const_reverse_iterator rend() const { return vertices.rend(); }
 
-	reference operator[](size_type n) { return vertices[n]; }
-	const_reference operator[](size_type n) const { return vertices[n]; }
+	reference operator[](size_type n) {
+		if (impl_type == CIT_CHECK) {
+			assert (vertices[n]->id == n);
+		}
+		return vertices[n];
+	}
+	const_reference operator[](size_type n) const {
+		if (impl_type == CIT_CHECK) {
+			assert (vertices[n]->id == n);
+		}
+		return vertices[n];
+	}
 
 	reference front() { return vertices.front(); }
 	const_reference front() const { return vertices.front(); }
@@ -205,6 +218,12 @@ public:
 	dereference d_back() { return *vertices.back(); }
 	const_dereference d_back() const { return *vertices.back(); }
 
+	void erase() {
+		for (int i = 0; i < vertices.size(); ++i) {
+			delete vertices[i];
+		}
+	}
+
 	template<class U, ClassImplType I>
 	friend class tree;
 protected:
@@ -221,6 +240,12 @@ private:
 	vertex_container vertices;
 };
 
+/**
+ * A tree is just a graph without some edges. There are however different edges to remove. Our goal is
+ * message passing, so the way the edges are removed is quite specific. It is an algorithm called the
+ * "junction tree algorithm" and it automatically is applied when a graph is assigned to the tree
+ * object.
+ */
 template <typename T, ClassImplType impl_type = CIT_CHECK>
 class tree: public graph<T,impl_type> {
 public:
@@ -258,6 +283,8 @@ public:
 			vertex<T> &v_src = **i;
 			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
 				if (find(v_src.from_begin(), v_src.from_end(), *j) == v_src.from_end()) {
+					// copy entire "pair", so reference to object should be copied, hence
+					// the message on "from" will be the same as the message on "to" automatically
 					v_src.from.push_back(*j);
 				}
 			}
@@ -291,11 +318,11 @@ public:
 /**
  * The implementation of the vertex class.
  */
-template <typename T>
+template <typename T> //, VertexType vtype = VT_VARIABLE>
 class vertex {
 public:
-	//! Note that for the neighbours of vertices we store only references
-	typedef std::vector<long int> vertex_index_container;
+	//! Note that for the neighbours of vertices we store only references plus a message of type T
+	typedef std::vector<std::pair <long int, T* > > vertex_index_container;
 	typedef typename vertex_index_container::value_type                   value_type;
 	typedef typename vertex_index_container::size_type                    size_type;
 	typedef typename vertex_index_container::difference_type              difference_type;
@@ -311,18 +338,19 @@ public:
 	typedef typename vertex_index_container::allocator_type               allocator_type;
 
 	vertex(VertexType type): value(0), id(++uuid), vtype(type) {
-		if (type == VT_VARIABLE) value = 1;
+		if (vtype == VT_VARIABLE) value = 1;
 		to.clear();
 		from.clear();
 	}
-	~vertex() {}
+	virtual ~vertex() {}
 
 	vertex(const vertex<T> &other) {
+		std::cerr << "Debug: copy construction on vertex " << other.id; std::endl(std::cerr);
 		value = other.value;
 		id = other.id;
 		vtype = other.vtype;
 		to = other.to;
-		from = other.from; // incorrect
+		from = other.from;
 	}
 
 	bool operator==(const vertex<T> & other) const {
@@ -330,14 +358,26 @@ public:
 	}
 
 	// TODO: use the copy-and-swap idiom
-//	vertex<T> & operator=(const vertex<T> &other) {
-//		value = other.value;
-//		id = other.id;
-//		vtype = other.vtype;
-//		to = other.to;
-//		from = other.from;
-//		return *this;
-//	}
+	vertex<T> & operator=(const vertex<T> &other) {
+		std::cerr << "Debug: copy action on vertex " << other.id; std::endl(std::cerr);
+		value = other.value;
+		id = other.id;
+		vtype = other.vtype;
+		to = other.to;
+		from = other.from;
+		return *this;
+	}
+
+	/**
+	 * For factor nodes overload this function. It should for example mark the probability
+	 * of a label variable given a pixel value variable.
+	 */
+	virtual T function() { return 0; }
+
+	inline long int index() const { return id; }
+	inline VertexType getType() const  { return vtype; }
+	inline void setValue(T value) { this->value = value; }
+	inline T getValue() const { return value; }
 
 	/**
 	 * Friend inline. We use the "introvert" variant of the serial operator. The vertex needs to be
@@ -347,11 +387,11 @@ public:
 	 */
 	friend std::ostream& operator<<(std::ostream & os, const vertex & v) {
 		os << v.id << "[" << v.value << "](" << v.vtype << "): {";
-		if (!v.from.empty()) os << v.from[0]; //->id;
-		for (int i = 1; i < v.from.size(); ++i) os << ',' << v.from[i];//->id;
+		if (!v.from.empty()) os << v.from[0].first;
+		for (int i = 1; i < v.from.size(); ++i) os << ',' << v.from[i].first;
 		os << "} {";
-		if (!v.to.empty()) os << v.to[0];//->id;
-		for (int i = 1; i < v.to.size(); ++i) os << ',' << v.to[i]; //->id;
+		if (!v.to.empty()) os << v.to[0].first;
+		for (int i = 1; i < v.to.size(); ++i) os << ',' << v.to[i].first;
 		os << "}";
 		return os;
 	}
@@ -365,8 +405,14 @@ public:
 	iterator from_end() { return from.end(); }
 	const_iterator from_end() const { return from.end(); }
 
-	inline long int index() const { return id; }
+	size_t from_size() const { return from.size(); }
+	size_t to_size() const { return to.size(); }
 
+	reference from_at(size_t n) { return from[n]; }
+	const_reference from_at(size_t n) const { return from[n]; }
+
+	reference to_at(size_t n) { return to[n]; }
+	const_reference to_at(size_t n) const { return to[n]; }
 private:
 	// Value on the node, can be used to accumulate incoming messages
 	T value;

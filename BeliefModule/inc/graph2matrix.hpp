@@ -37,8 +37,9 @@
 #define GRAPH2MATRIX_HPP_
 
 #include <Eigen/SparseCore>
-
 #include <graph.hpp>
+
+namespace dobots {
 
 /**
  * A class that generates a sparse matrix from a graph. The resulting matrix is an
@@ -75,7 +76,7 @@ public:
 		for (i = g.begin(); i != g.end(); ++i) {
 			const vertex<T> &v_src = **i;
 			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
-				long int dest_index = *j;
+				long int dest_index = j->first;
 				triplets.push_back(triplet(v_src.index(), dest_index, 1));
 			}
 		}
@@ -85,8 +86,8 @@ public:
 private:
 };
 
-
+}
 
 #endif /* GRAPH2MATRIX_HPP_ */
 
-#endif
+#endif // BUILD_EIGEN
