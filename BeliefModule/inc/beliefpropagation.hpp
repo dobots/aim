@@ -42,7 +42,7 @@ namespace dobots {
  * It is the state of a visible variable which just shouldn't be adjusted. The ones
  * from the segmentation or depth map should however be adjusted.
  */
-template <typename T>
+template <typename T, typename P = float, typename M = float, typename N = size_t>
 class beliefpropagation {
 public:
 	beliefpropagation(): convergence(false) {}
@@ -52,19 +52,20 @@ public:
 	 * the convergence parameter is set, see @ converged().
 	 */
 	template <ClassImplType impl_type>
-	void tick(const graph<T,impl_type> &g) {
+	void tick(const graph<T,P,M,N,impl_type> &g) {
 		if (!undirected(g)) {
 			std::cerr << "Graph should be undirected" << std::endl;
 			return;
 		}
-		typename graph<T>::const_iterator i;
-		for (i = g.begin(); i != g.end(); ++i) {
-			vertex<T> &v = **i;
-			if (v.getType() == VT_FACTOR) {
-				tick_factor(g, v);
-			} else {
-				tick_variable(g, v);
-			}
+		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
+		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
+			variable<T,P,M,N> &v = **v_i;
+			tick_variable(g, v);
+		}
+		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
+		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
+			factor<T> &v = **f_i;
+			tick_factor(g, v);
 		}
 
 	}
@@ -77,49 +78,41 @@ protected:
 	 * "from" array are also in the "to" array.
 	 */
 	template <ClassImplType impl_type>
-	bool undirected(const graph<T,impl_type> &g) {
-		typename graph<T>::const_iterator i;
+	bool undirected(const graph<T,P,M,N,impl_type> &g) {
+		typename graph<T,P,M,N,impl_type>::const_iterator i;
 		typename vertex<T>::const_iterator j;
-		for (i = g.begin(); i != g.end(); ++i) {
-			vertex<T> &v = **i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-					return false;
-				}
-			}
-		}
+//		for (i = g.begin(); i != g.end(); ++i) {
+//			vertex<T> &v = **i;
+//			for (j = v.from_begin(); j != v.from_end(); ++j) {
+//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
+//					return false;
+//				}
+//			}
+//		}
 		return true;
 	}
-
-//	template <ClassImplType impl_type>
-//	void factor_function(const graph<T,impl_type> &g, const vertex<T> & v, const vertex<T> & exclude) {
-//		// v is factor node, exclude is variable node that needs to be excluded
-//		std::vector<T> variables; variables.clear();
-//		for (int i = 0; i < v.to_size(); ++i) {
-//			if (v.from_at(i).first != exclude.index())
-//				variables.push_back(*v.from_at(i).second);
-//		}
-//		// let's take as function f on a factor node is here an average
-//		return std::accumulate(variables.begin(), variables.end(), 0.0) / variables.size();
-//	}
 
 	/**
 	 * @assumes an undirected graph
 	 */
 	template <ClassImplType impl_type>
-	void tick_factor(const graph<T,impl_type> &g, vertex<T> & v) {
+	void tick_factor(const graph<T,P,M,N,impl_type> &g, vertex<T> & v) {
 		T product = T(1);
-		// leaf, send something
-		if (v.from_size() == 1) {
-		}
 
+		if (v.from_size() != 1) {
+			for (int i = 0; i < v.from_size(); ++i) {
+				product *= *v.from_at(i).second;
+			}
+		}
 		for (int i = 0; i < v.to_size(); ++i) {
+			// product part of the message
+			T message = product ? (product / *v.from_at(i).second) : 0;
+
 			// take all possible combinations of variable nodes that are pointing towards this factor node, except for v.to[i]
 			// and perform factor function vertex.function(node values) on them
 			// each time multiplied by the message from this node
 			// and eventually a function defined on that variable node
-			v.function();
-
+			*v.to_at(i).second = v.function(v.to_at(i).first) * message;
 		}
 	}
 
@@ -133,7 +126,7 @@ protected:
 	 * @param v				factor node
 	 */
 	template <ClassImplType impl_type>
-	void tick_variable(const graph<T,impl_type> &g, vertex<T> & v) {
+	void tick_variable(const graph<T,P,M,N,impl_type> &g, vertex<T> & v) {
 		T product = T(1);
 		// leaf, send uniform distribution
 		if (v.from_size() == 1) {

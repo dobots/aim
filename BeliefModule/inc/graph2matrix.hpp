@@ -46,7 +46,7 @@ namespace dobots {
  * adjacency matrix, so will just have "1s" at the locations where there is an edge.
  * There are no actual edge labels or values.
  */
-template <typename T>
+template <typename T, typename P = float, typename M = float, typename N = size_t>
 class graph2matrix {
 public:
 	typedef Eigen::SparseMatrix<T> matrix;
@@ -63,18 +63,26 @@ public:
 	 * the matrix at once.
 	 */
 	template <ClassImplType impl_type>
-	matrix* copy(const graph<T,impl_type> &g) {
+	matrix* copy(const graph<T,P,M,N,impl_type> &g) {
 		matrix *m = new matrix(g.size(), g.size());
 
-		typename graph<T>::const_iterator i;
-		typename vertex<T>::const_iterator j;
+		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
+		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
+		typename vertex<T,P,M,N>::const_iterator j;
 
-		typedef Eigen::Triplet<double> triplet;
+		typedef Eigen::Triplet<P> triplet;
 		std::vector<triplet> triplets;
 		triplets.reserve(g.size()*3); // assume three edges per vertex on average
 
-		for (i = g.begin(); i != g.end(); ++i) {
-			const vertex<T> &v_src = **i;
+		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
+			const variable<T,P,M,N> &v_src = **v_i;
+			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
+				long int dest_index = j->first;
+				triplets.push_back(triplet(v_src.index(), dest_index, 1));
+			}
+		}
+		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
+			const factor<T,P,M,N> &v_src = **f_i;
 			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
 				long int dest_index = j->first;
 				triplets.push_back(triplet(v_src.index(), dest_index, 1));

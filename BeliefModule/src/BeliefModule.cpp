@@ -34,7 +34,11 @@ using namespace rur;
 using namespace std;
 using namespace dobots;
 
-typedef float ValueType;
+//typedef bool ValueType;
+typedef size_t ValueType;
+//typedef unsigned char ValueType;
+
+typedef double ProbType;
 
 //! Define the type of implementation we want
 const ClassImplType impl_type = CIT_CHECK;
@@ -42,116 +46,138 @@ const ClassImplType impl_type = CIT_CHECK;
 /**
  * Observation
  */
-class ObsFactor: public vertex<ValueType> {
-public:
-	ObsFactor(): vertex<ValueType>(VT_FACTOR) {};
-
-	ValueType function() {
-		assert (from_size() == 1);
-		assert (to_size() == 1);
-		return abs(*to_at(0).second - *from_at(0).second);
-	}
-};
-
-class SmoothFactor: public vertex<ValueType> {
-public:
-	SmoothFactor(): vertex<ValueType>(VT_FACTOR) {};
-
-	ValueType function() {
-		assert (from_size() == 1);
-		assert (to_size() == 1);
-		//		for (int i = 0; i < 0; ++i) {		}
-		return abs(*to_at(0).second - *from_at(0).second);
-	}
-};
+//class ObsFactor: public vertex<ValueType> {
+//public:
+//	ObsFactor(): vertex<ValueType>(VT_FACTOR) {};
+//
+//	ValueType function(size_type index) {
+//		assert (from_size() == 0);
+//		assert (to_size() == 1);
+//		return abs(*to_at(0).second - *from_at(0).second);
+//	}
+//};
+//
+//class SmoothFactor: public vertex<ValueType> {
+//public:
+//	SmoothFactor(): vertex<ValueType>(VT_FACTOR) {};
+//
+//	ValueType function(size_type index) {
+//		assert (from_size() == 1);
+//		assert (to_size() == 1);
+//		for (int i = 0; i < to_size(); ++i) {
+//			// if there would be more, we should sum here in the sum-product algorithm...
+//		}
+//		return abs(*to_at(0).second - *from_at(0).second);
+//	}
+//};
 
 void simple_example() {
-	graph<ValueType, impl_type> g;
-	vertex<ValueType> v0(VT_VARIABLE);
-	vertex<ValueType> v1(VT_VARIABLE);
-	vertex<ValueType> v2(VT_FACTOR);
-	g.push(v0);
-	g.push(v1);
-	g.push(v2);
-	g.push(&v0, &v2);
-	g.push(&v1, &v2);
-	v0.setValue(0.3);
-	v1.setValue(0.4);
-	v2.setValue(0.5);
+//	graph<ValueType, impl_type> g;
+//	vertex<ValueType> v0(VT_VARIABLE);
+//	vertex<ValueType> v1(VT_VARIABLE);
+//	vertex<ValueType> v2(VT_FACTOR);
+//	g.push(v0);
+//	g.push(v1);
+//	g.push(v2);
+//	g.push(&v0, &v2);
+//	g.push(&v1, &v2);
+//	v0.setValue(0.3);
+//	v1.setValue(0.4);
+//	v2.setValue(0.5);
 }
 
+/**
+ * Conditional probability of S given C
+ *  P_S_given_C.set(0, 0.5);   // C = 0, S = 0
+ *  P_S_given_C.set(1, 0.9);   // C = 1, S = 0
+ *  P_S_given_C.set(2, 0.5);   // C = 0, S = 1
+ *  P_S_given_C.set(3, 0.1);   // C = 1, S = 1
+ */
+//class CloudySprinklerFactor: public factor<ValueType, double> {
+//public:
+//	CloudySprinklerFactor() {
+//		typedef factor<ValueType, double> super;
+//		super::push_back(0.5);
+//		super::push_back(0.9);
+//		super::push_back(0.5);
+//		super::push_back(0.1);
+//	};
+//};
 
+typedef graph<int,ValueType,ValueType,int,impl_type> graph_type;
+typedef variable<int,ValueType,ValueType,int> variable_type;
+typedef factor<int,ValueType,ValueType,int> factor_type;
+typedef graph2matrix<int,ValueType,ValueType,int> graph2matrix_type;
+/**
+ * All belief propagation steps will be done in one tick.
+ */
 void BeliefModule::Tick() {
-	graph<ValueType, impl_type> g;
+	graph_type g;
 
 	// create and load vertices with values from an image
-	int pixel_count_sqrt = 2;
-	int pixel_count = pixel_count_sqrt*pixel_count_sqrt;
-	std::vector< vertex<ValueType> * > image;
-	cout << "Create variable nodes per pixel" << endl;
+	int L = 2;
+	int pixel_count = L*L;
+	std::vector< variable_type * > image;
+
+	double th_min = -3.0; double th_max = 3.2;
+	double th_avg = (th_min + th_max) / 2.0;
+	double th_width = (th_max - th_min) / 2.0;
+	double scale = 40;
+	double level = 50;
+
+	probability<double,char,4> p;
+	p.outcome[0] = 0.2;
+	p.outcome[1] = 0.1;
+	p.outcome[2] = 0.5;
+	p.outcome[3] = 0.2;
+	cout << "Probability test: " << p << '\n';
+
+	cout << "Create variable nodes, one for each pixel" << endl;
+	cout << "These are binary variables, no pixel values!" << endl;
+	cout << "And these values are undefined, only their ordinality is given (binary)." << endl;
+	cout << "Image information enters the factor graph through the factor nodes." << endl;
 	for (int i = 0; i < pixel_count; ++i) {
-		vertex<ValueType> *pixel = new vertex<ValueType>(VT_VARIABLE);
+		variable_type *pixel = new variable_type();
 		image.push_back(pixel);
 		g.push(*pixel);
-		ValueType value = (i < (pixel_count/2) ? 100 : 0); // // test image
-		if (rand() % 20) value = 100 - value; // noise
-		pixel->setValue(value);
 	}
 
-	// create a set of vertices parallel to the one before, set default values at random(?)
-	cout << "Create variable nodes per label" << endl;
-	std::vector< vertex<ValueType> * > labels;
+	typedef ising_factor<ValueType,ProbType> image_factor;
+
+//	// test image
+	cout << "Add unary Ising factors" << endl;
 	for (int i = 0; i < pixel_count; ++i) {
-		vertex<ValueType> *label = new vertex<ValueType>(VT_VARIABLE);
-		g.push(*label);
-		labels.push_back(label);
-		label->setValue(1); // set label everywhere to "1"
+		ValueType value = (i < (pixel_count/2) ? 100 : 0); //
+		if (rand() % 20) value = 100 - value; // noise
+        // local field strength
+		ProbType local_field = th_avg + th_width * tanh( (value - level) / scale );
+		image_factor *factor = new image_factor(local_field, FC_UNARY);
+        factor_type *v = dynamic_cast<factor_type *> ( factor );
+        g.push(*v);
 	}
-
-	// create a set of factors that connect
-	//	std::vector< vertex<ValueType> * > factors;
-	for (int i = 0; i < pixel_count_sqrt; ++i) {
-		for (int j = 0; j < pixel_count_sqrt; ++j) {
-			ObsFactor *obs_factor = new ObsFactor();
-			g.push(*obs_factor);
-			int p = i+j*pixel_count_sqrt;
-			g.push(image[p], obs_factor);
-			g.push(obs_factor, labels[p]);
-
-			SmoothFactor *factor;
-			factor = new SmoothFactor();
-			g.push(*factor);
-		}
-	}
-	for (int i = 0; i < pixel_count_sqrt; ++i) {
-		for (int j = 0; j < pixel_count_sqrt; ++j) {
-			SmoothFactor *factor;
-			int p_i_min1 = (i-1)+j*pixel_count_sqrt;
-			int p_i_plus1 = (i+1)+j*pixel_count_sqrt;
-			int p_j_min1 = i+(j-1)*pixel_count_sqrt;
-			int p_j_plus1 = i+(j+1)*pixel_count_sqrt;
-			if (i > 0) {
-				factor = new SmoothFactor();
-				g.push(labels[p_i_min1], factor);
-				g.push(factor, labels[i]);
-			}
-			if ((i+1) < pixel_count_sqrt) {
-				factor = new SmoothFactor();
-				g.push(labels[p_i_plus1], factor);
-				g.push(factor, labels[i]);
-			}
-			//			if (j > 0) {
-			//				factor = new SmoothFactor();
-			//				g.push(labels[p_j_min1], factor);
-			//				g.push(factor, labels[i]);
-			//			}
-			//			if ((j+1) < pixel_count_sqrt) {
-			//				factor = new SmoothFactor();
-			//				g.push(labels[p_j_plus1], factor);
-			//				g.push(factor, labels[i]);
-			//			}
-		}
-	}
+//
+//	// create a set of (ising) factors that connect the previously created variables
+//	// we only connect pixels one-way
+//	cout << "Add binary Ising factors" << endl;
+//	for (int i = 0; i < L; ++i) {
+//		for (int j = 0; j < L; ++j) {
+//			double local_coupling = 0.5;
+//			vertex<ValueType> *v;
+//
+//			if (i > 0) {
+//				v = dynamic_cast<vertex <ValueType> *> ( new image_factor(local_coupling, FC_BINARY) );
+//				g.push(*v);
+//				g.push(image[i-1+j*L], v);
+//				g.push(v, image[i+j*L]);
+//			}
+//			if (j > 0) {
+//				v = dynamic_cast<vertex <ValueType> *> ( new image_factor(local_coupling, FC_BINARY) );
+//				g.push(*v);
+//				g.push(image[i+(j-1)*L], v);
+//				g.push(v, image[i+j*L]);
+//			}
+//		}
+//	}
 
 	// i have to check if the references are actually properly updated after a copy
 	// because they should now refer to the newly created vertices
@@ -164,26 +190,27 @@ void BeliefModule::Tick() {
 	cout << g << endl;
 
 	cout << "Make the graph into a tree" << endl << endl;
-	tree<ValueType, impl_type> t(g);
-
-	cout << t << endl;
+//	tree<ValueType, impl_type> t(g);
+//	cout << t << endl;
 
 #ifdef BUILD_EIGEN
 	cout << "Build matrix from graph" << endl << endl;
-	graph2matrix<ValueType> g2m;
-	graph2matrix<ValueType>::matrix *m;
+	graph2matrix_type g2m;
+	graph2matrix_type::matrix *m;
 	m = g2m.copy(g);
 	cout << *m << endl;
 
-	cout << "Build matrix from tree" << endl << endl;
-	m = g2m.copy(t);
-	cout << *m << endl;
+//	cout << "Build matrix from tree" << endl << endl;
+//	m = g2m.copy(t);
+//	cout << *m << endl;
 #endif
 
 	cout << "Propagate beliefs" << endl << endl;
 	beliefpropagation<ValueType> bprop;
-	bprop.tick(	t);
-
+	int ticks = 10;
+	for (int i = 0; i < ticks; ++i) {
+//		bprop.tick(	g);
+	}
 	//	cout << "Display tree again" << endl << endl;
 	//	m = g2m.copy(t);
 	//	cout << *m << endl;
