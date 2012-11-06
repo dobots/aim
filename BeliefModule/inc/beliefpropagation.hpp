@@ -45,7 +45,7 @@ namespace dobots {
 template <typename T, typename P = float, typename M = float, typename N = size_t>
 class beliefpropagation {
 public:
-	beliefpropagation(): convergence(false) {}
+	beliefpropagation(): convergence(false), directed(true) {}
 
 	/**
 	 * Do one pass of the message passing scheme. This will have as side-effect that
@@ -53,7 +53,7 @@ public:
 	 */
 	template <ClassImplType impl_type>
 	void tick(const graph<T,P,M,N,impl_type> &g) {
-		if (!undirected(g)) {
+		if (is_directed(g)) {
 			std::cerr << "Graph should be undirected" << std::endl;
 			return;
 		}
@@ -64,7 +64,7 @@ public:
 		}
 		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
 		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
-			factor<T> &v = **f_i;
+			factor<T,P,M,N> &v = **f_i;
 			tick_factor(g, v);
 		}
 
@@ -78,32 +78,44 @@ protected:
 	 * "from" array are also in the "to" array.
 	 */
 	template <ClassImplType impl_type>
-	bool undirected(const graph<T,P,M,N,impl_type> &g) {
-		typename graph<T,P,M,N,impl_type>::const_iterator i;
-		typename vertex<T>::const_iterator j;
-//		for (i = g.begin(); i != g.end(); ++i) {
-//			vertex<T> &v = **i;
-//			for (j = v.from_begin(); j != v.from_end(); ++j) {
-//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-//					return false;
-//				}
-//			}
-//		}
-		return true;
+	bool is_directed(const graph<T,P,M,N,impl_type> &g) {
+		typename vertex<T,P,M,N>::const_iterator j;
+		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
+		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
+		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
+			variable<T,P,M,N> &v = **v_i;
+			for (j = v.from_begin(); j != v.from_end(); ++j) {
+//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) return set_directed(true);
+				if (!v.to_exists(j->first)) return set_directed(true);
+			}
+		}
+		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
+			factor<T,P,M,N> &v = **f_i;
+			for (j = v.from_begin(); j != v.from_end(); ++j) {
+//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) return set_directed(true);
+				if (!v.to_exists(j->first)) return set_directed(true);
+			}
+		}
+		return set_directed(false);
+	}
+
+	bool set_directed(bool directed) {
+		this->directed = directed;
+		return directed;
 	}
 
 	/**
 	 * @assumes an undirected graph
 	 */
 	template <ClassImplType impl_type>
-	void tick_factor(const graph<T,P,M,N,impl_type> &g, vertex<T> & v) {
+	void tick_factor(const graph<T,P,M,N,impl_type> &g, factor<T,P,M,N> & v) {
 		T product = T(1);
 
-		if (v.from_size() != 1) {
+//		if (v.from_size() != 1) {
 			for (int i = 0; i < v.from_size(); ++i) {
 				product *= *v.from_at(i).second;
 			}
-		}
+//		}
 		for (int i = 0; i < v.to_size(); ++i) {
 			// product part of the message
 			T message = product ? (product / *v.from_at(i).second) : 0;
@@ -112,7 +124,10 @@ protected:
 			// and perform factor function vertex.function(node values) on them
 			// each time multiplied by the message from this node
 			// and eventually a function defined on that variable node
-			*v.to_at(i).second = v.function(v.to_at(i).first) * message;
+			N index = v.to_at(i).first;
+			variable<T,P,M,N> *t = g.get(index);
+			v.marginal(*t);
+//			*v.to_at(i).second = v.function(v.to_at(i).first) * message;
 		}
 	}
 
@@ -126,8 +141,9 @@ protected:
 	 * @param v				factor node
 	 */
 	template <ClassImplType impl_type>
-	void tick_variable(const graph<T,P,M,N,impl_type> &g, vertex<T> & v) {
+	void tick_variable(const graph<T,P,M,N,impl_type> &g, variable<T,P,M,N> & v) {
 		T product = T(1);
+
 		// leaf, send uniform distribution
 		if (v.from_size() == 1) {
 			*v.to_at(0).second = 1;
@@ -141,7 +157,8 @@ protected:
 		// send to each target node
 		for (int i = 0; i < v.to_size(); ++i) {
 			// correct the multiplication by division (if product != 0)
-			T message = product ? (product / *v.from_at(i).second) : 0;
+			T message = product;
+			if (!directed) message = product ? (product / *v.from_at(i).second) : 0;
 			*v.to_at(i).second = message;
 			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first; std::endl(std::cout);
 		}
@@ -149,6 +166,8 @@ protected:
 
 private:
 	bool convergence;
+
+	bool directed;
 };
 
 }

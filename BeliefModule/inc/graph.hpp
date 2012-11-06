@@ -67,8 +67,18 @@ class variable;
 template <typename T, typename P, typename M, typename N>
 class factor;
 
-template <typename T, ClassImplType I>
+template <typename T, typename P, typename M, typename N, ClassImplType I>
+class graph;
+
+template <typename T, typename P, typename M, typename N, ClassImplType I>
 class tree;
+
+template <typename T, typename P, typename M, typename N>
+class conditional_probability_table;
+
+// following is probably incorrect
+template <typename P, typename T>
+class probability;
 
 /**
  * The graph implementation.
@@ -86,7 +96,6 @@ class tree;
  * example. This will be resolved at compile time, so all code within "impl_type == CIT_CHECK"
  * if statements won't be in the final binary at all.
  */
-//template <typename T, ClassImplType impl_type = CIT_CHECK>
 template <typename T, typename P = float, typename M = float, typename N = size_t, ClassImplType impl_type = CIT_CHECK>
 class graph {
 public:
@@ -103,13 +112,15 @@ public:
 		if (impl_type > CIT_FAST) {
 			std::cerr << "Class not (yet) implemented in this way!" << std::endl;
 		}
+		factors.clear();
+		variables.clear();
 	}
 
 	/**
-	 * Explicit destruction of all variables and factors.
+	 * We will not explicitly destruct all variables and factors, use erase() instead.
 	 */
 	~graph() {
-		erase();
+//		erase();
 	}
 
 	/**
@@ -132,27 +143,34 @@ public:
 	/**
 	 * This push version adds no vertices, but it adds an edge between two existing vertices.
 	 */
-	bool push(vertex<T,P,M,N> * src, vertex<T,P,M,N> * dest) {
+	bool push(factor<T,P,M,N> * src, variable<T,P,M,N> * dest) {
 		if (impl_type == CIT_CHECK) {
-			if ((!exists(src)) || (!exists(dest))) {
+			if ((!exists(*src)) || (!exists(*dest))) {
 				std::cerr << "Source or destination vertex does not exist!" << std::endl;
 				return false;
 			}
-			if (src->vtype == dest->vtype) {
-				std::cerr << "Vertices in a bipartite graph should only be connected to different types" << std::endl;
+		}
+		src->push_to(dest->index());
+		dest->push_from(src->index());
+		return true;
+	}
+
+	bool push(variable<T,P,M,N> * src, factor<T,P,M,N> * dest) {
+		if (impl_type == CIT_CHECK) {
+			if ((!exists(*src)) || (!exists(*dest))) {
+				std::cerr << "Source or destination vertex does not exist!" << std::endl;
 				return false;
 			}
 		}
-		src->push_to(dest->id);
-		dest->push_from(src->id);
-//		dest->from.push_back(std::make_pair(src->id,new T(0)));
+		src->push_to(dest->index());
+		dest->push_from(src->index());
 		return true;
 	}
 
 	bool push(variable<T,P,M,N> & v) {
 		if (impl_type == CIT_CHECK) {
 			if (exists(v)) {
-				std::cerr << "Vertex does already exist!" << std::endl;
+				std::cerr << "Variable already exists!" << std::endl;
 				return false;
 			}
 		}
@@ -163,7 +181,7 @@ public:
 	bool push(factor<T,P,M,N> & v) {
 		if (impl_type == CIT_CHECK) {
 			if (exists(v)) {
-				std::cerr << "Vertex does already exist!" << std::endl;
+				std::cerr << "Factor already exists!" << std::endl;
 				return false;
 			}
 		}
@@ -173,7 +191,6 @@ public:
 
 	bool exists(const factor<T,P,M,N> & v) {
 		for (int i = 0; i < factors.size(); ++i) {
-			std::cout << "Factor exists? "; std::endl(std::cout);
 			if (factors[i]->equal(v)) return true;
 		}
 		return false;
@@ -181,7 +198,6 @@ public:
 
 	bool exists(const variable<T,P,M,N> & v) {
 		for (int i = 0; i < variables.size(); ++i) {
-			//			std::cout << "Variable exists? "; std::endl(std::cout);
 			if (variables[i]->equal(v)) return true;
 		}
 		return false;
@@ -190,50 +206,14 @@ public:
 	inline size_t size() const {
 		return factors.size() + variables.size();
 	}
-	//	inline size_type capacity() const { return vertices.capacity(); }
-	//	bool empty() const { return vertices.empty(); }
-	//	size_type max_size() const { return vertices.max_size(); }
-	//
-	//		variable_container::iterator begin() { return variables.begin(); }
-	//		variable_container::const_iterator begin() const { return variables.begin(); }
-	//		variable_container::iterator end() { return variables.end(); }
 
-	//	const_iterator end() const { return vertices.end(); }
-	//	reverse_iterator rbegin() { return vertices.rbegin(); }
-	//	const_reverse_iterator rbegin() const { return vertices.rbegin(); }
-	//	reverse_iterator rend() { return vertices.rend(); }
-	//	const_reverse_iterator rend() const { return vertices.rend(); }
-
-	//	reference operator[](size_type n) {
-	//		if (impl_type == CIT_CHECK) {
-	//			assert (vertices[n]->id == n);
-	//		}
-	//		return vertices[n];
-	//	}
-	//	const_reference operator[](size_type n) const {
-	//		if (impl_type == CIT_CHECK) {
-	//			assert (vertices[n]->id == n);
-	//		}
-	//		return vertices[n];
-	//	}
-
-	//	reference front() { return vertices.front(); }
-	//	const_reference front() const { return vertices.front(); }
-	//	reference back() { return vertices.back(); }
-	//	const_reference back() const { return vertices.back(); }
-	//
-	//	reference at(size_type n) { return vertices[n]; }
-	//	const_reference at(size_type n) const { return vertices[n]; }
-
-	// Internally the vertices are stored as a vector with pointers. Hence, it is convenient
-	// to have some functions that return the dereferenced vertex rather than a reference to
-	// the vertex. So "at" and "front" have also "d_at" and "d_front" versions.
-	//	dereference d_at(size_type n) { return *vertices[n]; }
-	//	const_dereference d_at(size_type n) const { return *vertices[n]; }
-	//	dereference d_front() { return *vertices.front(); }
-	//	const_dereference d_front() const { return *vertices.front(); }
-	//	dereference d_back() { return *vertices.back(); }
-	//	const_dereference d_back() const { return *vertices.back(); }
+	variable<T,P,M,N> * get(N index) const  {
+		for (int i = 0; i < variables.size(); ++i) {
+			if (variables[i]->index() == index)
+				return variables[i];
+		}
+		return NULL;
+	}
 
 	void erase() {
 		for (int i = 0; i < variables.size(); ++i) {
@@ -244,17 +224,17 @@ public:
 		}
 	}
 
-	template<class U, ClassImplType I>
+	template <class U, class V, class W, class X, ClassImplType I>
 	friend class tree;
 
 private:
 	friend std::ostream& operator<<(std::ostream & os, const graph & g) {
-		std::cout << "Graph {src} {dest}: " << std::endl;
+		os << "Graph {src} {dest}: \n";
 		for (int i = 0; i < g.variables.size(); ++i) {
-			os << (*g.variables[i]); std::endl(os);
+			os << (*g.variables[i]) << '\n';
 		}
 		for (int i = 0; i < g.factors.size(); ++i) {
-			os << (*g.factors[i]); std::endl(os);
+			os << (*g.factors[i]) << '\n';
 		}
 		return os;
 	}
@@ -271,74 +251,90 @@ public:
  * "junction tree algorithm" and it automatically is applied when a graph is assigned to the tree
  * object.
  */
-//template <typename T, ClassImplType impl_type = CIT_CHECK>
-//class tree: public graph<T,impl_type> {
-//public:
-//	tree(): graph<T,impl_type>() {}
-//	~tree() {};
-//
-//	// To assign a graph to a tree requires pruning all edges which makes it not
-//	// a tree. We perform here the junction tree algorithm.
-//	tree(const graph<T, impl_type> &g) {
-//		typedef graph<T,impl_type> super;
-//		super::operator=(g);
-//		moralization();
-//		triangulation();
-//	}
-//
-//	tree<T,impl_type> & operator=(const graph<T, impl_type> &g) {
-//		typedef graph<T,impl_type> super;
-//		// we make first a copy of the graph where we subsequently apply "moralization" and "triangulation"
-//		super::operator=(g);
-//		moralization();
-//		triangulation();
-//		return *this;
-//	}
-//
-//	/**
-//	 * Moralization turns all directed edges in a graph into undirected edges. Because really
-//	 * every edge is gonna be duplicated in the other direction we only need to copy all
-//	 * pointers in "to" to the pointers in the "from" set, and the other way around.
-//	 */
-//	void moralization() {
-//		typedef graph<T,impl_type> super;
-//		typename graph<T>::iterator i;
-//		typename vertex<T>::iterator j;
-//		for (i = super::begin(); i != super::end(); ++i) {
-//			vertex<T> &v_src = **i;
-//			for (j = v_src.to_begin(); j != v_src.to_end(); ++j) {
-//				if (find(v_src.from_begin(), v_src.from_end(), *j) == v_src.from_end()) {
-//					// copy entire "pair", so reference to object should be copied, hence
-//					// the message on "from" will be the same as the message on "to" automatically
-//					v_src.from.push_back(*j);
+template <typename T, typename P = float, typename M = float, typename N = size_t, ClassImplType impl_type = CIT_CHECK>
+class tree: public graph<T,P,M,N,impl_type> {
+public:
+	tree(): graph<T,P,M,N,impl_type>() {}
+	~tree() {};
+
+	// To assign a graph to a tree requires pruning all edges which makes it not
+	// a tree. We perform here the junction tree algorithm.
+	tree(const graph<T,P,M,N,impl_type> &g) {
+		typedef graph<T,P,M,N,impl_type> super;
+		super::operator=(g);
+		moralization();
+		triangulation();
+	}
+
+	tree<T,P,M,N,impl_type> & operator=(const graph<T,P,M,N, impl_type> &g) {
+		typedef graph<T,P,M,N,impl_type> super;
+		// we make first a copy of the graph where we subsequently apply "moralization" and "triangulation"
+		super::operator=(g);
+		moralization();
+		triangulation();
+		return *this;
+	}
+
+	/**
+	 * Moralization turns all directed edges in a graph into undirected edges. Because really
+	 * every edge is gonna be duplicated in the other direction we only need to copy all
+	 * pointers in "to" to the pointers in the "from" set, and the other way around.
+	 */
+	void moralization() {
+		typedef graph<T,P,M,N,impl_type> super;
+		typename vertex<T,P,M,N>::const_iterator j;
+		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
+		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
+		for (v_i = super::variables.begin(); v_i != super::variables.end(); ++v_i) {
+			variable<T,P,M,N> &v = **v_i;
+			for (j = v.from_begin(); j != v.from_end(); ++j) {
+				if (!v.to_exists(j->first)) v.push_to(j->first);
+//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
+//					v.push_to(j->first);
 //				}
-//			}
-//			for (j = v_src.from_begin(); j != v_src.from_end(); ++j) {
-//				if (find(v_src.to_begin(), v_src.to_end(), *j) == v_src.to_end()) {
-//					v_src.to.push_back(*j);
+			}
+			for (j = v.to_begin(); j != v.to_end(); ++j) {
+				if (!v.from_exists(j->first)) v.push_from(j->first);
+//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
+//					v.push_from(j->first);
 //				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Create from a moral graph a chordal graph, by introducing edges such that there is no cycle
-//	 * of length 4. This is edges are so-called chords.
-//	 */
-//	void triangulation() {
-//
-//	}
-//
-//	/**
-//	 * Get the root of the tree. If you descend to all vertices by going to "dest" you will never
-//	 * encounter the root again. However, if you go from a random node to "src" you will always end
-//	 * up in this vertex.
-//	 */
-//	vertex<T> & get_root() {
-//		typedef graph<T,impl_type> super;
-//		return super::front();
-//	}
-//};
+			}
+		}
+		for (f_i = super::factors.begin(); f_i != super::factors.end(); ++f_i) {
+			factor<T,P,M,N> &v = **f_i;
+			for (j = v.from_begin(); j != v.from_end(); ++j) {
+				if (!v.to_exists(j->first)) v.push_to(j->first);
+//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
+//					v.push_to(j->first);
+//				}
+			}
+			for (j = v.to_begin(); j != v.to_end(); ++j) {
+				if (!v.from_exists(j->first)) v.push_from(j->first);
+//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
+//					v.push_from(j->first);
+//				}
+			}
+		}
+	}
+
+	/**
+	 * Create from a moral graph a chordal graph, by introducing edges such that there is no cycle
+	 * of length 4. This is edges are so-called chords.
+	 */
+	void triangulation() {
+
+	}
+
+	/**
+	 * Get the root of the tree. If you descend to all vertices by going to "dest" you will never
+	 * encounter the root again. However, if you go from a random node to "src" you will always end
+	 * up in this vertex.
+	 */
+	vertex<T,P,M,N> & get_root() {
+		typedef graph<T,P,M,N,impl_type> super;
+		return super::front();
+	}
+};
 
 /**
  * Probability is in the end just an array with values. The default probability takes two values. A
@@ -346,12 +342,31 @@ public:
  * in our class, for example through allocating (t_size-1) objects and deriving the last one by
  * subtracting the sum from one. This because of the additional computations and more complex
  * implementation of normalization.
+ *
+ * It would have been possible to define the probability with a default template argument, like:
+ *    template <typename P, typename T=int, T t_size=2>
+ * However, in that case, it would not fit nicely together in a structure with variables that have
+ * a different number of outcomes. In that case, the binary and ternary variables cannot be put in
+ * the same vector.
  */
-template <typename P, typename T=int, T t_size=2>
-struct probability {
-	probability(): number_of_different_outcomes(t_size) {}
+template <typename P, typename T=int>
+class probability {
+public:
+	probability(T t_size): number_of_different_outcomes(t_size) {
+		outcome = new P[t_size];
+	}
+	~probability() {
+		delete [] outcome;
+	}
+	T size() { return number_of_different_outcomes; }
+	P & operator[](T n) { return outcome[n]; }
+	const P operator[](T n) const {
+		return *outcome[n];
+	}
+
+private:
+	P *outcome;
 	T number_of_different_outcomes;
-	P outcome[t_size];
 	friend std::ostream& operator<<(std::ostream & os, const probability & p) {
 		for (int i = 0; i < p.number_of_different_outcomes; ++i) {
 			os << (p.outcome[i]) << ' ';
@@ -359,12 +374,6 @@ struct probability {
 		return os;
 	}
 };
-
-template <typename T, typename P, typename M, typename N>
-class conditional_probability_table;
-
-//template <typename T, typename P, typename M, typename N>
-//typedef conditional_probability_table joint_probability_table;
 
 /**
  * A conditional probability table for a factor. Preferably I would use Eigen for the d-dimensional
@@ -374,15 +383,17 @@ class conditional_probability_table;
 template <typename T, typename P = float, typename M = float, typename N = size_t>
 class conditional_probability_table {
 public:
-	conditional_probability_table(std::vector < N > & vertex_indices,
-			std::vector<N> & dimensions): vertex_indices(vertex_indices), dimensions(dimensions) {
+	conditional_probability_table(//std::vector < N > & vertex_indices,
+			std::vector<N> & dimensions): /*vertex_indices(vertex_indices),*/ dimensions(dimensions) {
 		N size = 1;
 		for (int i = 0; i < dimensions.size(); ++i) {
 			size *= dimensions[i];
 		}
+		vertex_indices.clear();
 		probabilities.clear();
 		probabilities.reserve(size);
 		for (N i = 0; i < size; ++i) probabilities.push_back(P(0));
+		std::cout << "Created table with dimension " << dimensions.size(); std::endl(std::cout);
 	}
 
 	conditional_probability_table(const conditional_probability_table & other) {
@@ -435,6 +446,15 @@ public:
 		probabilities[i] = prob;
 	}
 
+	void set(N index0, N index1, N index2, P prob) {
+		assert (dimensions.size() == 3);
+		assert (index0 < dimensions[0]);
+		assert (index1 < dimensions[1]);
+		assert (index2 < dimensions[2]);
+		N i = index0 + index1 * dimensions[0] + index2 * dimensions[0] * dimensions[1];
+		probabilities[i] = prob;
+	}
+
 	T const get(std::vector<N> table_index) {
 		return probabilities[get_linear_index(table_index)];
 	}
@@ -459,7 +479,7 @@ public:
 	 * it is checked all the time if the index does not run over one of the dimension's
 	 * boundaries.
 	 */
-	void multiply(N vertex_index, probability<P,T> p) {
+	void multiply(N vertex_index, probability<P,T> & p) {
 		N dimension = get_dimension(vertex_index);
 		assert (dimensions[dimension] == p.size());
 		N inc = block_size(dimension);
@@ -472,7 +492,23 @@ public:
 		}
 	}
 
-	N max_capacity() {
+	void sum(N vertex_index, probability<P,T> & p) {
+		N dimension = get_dimension(vertex_index);
+		assert (dimensions[dimension] == p.size());
+		N inc = block_size(dimension);
+		N reset = block_size(dimension+1);
+		N max = max_capacity();
+		for (int j = 0; j < dimension; ++j) {
+			p[j] = 0;
+		}
+		for (int i = 0, j = 0; i < max; ++i) {
+			p[j] += probabilities[i];
+			if (((i+1) % inc) == 0) j++;
+			if (((i+1) % reset) == 0) j=0;
+		}
+	}
+
+	N max_capacity() const {
 		N max = 1;
 		for (int i = 0; i < dimensions.size(); ++i) {
 			max *= dimensions[i];
@@ -485,7 +521,7 @@ protected:
 	 * In a d-dimensional table where you want to apply a certain calculations
 	 * over one of the d-dimensions, for example multiplying over
 	 */
-	N block_size(N dimension) {
+	N block_size(N dimension) const {
 		if (dimension == 0) return 1;
 		N block_size = 1;
 		for (int i = 0; i < dimension; ++i) {
@@ -494,8 +530,8 @@ protected:
 		return block_size;
 	}
 
-	N get_dimension(N vertex_index) {
-		for (int i = 0; i < vertex_indices->size(); ++i) {
+	N get_dimension(N vertex_index) const {
+		for (int i = 0; i < vertex_indices.size(); ++i) {
 			if (vertex_indices[i] == vertex_index) return i;
 		}
 		assert(false);
@@ -509,13 +545,49 @@ private:
 	std::vector<N> dimensions;
 	// The table of probabilities (linearized as a vector)
 	std::vector<P> probabilities;
+
+	friend std::ostream& operator<<(std::ostream & os, const conditional_probability_table & table) {
+		int dimsize=table.dimensions.size();
+
+		// print header
+		if (dimsize == 0) {
+			os << "Table: [empty]"; return os;
+		}
+		os << "Table: [";
+		os << table.dimensions[0];
+		for (int i = 1; i < dimsize; ++i) {
+			os << ',' << table.dimensions[i];
+		}
+		os << ']' << " (will be shown with most significant / latest variable first)" << '\n';
+
+		// setup arrays for dimensions and counters
+		int reset[dimsize+1];
+		int dimcnt[dimsize];
+		for (int i = dimsize-1; i >= 0; --i) {
+			dimcnt[i] = 0; reset[i] = 1;
+			for (int j = 0; j <= i; ++j) {
+				reset[i+1] *= table.dimensions[j];
+			}
+		}
+
+		// output matrix
+		for (int i = 0; i < table.max_capacity(); ++i) {
+			for (int d = dimsize-1; d >= 0; --d) {
+				os << dimcnt[d] << ' ';
+				if (!((i+1) % reset[d])) ++dimcnt[d];
+				if (!((i+1) % reset[d+1])) dimcnt[d] = 0;
+			}
+			os << ": " << (table.probabilities[i]) << '\n';
+		}
+		os << '\n';
+		return os;
+	}
 };
 
 /**
  * A factor is a special type of vertex, namely one that contains a conditional probability table.
  * Depending on its incoming edges (variables) it knows the probability of the corresponding values.
  */
-//template <typename T, typename P>
 template <typename T, typename P = float, typename M = float, typename N = size_t>
 class factor: public vertex< conditional_probability_table<T,P,M,N>, P, M, N> {
 public:
@@ -523,12 +595,22 @@ public:
 	factor(): vertex<S,P,M,N>(VT_FACTOR), initialized(false) {
 	}
 
-	factor(S & cond_prob_table):
-		vertex<S,P,M,N>(VT_FACTOR) {
+	factor(S & cond_prob_table): vertex<S,P,M,N>(VT_FACTOR) {
 		typedef vertex<S,P,M,N> super;
-		super::setValue(cond_prob_table);
+		super::setValue(&cond_prob_table);
 		initialized = cond_prob_table.initialized();
 	}
+
+	virtual ~factor() {
+//		typedef vertex<S,P,M,N> super;
+//		std::cout << "Deallocate factor " << super::index(); std::endl(std::cout);
+	}
+
+//	factor<T,P,M,N>& operator*= (const factor<T,P,M,N>& f) {
+//		assert(initialized);
+////		assert(f.initialized);
+//		factor<T,P,M,N> *newf = new factor<T,P,M,N>(f);
+//	}
 
 	void set(S & cond_prob_table) {
 		typedef vertex<S,P,M,N> super;
@@ -537,33 +619,40 @@ public:
 
 	void push_to(N index) {
 		typedef vertex<S,P,M,N> super;
-		super::to.push_back(std::make_pair(index,new M(0)));
-		super::getValue().add_vertex(index);
+		super::push_to(index);
+		assert (super::getValue() != NULL);
+		super::getValue()->add_vertex(index);
 	}
 
 	void push_from(N index) {
-		assert(initialized);
 		typedef vertex<S,P,M,N> super;
-		super::from.push_back(std::make_pair(index,new M(0)));
-		super::getValue().add_vertex(index);
+		super::push_from(index);
+		assert (super::getValue() != NULL);
+		super::getValue()->add_vertex(index);
 	}
 
-	probability<P,T> marginal(vertex<S,P,M,N> &v) {
-		// multiply all entry is the conditional probability table with the evidence
+	probability<P,T> *marginal(variable<T,P,M,N> &v) {
+		// multiply all entries in the conditional probability table with the evidence
 		// on all vertices except for "v"
 		typedef vertex<S,P,M,N> super;
+		std::cout << "Calculate marginal \n";
 
-		probability<P,T> p = v.getValue();
-		S *table = new S(super::value);
-		table->multiply(v.getId(), p);
+		probability<P,T> *evidence = v.getValue();
+		assert (evidence != NULL);
+		S *table = new S(*super::getValue());
+		table->multiply(v.index(), *evidence);
 
-		for (int i = super::to.begin(); i != super::to.end(); ++i) {
-			if (super::to[i]->equal(v)) continue;
-			probability<P,T> p_new = table->sum();
+		std::cout << *table << '\n';
+		return NULL;
+
+		for (N i = 0; i < super::to_size(); ++i) {
+			if (super::to_at(i).first == v.index()) continue;
+//			probability<P,T> *p_new = table->sum();
+//			return *p_new;
 		}
 		delete table;
 
-		return 0;
+//		return 0;
 	}
 private:
 	bool initialized;
@@ -578,7 +667,6 @@ enum FactorCoupling { FC_UNARY, FC_BINARY, FC_TERNARY, FC_COUNT } ;
  * table of more than two entries, hence the Ising factors requires 2^N values, which is more than
  * a boolean. The simplest data type that can be used in this setting is hence a char.
  */
-//template <typename T, typename P>
 template <typename T, typename P = float, typename M = float, typename N = size_t>
 class ising_factor: public factor<T,P,M,N> {
 public:
@@ -593,10 +681,9 @@ public:
 		case FC_UNARY: {
 			typedef conditional_probability_table<T,P,M,N> S;
 			std::vector<N> dimensions; dimensions.clear();
-			std::vector<N> vertices; vertices.clear();
 			dimensions.push_back(2);
-			S *table = new S(vertices, dimensions);
-			super::setValue(*table);
+			S *table = new S(dimensions);
+			super::setValue(table);
 			table->set(0, std::exp(coupling));
 			table->set(1, std::exp(-coupling));
 			nof_variables = 1;
@@ -605,15 +692,14 @@ public:
 		case FC_BINARY: {
 			typedef conditional_probability_table<T,P,M,N> S;
 			std::vector<N> dimensions; dimensions.clear();
-			std::vector<N> vertices; vertices.clear();
 			dimensions.push_back(2);
 			dimensions.push_back(2);
-			S *table = new S(vertices, dimensions);
-			super::setValue(*table);
-			table->set(0, std::exp(coupling));
-			table->set(1, std::exp(-coupling));
-			table->set(2, std::exp(-coupling));
-			table->set(3, std::exp(coupling));
+			S *table = new S(dimensions);
+			super::setValue(table);
+			table->set(0, 0, std::exp(coupling));
+			table->set(0, 1, std::exp(-coupling));
+			table->set(1, 0, std::exp(-coupling));
+			table->set(1, 1, std::exp(coupling));
 			nof_variables = 2;
 			break;
 		}
@@ -622,7 +708,6 @@ public:
 			break;
 		}
 		}
-		std::cout << "Created Ising factor"; std::endl(std::cout);
 	}
 
 	bool check() {
@@ -637,11 +722,29 @@ template <typename T, typename P = float, typename M = float, typename N = size_
 class variable: public vertex< probability<P,T>, P, M, N> {
 public:
 	typedef probability<P,T> S;
-	variable():
-		vertex<S,P,M,N>(VT_VARIABLE) {
-		{
-		}
+//	variable(): vertex<S,P,M,N>(VT_VARIABLE), initialized(false) {
+////		probability<P,T> *p = new probability<P,T,N>();
+////		typedef vertex<S,P,M,N> super;
+////		super::setValue(p);
+////		initialized = true;
+//	}
+
+
+	variable(N number_of_outcomes): vertex<S,P,M,N>(VT_VARIABLE) {
+		//probability<P,T> *p = new probability<P,T,2>();
+		probability<P,T> *p = new probability<P,T>(number_of_outcomes);
+		typedef vertex<S,P,M,N> super;
+		super::setValue(p);
+		initialized = true;
 	}
+
+	virtual ~variable() {
+//		typedef vertex<S,P,M,N> super;
+//		std::cout << "Deallocate variable " << super::index(); std::endl(std::cout);
+	}
+
+private:
+	bool initialized;
 };
 
 static size_t uuid = -1;
@@ -688,12 +791,14 @@ public:
 	vertex(VertexType type): value(NULL), id(++uuid), vtype(type) {
 		to.clear();
 		from.clear();
-		std::cout << "Created vertex " << id; std::endl(std::cout);
+//		std::cout << "Created vertex " << id; std::endl(std::cout);
 	}
-	virtual ~vertex() {}
+
+	virtual ~vertex() {
+//		std::cout << "Deallocate vertex " << id; std::endl(std::cout);
+	}
 
 	vertex(const vertex<S,P,M,N> &other) {
-		std::cerr << "Debug: copy construction on vertex " << other.id; std::endl(std::cerr);
 		value = other.value;
 		id = other.id;
 		vtype = other.vtype;
@@ -705,7 +810,6 @@ public:
 	 * Check if vertices are equal by using their index (identifier)
 	 */
 	bool equal(const vertex<S,P,M,N> & other) const {
-		std::cout << "Compare " << other.id << " with " << id; std::endl(std::cout);
 		return other.id == id;
 	}
 
@@ -720,10 +824,10 @@ public:
 		return *this;
 	}
 
-	inline long int index() const { return id; }
+	inline N index() const { return id; }
 	inline VertexType getType() const  { return vtype; }
-	inline void setValue(S & value) { *this->value = value; }
-	inline S getValue() const { return value; }
+	inline void setValue(S * value) { this->value = value; }
+	inline S* getValue() const { return value; }
 
 	/**
 	 * Friend inline. We use the "introvert" variant of the serial operator. The vertex needs to be
@@ -732,7 +836,7 @@ public:
 	 * See: http://stackoverflow.com/questions/4660123/overloading-friend-operator-for-template-class
 	 */
 	friend std::ostream& operator<<(std::ostream & os, const vertex & v) {
-		os << v.id << "[" << v.value << "](" << v.vtype << "): {";
+		os << v.id << "(" << v.vtype << "): {";
 		if (!v.from.empty()) os << v.from[0].first;
 		for (int i = 1; i < v.from.size(); ++i) os << ',' << v.from[i].first;
 		os << "} {";
@@ -759,6 +863,20 @@ public:
 
 	reference to_at(size_t n) { return to[n]; }
 	const_reference to_at(size_t n) const { return to[n]; }
+
+	bool to_exists(size_t n) {
+		for (size_t i = 0; i < to.size(); ++i) {
+			if (to[i].first == n) return true;
+		}
+		return false;
+	}
+
+	bool from_exists(size_t n) {
+		for (size_t i = 0; i < from.size(); ++i) {
+			if (from[i].first == n) return true;
+		}
+		return false;
+	}
 
 	void push_to(N index) {
 		to.push_back(std::make_pair(index,new M(0)));
@@ -788,11 +906,13 @@ private:
 	// Just befriend all graph instantiations
 	// http://stackoverflow.com/questions/13055447/c-how-to-specify-all-friends-of-a-templated-class-with-a-default-argument
 	//	template<class U, ClassImplType I>
+	//	template <class U, class V, class W, class X, ClassImplType I>
+	//	friend class graph;
 //	template <class U, class V, class W, class X, ClassImplType I>
 //	friend class graph;
 
-//	template<class U, ClassImplType I>
-//	friend class tree;
+	//	template<class U, ClassImplType I>
+	//	friend class tree;
 };
 
 
