@@ -81,7 +81,7 @@ if [[ "${RUR_BACKENDS}" == "" ]]; then
 	echo "No RUR_BACKENDS env variable set (in ${MODULE_NAME}/local.mk)"
 	exit 0
 fi
-omniidl -p${RUR_BACKENDS} -bextract ${MODULE_NAME}/idl/${MODULE_NAME}.idl > "ports.txt"
+omniidl -p${RUR_BACKENDS} -bextract ${MODULE_NAME}/aim/idl/${MODULE_NAME}.idl > "ports.txt"
 
 echo "Move port definition to registry"
 mv ports.txt ${RUR_HOME}/registry/${MODULE_NAME}.ports

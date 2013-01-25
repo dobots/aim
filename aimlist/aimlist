@@ -33,7 +33,7 @@ FirstTwo=
 index=0
 while read LINE; 
 do
-	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+	MODULE_I=`echo "$LINE" | cut -d'=' -f 1 | sed 's/ *$//g'`
         MODULE_I=${MODULE_I%/}
         FirstTwo=`echo "$MODULE_I" | cut -c1-2`
         MiddleFive=`echo "$MODULE_I" | cut -c3-7`
@@ -61,11 +61,22 @@ done < "${RUR_HOME}/${AIM_REGISTRY}"
 #echo "success!!"
 
 tLen=${#Registered_Module[@]}
+
 # use for loop read all nameservers
+echo "{"
+echo "  \"modules\": ["
 for (( i=0; i<${tLen}; i++ ));
 do
-  echo ${Registered_Module[$i]}
+  echo "    {"
+  echo "      \"name\": \"${Registered_Module[$i]}\""
+  if [ $i -eq $((${tLen} - 1)) ]; then
+    echo "    }"
+  else
+    echo "    },"
+  fi
 done
+echo "  ] "
+echo "}"
 
 
 
