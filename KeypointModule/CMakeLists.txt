@@ -37,6 +37,9 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 #FIND_PACKAGE(Librt REQUIRED)
 #SET(LIBS ${LIBS} rt)
 
+# Include OpenCV for this project
+ADD_SUBDIRECTORY(opencv)
+
 # Include aim stuff
 ADD_SUBDIRECTORY(aim)
 

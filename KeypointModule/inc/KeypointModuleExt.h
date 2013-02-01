@@ -2,10 +2,10 @@
 
 namespace rur {
 
-class KeypointModuleZmq: public KeypointModule {
+class KeypointModuleExt: public KeypointModule {
 public:
 
-	KeypointModuleZmq();
+	KeypointModuleExt();
 
 	void Prepare();
 
@@ -13,9 +13,7 @@ public:
 
 	bool Stop();
 private:
-	void *context;
 
-	void *responder;
 };
 
 }

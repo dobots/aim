@@ -19,7 +19,7 @@
  * @company Almende B.V. (or your university, institute or company)
  * @case    Artificial Intelligence Module
  */
-#include <KeypointModuleZmq.h>
+#include <KeypointModuleExt.h>
 
 #include <stdlib.h>
 #include <iostream>
@@ -33,7 +33,7 @@ using namespace std;
  * have this file and the KeypointModule header and code in a separate "aim" directory.
  */
 int main(int argc, char *argv[])  {
-	KeypointModuleZmq *m = new KeypointModuleZmq();
+	KeypointModuleExt *m = new KeypointModuleExt();
 
 	if (argc < 2) {
 		std::cout << "Use an identifier as argument for this instance" << endl;
@@ -43,6 +43,7 @@ int main(int argc, char *argv[])  {
 	m->Init(identifier);
 
 	do {
+		std::cout << "Tick!" << endl;
 		m->Tick();
 	} while (!m->Stop()); 
 
