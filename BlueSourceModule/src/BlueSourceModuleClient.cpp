@@ -28,6 +28,8 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 #include <algorithm>
+//#include <fcntl.h>
+#include <unistd.h>
 
 #include <BlueSourceModuleClient.h>
 #include <DotRobotSensors.h>

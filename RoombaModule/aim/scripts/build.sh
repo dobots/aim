@@ -26,7 +26,12 @@ echo "We will use backend \"$backend\""
 
 IDL_FILE="../idl/RoombaModule.idl"
 RESULT="../inc/RoombaModule.h"
+RESULT_TEMP="../inc/RoombaModule.h.temp"
 
-./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT}" 
+./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT_TEMP}" 
 
-
+if ! diff -q $RESULT_TEMP $RESULT > /dev/null ; then
+	mv -f $RESULT_TEMP $RESULT
+else
+	rm $RESULT_TEMP
+fi

@@ -82,11 +82,11 @@ INCLUDE_DIRECTORIES(aim/inc)
 MESSAGE ("[*] Files included: ${AIM_FILES}")
 
 # Set up our main executable.
-IF (folder_source)
-   ADD_EXECUTABLE(${PROJECT_NAME} ${folder_source} ${folder_header} ${AIM_FILES})
-   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
-   install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
-ELSE ()
+IF(FOLDER_SOURCE STREQUAL "")
   MESSAGE(FATAL_ERROR "No source code files found. Please add something")
+ELSE ()
+  ADD_EXECUTABLE(${PROJECT_NAME} ${folder_source} ${folder_header} ${AIM_FILES})
+  TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
+  install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
 ENDIF ()
 

@@ -41,11 +41,11 @@ public:
     cliParam = new Param();
   }
   
-  ~RoombaModule() { 
-    delete cliParam;
-  }
+  ~RoombaModule() { }
   
   void Tick();
+  
+  bool Stop();
   
   void Init(std::string & name) { }
   
