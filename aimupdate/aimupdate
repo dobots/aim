@@ -41,21 +41,17 @@ fi
 # Copy from template directory
 RUR_TEMPLATES=/var/lib/rur
 
-cp $RUR_TEMPLATES/build.sh $modulename/scripts
-cp $RUR_TEMPLATES/run.sh $modulename/scripts
-cp $RUR_TEMPLATES/local.mk $modulename
-cp $RUR_TEMPLATES/default.mk $modulename
-cp $RUR_TEMPLATES/local.sh $modulename
-cp $RUR_TEMPLATES/default.sh $modulename
-cp $RUR_TEMPLATES/Makefile $modulename
+cd "$modulename"
+
+cp $RUR_TEMPLATES/build.sh aim/scripts
+cp $RUR_TEMPLATES/run.sh aim/scripts
+cp $RUR_TEMPLATES/default.sh .
 
 # We do not update CMakeLists.txt because this is probably adjusted
 #cp $RUR_TEMPLATES/CMakeLists.txt $modulename
 
-cd "$modulename"
-
 # Replace "template module name" by real name
-sed -i "s/TemplateModule/$modulename/g" scripts/build.sh
+sed -i "s/TemplateModule/$modulename/g" aim/scripts/build.sh
 #sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
 sed -i "s/TemplateModule/$modulename/g" Makefile
 
