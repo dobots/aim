@@ -70,11 +70,11 @@ ENDIF()
 MESSAGE("[*] Files included: ${AIM_FILES} ${FOLDER_HEADER}")
 
 # Set up our main executable.
-IF (folder_source)
+IF(FOLDER_SOURCE STREQUAL "")
+  MESSAGE(FATAL_ERROR "No source code files found. Please add something")
+ELSE ()
   ADD_EXECUTABLE(${PROJECT_NAME} ${FOLDER_SOURCE} ${FOLDER_HEADER} ${AIM_FILES})
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
   INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
-ELSE ()
-  MESSAGE(FATAL_ERROR "No source code files found. Please add something")
 ENDIF ()
 
