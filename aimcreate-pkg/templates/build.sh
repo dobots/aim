@@ -26,6 +26,7 @@ echo "We will use backend \"$backend\""
 
 IDL_FILE="../idl/TemplateModule.idl"
 RESULT="../inc/TemplateModule.h"
+RESULT_TEMP="../inc/TemplateModule.h.temp"
 
 OMNIIDL=`which omniidl`
 if [[ $OMNIIDL == "" ]]; then
@@ -37,6 +38,16 @@ if [[ $OMNIIDL == "" ]]; then
 	exit 2
 fi
 
-./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT}" 
+# Generate temporary header file
+./run.sh "${IDL_FILE}" "${backend}" "${backend_path}" > "${RESULT_TEMP}" 
 
+# Copy it to normal header file only if they are different
+if ! diff -q $RESULT_TEMP $RESULT > /dev/null ; then
+	mv -f $RESULT_TEMP $RESULT
+else
+	rm $RESULT_TEMP
+fi
 
+# This ensures a remote repository can obtain a header file, but it does not
+# need to be commited again, just because the same code is regenerated with 
+# a different time stamp.
