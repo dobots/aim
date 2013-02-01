@@ -25,6 +25,10 @@ ELSE(WIN32)
 cmake_minimum_required(VERSION 2.4)
 ENDIF(WIN32)
 
+IF(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
 # Set name of project
 SET(PROJECT_NAME "ZmqModule")
 
