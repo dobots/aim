@@ -71,38 +71,6 @@ const ClassImplType impl_type = CIT_CHECK;
 //	}
 //};
 
-void simple_example() {
-//	graph<ValueType, impl_type> g;
-//	vertex<ValueType> v0(VT_VARIABLE);
-//	vertex<ValueType> v1(VT_VARIABLE);
-//	vertex<ValueType> v2(VT_FACTOR);
-//	g.push(v0);
-//	g.push(v1);
-//	g.push(v2);
-//	g.push(&v0, &v2);
-//	g.push(&v1, &v2);
-//	v0.setValue(0.3);
-//	v1.setValue(0.4);
-//	v2.setValue(0.5);
-}
-
-/**
- * Conditional probability of S given C
- *  P_S_given_C.set(0, 0.5);   // C = 0, S = 0
- *  P_S_given_C.set(1, 0.9);   // C = 1, S = 0
- *  P_S_given_C.set(2, 0.5);   // C = 0, S = 1
- *  P_S_given_C.set(3, 0.1);   // C = 1, S = 1
- */
-//class CloudySprinklerFactor: public factor<ValueType, double> {
-//public:
-//	CloudySprinklerFactor() {
-//		typedef factor<ValueType, double> super;
-//		super::push_back(0.5);
-//		super::push_back(0.9);
-//		super::push_back(0.5);
-//		super::push_back(0.1);
-//	};
-//};
 
 typedef graph<int,ProbType,ValueType,int,impl_type> graph_type;
 typedef tree<int,ProbType,ValueType,int,impl_type> tree_type;
@@ -132,17 +100,29 @@ void wikipedia_test() {
 	table.set(hit,yellow,0.1);
 	table.set(hit,green,0.8);
 
+	cout << "Conditional probability table: " << endl << table << endl;
+
 	probability<float,int> evidence(3);
 	evidence[red] = 0.2;
 	evidence[yellow] = 0.1;
 	evidence[green] = 0.7;
 
+	cout << "Evidence: " << endl;
+	for (int i = 0; i < evidence.size(); ++i) {
+		cout << ' ' << i << " * : " << evidence[i] << endl;
+	}
+	cout << endl;
+
 	table.multiply(2, evidence);
-	cout << "Joint distribution: " << endl << table << endl;
+	cout << "Joint distribution (includes evidence): " << endl << table << endl;
 
 	probability<float,int> marginal(2);
 	table.sum(1, marginal);
-	cout << "Marginal probability: " << endl << marginal << endl;
+	cout << "Marginal probability: " << endl;
+	for (int i = 0; i < marginal.size(); ++i) {
+		cout << " * " << i << " : " << marginal[i] << '\n';
+	}
+	cout << endl;
 }
 
 /**
@@ -206,6 +186,10 @@ void sprinkler_test() {
 	srw_table.set(1,1,0,0.01);
 	srw_table.set(1,1,1,0.99);
 
+	// here we can try to multiply all factors with each other to build one large joint probability table
+	// however, it is more convenient to "push in the sums" to calculate the marginals efficiently
+
+	cout << srw_table << endl;
 	g.push(fcloudy);
 	g.push(fcloudy_sprinkler);
 	g.push(fcloudy_rain);
@@ -261,10 +245,10 @@ void BeliefModule::Tick() {
 	double scale = 40;
 	double level = 50;
 
-	probability<float,int> p(2);
-	p[0] = 0.7;
-	p[1] = 0.7;
-	cout << "Probability test: " << p << '\n';
+//	probability<float,int> p(2);
+//	p[0] = 0.7;
+//	p[1] = 0.7;
+//	cout << "Probability test: " << p << '\n';
 
 //	wikipedia_test();
 

@@ -25,6 +25,7 @@
 
 #include <string>
 #include <iostream>
+#include <unistd.h>
 
 /**
  * Just read the bytes from a buffer and drops into a string. If there is nothing to read

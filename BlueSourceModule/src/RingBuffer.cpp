@@ -27,7 +27,9 @@
 #include <stdio.h>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <assert.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -113,6 +115,7 @@ int ring_buffer::readN(int count) {
 	if (available() < count) {
 		return 0;
 	}
+
 	int bytes_read = 0;
 	if ((pbuf_w+count) >= length) {
 		unsigned int wrap_around = (pbuf_w+count) % length;

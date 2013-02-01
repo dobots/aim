@@ -85,14 +85,12 @@ protected:
 		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
 			variable<T,P,M,N> &v = **v_i;
 			for (j = v.from_begin(); j != v.from_end(); ++j) {
-//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) return set_directed(true);
 				if (!v.to_exists(j->first)) return set_directed(true);
 			}
 		}
 		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
 			factor<T,P,M,N> &v = **f_i;
 			for (j = v.from_begin(); j != v.from_end(); ++j) {
-//				if (std::find(v.to_begin(), v.to_end(), *j) == v.to_end()) return set_directed(true);
 				if (!v.to_exists(j->first)) return set_directed(true);
 			}
 		}
@@ -118,7 +116,9 @@ protected:
 //		}
 		for (int i = 0; i < v.to_size(); ++i) {
 			// product part of the message
-			T message = product ? (product / *v.from_at(i).second) : 0;
+			T message;
+			if (!v.from_exists(i)) message = product;
+			message = product ? (product / *v.from_at(i).second) : 0;
 
 			// take all possible combinations of variable nodes that are pointing towards this factor node, except for v.to[i]
 			// and perform factor function vertex.function(node values) on them

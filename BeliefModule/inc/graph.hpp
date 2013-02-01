@@ -515,6 +515,10 @@ public:
 		}
 		return max;
 	}
+
+	N get_dimensions() const {
+		return dimensions.size();
+	}
 protected:
 
 	/**
@@ -573,13 +577,12 @@ private:
 		// output matrix
 		for (int i = 0; i < table.max_capacity(); ++i) {
 			for (int d = dimsize-1; d >= 0; --d) {
-				os << dimcnt[d] << ' ';
+				os << ' ' << dimcnt[d];
 				if (!((i+1) % reset[d])) ++dimcnt[d];
 				if (!((i+1) % reset[d+1])) dimcnt[d] = 0;
 			}
-			os << ": " << (table.probabilities[i]) << '\n';
+			os << " : " << (table.probabilities[i]) << '\n';
 		}
-		os << '\n';
 		return os;
 	}
 };
@@ -640,7 +643,14 @@ public:
 		probability<P,T> *evidence = v.getValue();
 		assert (evidence != NULL);
 		S *table = new S(*super::getValue());
+		int olddim = table->get_dimensions();
 		table->multiply(v.index(), *evidence);
+		int newdim = table->get_dimensions();
+
+//		for (int i = 0; i < olddim; ++i) {
+//			table->get()
+//		}
+
 
 		std::cout << *table << '\n';
 		return NULL;
