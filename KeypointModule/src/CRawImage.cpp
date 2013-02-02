@@ -196,9 +196,9 @@ void CRawImage::swap()
 void CRawImage::saveBmp(const char* inName)
 {
 	updateHeader();
-	std::cout << __func__ << ": save" << std::endl;
+//	std::cout << __func__ << ": save" << std::endl;
 	FILE* file = fopen(inName, "wb");
-	std::cout << __func__ << ": save2" << std::endl;
+//	std::cout << __func__ << ": save2" << std::endl;
 	swap();
 	fwrite(header,54,1,file);
 	if (bpp == 1) {
@@ -214,7 +214,7 @@ void CRawImage::saveBmp(const char* inName)
 	fwrite(data,size,1,file);
 	swap();
 	fclose(file);
-	std::cout << __func__ << ": saved" << std::endl;
+	std::cout << __func__ << ": saved \"" << inName << "\"" << std::endl;
 }
 
 void CRawImage::saveNumberedBmp(const char *name, bool increment)
