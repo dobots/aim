@@ -25,6 +25,10 @@ ELSE(WIN32)
 cmake_minimum_required(VERSION 2.4)
 ENDIF(WIN32)
 
+IF(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
 # Set name of project
 SET(PROJECT_NAME "KeypointModule")
 
@@ -35,7 +39,8 @@ PROJECT(${PROJECT_NAME})
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 #FIND_PACKAGE(Librt REQUIRED)
-#SET(LIBS ${LIBS} rt)
+# libz is required for opencv_core
+SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d z)
 
 # Include OpenCV for this project
 ADD_SUBDIRECTORY(opencv)
@@ -67,6 +72,12 @@ ENDFOREACH(HEADER_FILE ${FOLDER_HEADER})
 
 # For references to header files
 INCLUDE_DIRECTORIES(aim/inc)
+
+# The OpenCV headers are stored per module now (before system-wide install) 
+INCLUDE_DIRECTORIES(opencv/modules/core/include)
+INCLUDE_DIRECTORIES(opencv/modules/flann/include)
+INCLUDE_DIRECTORIES(opencv/modules/imgproc/include)
+INCLUDE_DIRECTORIES(opencv/modules/features2d/include)
 
 SET(PROJECT_HEADER ../aim/inc/${PROJECT_NAME}.h)
 IF (NOT EXISTS ${PROJECT_HEADER})
