@@ -40,7 +40,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 #FIND_PACKAGE(Librt REQUIRED)
 # libz is required for opencv_core
-SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d z)
+SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d opencv_calib3d z)
 
 # Include OpenCV for this project
 ADD_SUBDIRECTORY(opencv)
@@ -78,6 +78,7 @@ INCLUDE_DIRECTORIES(opencv/modules/core/include)
 INCLUDE_DIRECTORIES(opencv/modules/flann/include)
 INCLUDE_DIRECTORIES(opencv/modules/imgproc/include)
 INCLUDE_DIRECTORIES(opencv/modules/features2d/include)
+INCLUDE_DIRECTORIES(opencv/modules/calib3d/include)
 
 SET(PROJECT_HEADER ../aim/inc/${PROJECT_NAME}.h)
 IF (NOT EXISTS ${PROJECT_HEADER})
