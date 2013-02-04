@@ -42,6 +42,8 @@
 
 #include "precomp.hpp"
 
+#define BLACKFIN
+
 #if defined WIN32 || defined _WIN32 || defined WINCE
 #ifndef _WIN32_WINNT           // This is needed for the declaration of TryEnterCriticalSection in winbase.h with Visual Studio 2005 (and older?)
   #define _WIN32_WINNT 0x0400  // http://msdn.microsoft.com/en-us/library/ms686857(VS.85).aspx
@@ -842,7 +844,7 @@ struct Mutex::Impl
     int refcount;
 };
 
-#elif defined __linux__ && !defined ANDROID
+#elif defined __linux__ && !defined ANDROID && !defined BLACKFIN
 
 struct Mutex::Impl
 {

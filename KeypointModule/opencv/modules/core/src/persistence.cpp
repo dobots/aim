@@ -45,9 +45,9 @@
 #include <ctype.h>
 #include <deque>
 #include <iterator>
-#include <wchar.h>
+//#include <wchar.h>
 
-#define USE_ZLIB 1
+#define USE_ZLIB 0
 
 #ifdef __APPLE__
 #  include "TargetConditionals.h"
@@ -67,6 +67,8 @@
 #    define _FILE_OFFSET_BITS 0
 #  endif
 #  include <zlib.h>
+#else
+     typedef void* gzFile;
 #endif
 
 /****************************************************************************************\
@@ -158,7 +160,7 @@ cv::string cv::FileStorage::getDefaultObjectName(const string& _filename)
 
 namespace cv
 {
-#if !defined(ANDROID) || (defined(_GLIBCXX_USE_WCHAR_T) && _GLIBCXX_USE_WCHAR_T)
+#if !defined(ANDROID) && (defined(_GLIBCXX_USE_WCHAR_T) && _GLIBCXX_USE_WCHAR_T)
 string fromUtf16(const WString& str)
 {
     cv::AutoBuffer<char> _buf(str.size()*4 + 1);
