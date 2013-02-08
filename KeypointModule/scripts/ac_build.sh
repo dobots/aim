@@ -123,6 +123,12 @@ build_bfin() {
 	cd ..
 	file ${BUILD_DIR}/bin/*
 
+	ls -latr ${BUILD_DIR}/bin/*
+	
+	bfin-linux-uclibc-strip ${BUILD_DIR}/bin/*
+
+	ls -latr ${BUILD_DIR}/bin/*
+
 }
 
 help() {

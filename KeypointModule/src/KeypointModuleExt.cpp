@@ -6,11 +6,14 @@
 #include <sstream>
 #include <assert.h>
 #include <CRawImage.h>
+#include <iostream>
 
 using namespace rur;
 using namespace cv;
 
 static int lifetime = 1;
+
+#define DRAW_RESULTS
 
 KeypointModuleExt::KeypointModuleExt() {
 }
@@ -115,13 +118,35 @@ void KeypointModuleExt::Tick() {
 	cv::KeyPoint::convert(images[0]->keypoints,selPoints1,pointIndexes1);
 	cv::KeyPoint::convert(images[1]->keypoints,selPoints2,pointIndexes2);
 	// Compute F matrix from 7 matches
-	cv::Mat fundamental= cv::findFundamentalMat(
+	cv::Mat fundamental = cv::findFundamentalMat(
 	   cv::Mat(selPoints1), // points in first image
 	   cv::Mat(selPoints2), // points in second image
 	   CV_FM_7POINT);       // 7-point method
 //	  cv::Mat fundamental= ransacTest(symMatches,
 //			  images[0]->keypoints, images[1]->keypoints, matches);
+	Matx33d K(430.21554970319971, 0.0, 306.6913434743704,
+				0.0, 430.53169252696676, 227.22480030078816,
+				0.0, 0.0, 1.0);
+	Mat_<double> intrinsic = Mat(K);
+	Mat_<double> essential = intrinsic.t() * fundamental * intrinsic;
 
+	SVD svd(essential);
+	Matx33d W(0,-1,0,	//HZ 9.13
+		  1,0,0,
+		  0,0,1);
+//	Matx33d Winv(0,1,0,
+//		 -1,0,0,
+//		 0,0,1);
+	Mat_<double> R = svd.u * Mat(W) * svd.vt; //HZ 9.19
+	Mat_<double> t = svd.u.col(2); //u3
+//	P1 = Matx34d(R(0,0),	R(0,1),	R(0,2),	t(0),
+//			 R(1,0),	R(1,1),	R(1,2),	t(1),
+//			 R(2,0),	R(2,1),	R(2,2), t(2));
+//
+	std::cout << R << std::endl;
+	Mat rotation;
+	Rodrigues(R, rotation);
+	std::cout << rotation << std::endl;
 #ifdef DRAW_RESULTS
 	Mat *result = new Mat(height,width*2,CV_8UC1);
 	const vector<vector<char> > mask;
@@ -130,8 +155,8 @@ void KeypointModuleExt::Tick() {
 	CRawImage *rawimg = new CRawImage(width*2,height,3);
 	rawimg->data = result->data;
 	rawimg->saveBmp("result.bmp");
-	delete rawimg;
 	delete result;
+//	delete rawimg;
 #endif
 
 	for (int i=0; i < 2; ++i) {
@@ -149,5 +174,3 @@ bool KeypointModuleExt::Stop() {
 	}
 	return true;
 }
-
-
