@@ -5,7 +5,7 @@
 
 all: 
 	@mkdir -p build
-	cd build && cmake $(CMAKE_FLAGS) -DBUILD_EIGEN:BOOL=ON ..
+	cd build && cmake $(CMAKE_FLAGS) -DBUILD_EIGEN:BOOL=OFF ..
 	cd build && make
 
 clean:

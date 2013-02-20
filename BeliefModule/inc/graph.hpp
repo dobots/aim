@@ -1,18 +1,21 @@
 /**
- * @brief
+ * 456789---------------------------------------------------------------------80
+ *
+ * @brief Graph data structure for message passing on a graphical model
  * @file graph.hpp
  * 
- * This file is created at Almende B.V. It is open-source software and part of the Common
- * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from
- * thread pools and TCP/IP components to control architectures and learning algorithms.
+ * This file is created at Almende B.V. and Distributed Organisms B.V. It is
+ * open-source software and belongs to a larger suite of software that is meant
+ * for research on self-organization principles and multi-agent systems where
+ * learning algorithms are an important aspect.
  * This software is published under the GNU Lesser General Public license (LGPL).
  *
- * It is not possible to add usage restrictions to an open-source license. Nevertheless,
- * we personally strongly object against this software being used by the military, in the
- * bio-industry, for animal experimentation, or anything that violates the Universal
- * Declaration of Human Rights.
+ * It is not possible to add usage restrictions to an open-source license.
+ * Nevertheless, we personally strongly object against this software being used
+ * for military purposes, factory farming, animal experimentation, and anything
+ * that violates the Universal Declaration of Human Rights.
  *
- * Copyright © 2012 Anne van Rossum <anne@almende.com>
+ * Copyright © 2013 Anne van Rossum <anne@almende.com> <anne@dobots.nl>
  *
  * @author    Anne C. van Rossum
  * @date      Oct 24, 2012
@@ -21,9 +24,9 @@
  * @case      Cognitive Sensor Fusion
  */
 
-/************************************************************************************
+/*******************************************************************************
  * Configuration
- ************************************************************************************/
+ ******************************************************************************/
 
 #ifndef GRAPH_HPP_
 #define GRAPH_HPP_
@@ -39,9 +42,9 @@
 #include <typeinfo>
 
 /**
- * The different types of implementations that can exist for a special class. The ones in
- * operation are only CIT_CHECK which adds checks and CIT_FAST which skips checks, even if
- * they would be make operation much safer.
+ * The different types of implementations that can exist for a special class.
+ * The ones in operation are only CIT_CHECK which adds checks and CIT_FAST which
+ * skips checks, even if they would be make operation much safer.
  */
 enum ClassImplType { CIT_CHECK, CIT_FAST, CIT_GPU, CIT_SSE, CIT_NOF_TYPES } ;
 
@@ -51,52 +54,74 @@ enum ClassImplType { CIT_CHECK, CIT_FAST, CIT_GPU, CIT_SSE, CIT_NOF_TYPES } ;
 enum VertexType { VT_FACTOR, VT_VARIABLE, VT_NOF_TYPES } ;
 
 /**
- * We assume a sparse graph, so we only need a vertex representation and no explicit
- * edge representation. They are given by the "to" and "from" field and do not carry
- * a value themselves. In the message passing scheme, the messages are passed to all
- * neighbours (except from the one the message is received from to begin with). To
- * be able to send the message in the forward as well as the backward pass, there are
- * both "to" and "from" fields, which are of course (theoretically) redundant.
+ * We assume a sparse graph, so we only need a vertex representation and no
+ * explicit edge representation. They are given by the "to" and "from" field and
+ * do not carry a value themselves. In the message passing scheme, the messages
+ * are passed to all neighbours (except from the one the message is received
+ * from to begin with). To be able to send the message in the forward as well as
+ * the backward pass, there are both "to" and "from" fields, which are of course
+ * (theoretically) redundant.
  */
-template <typename T, typename P, typename M, typename N>
+template <typename T, typename S, typename P, typename M, typename N>
 class vertex;
 
+//! The variable class is derived from the vertex class.
 template <typename T, typename P, typename M, typename N>
 class variable;
 
+//! The factor class is derived from the vertex class.
 template <typename T, typename P, typename M, typename N>
 class factor;
 
 template <typename T, typename P, typename M, typename N, ClassImplType I>
 class graph;
 
-template <typename T, typename P, typename M, typename N, ClassImplType I>
-class tree;
-
-template <typename T, typename P, typename M, typename N>
+template <typename T, typename P, typename N>
 class conditional_probability_table;
 
-// following is probably incorrect
+//! There is a "probability" entity, see class for description
 template <typename P, typename T>
 class probability;
 
 /**
  * The graph implementation.
  *
- * Vertices are stored in reference form. However, on copying from one graph to another a
- * deep copy will take place and the references will be followed. The implementation allows
- * for something like: graph<T> g; tree<T> t = g; On a deep copy of a vertex, their index
- * will not be changed.
+ * Vertices are stored in reference form. However, on copying from one graph to
+ * another a deep copy will take place and the references will be followed. The
+ * implementation allows for something like: graph<T> g; tree<T> t = g; On a
+ * deep copy of a vertex, their index will not be changed.
  *
  * The edges are stored as indices, not as references, nor instances.
  *
- * Note that the implementation makes use of a default argument for a class template parameter
- * called "impl_type". This "impl_type" of the class allows for different instants of the
- * class that are either faster, performing more checks, or somehow optimized for hardware for
- * example. This will be resolved at compile time, so all code within "impl_type == CIT_CHECK"
- * if statements won't be in the final binary at all.
+ * Note that the implementation makes use of a default argument for a class
+ * template parameter called "impl_type". This "impl_type" of the class allows
+ * for different instants of the class that are either faster, performing more
+ * checks, or somehow optimized for hardware for example. This will be resolved
+ * at compile time, so all code within "impl_type == CIT_CHECK" if statements
+ * won't be in the final binary at all.
+ *
+ * The code in these files is operational on a level of basic probabilities, but
+ * it is not working for more sophisticated stuff. For example, to implement
+ * variable elimination we need a data structure that is a so-called "cluster
+ * graph". This is a graphical flowchart of the factor-manipulation process.
+ * What we have here is however, only something that can be used for message
+ * passing over a fixed factor graph and is hence not so flexible. More on
+ * cluster graphs you can read in "Variable Elimination and Clique Trees" in
+ * Section 10.1.1 in PGM.
+ *
+ * The following template parameters can be used. Except for the "type"
+ * template, this is the same set of template parameters as for the variable and
+ * the factor class:
+ * @param T		type of an event, e.g. for a ternary event you will need at
+ * 				least an (u)int8_t type, default: uint8_t
+ * @param P		type to indicate probabilities, should be floating point, e.g.
+ * 				float or double, default: float
+ * @param M		type of the messages that are communicated between the nodes on
+ * 				the graph, default: probability<P,T>
+ * @param N		type of the index to the nodes, e.g. uint8_t would limit the
+ * 				graph to 2^8-1 nodes, default: size_t
  */
-template <typename T, typename P = float, typename M = float, typename N = size_t, ClassImplType impl_type = CIT_CHECK>
+template <typename T, typename P = float, typename M = probability<P,T>, typename N = size_t, ClassImplType impl_type = CIT_CHECK>
 class graph {
 public:
 	//! To be used by users of the class to iterate through the variables
@@ -126,15 +151,14 @@ public:
 	/**
 	 * Copy all vertices individually or else way only the pointer is copied. This is also
 	 * used by subclasses (such as tree).
-	 *
 	 */
 	graph<T,P,M,N,impl_type> & operator=(const graph<T,P,M,N,impl_type> &g) {
 		for (int i = 0; i < g.factors.size(); ++i) {
-			vertex<T,P,M,N> *v = new vertex<T,P,M,N >(*g.factors[i]);
+			factor<T,P,M,N> *v = new factor<T,P,M,N >(*g.factors[i]);
 			factors.push_back(v);
 		}
 		for (int i = 0; i < g.variables.size(); ++i) {
-			vertex<T,P,M,N> *v = new vertex<T,P,M,N >(*g.variables[i]);
+			variable<T,P,M,N> *v = new variable<T,P,M,N >(*g.variables[i]);
 			variables.push_back(v);
 		}
 		return *this;
@@ -245,130 +269,64 @@ public:
 
 };
 
-/**
- * A tree is just a graph without some edges. There are however different edges to remove. Our goal is
- * message passing, so the way the edges are removed is quite specific. It is an algorithm called the
- * "junction tree algorithm" and it automatically is applied when a graph is assigned to the tree
- * object.
- */
-template <typename T, typename P = float, typename M = float, typename N = size_t, ClassImplType impl_type = CIT_CHECK>
-class tree: public graph<T,P,M,N,impl_type> {
-public:
-	tree(): graph<T,P,M,N,impl_type>() {}
-	~tree() {};
+/***********************************************************************************************************************
+ *
+ **********************************************************************************************************************/
 
-	// To assign a graph to a tree requires pruning all edges which makes it not
-	// a tree. We perform here the junction tree algorithm.
-	tree(const graph<T,P,M,N,impl_type> &g) {
-		typedef graph<T,P,M,N,impl_type> super;
-		super::operator=(g);
-		moralization();
-		triangulation();
-	}
-
-	tree<T,P,M,N,impl_type> & operator=(const graph<T,P,M,N, impl_type> &g) {
-		typedef graph<T,P,M,N,impl_type> super;
-		// we make first a copy of the graph where we subsequently apply "moralization" and "triangulation"
-		super::operator=(g);
-		moralization();
-		triangulation();
-		return *this;
-	}
-
-	/**
-	 * Moralization turns all directed edges in a graph into undirected edges. Because really
-	 * every edge is gonna be duplicated in the other direction we only need to copy all
-	 * pointers in "to" to the pointers in the "from" set, and the other way around.
-	 */
-	void moralization() {
-		typedef graph<T,P,M,N,impl_type> super;
-		typename vertex<T,P,M,N>::const_iterator j;
-		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
-		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
-		for (v_i = super::variables.begin(); v_i != super::variables.end(); ++v_i) {
-			variable<T,P,M,N> &v = **v_i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (!v.to_exists(j->first)) v.push_to(j->first);
-//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-//					v.push_to(j->first);
-//				}
-			}
-			for (j = v.to_begin(); j != v.to_end(); ++j) {
-				if (!v.from_exists(j->first)) v.push_from(j->first);
-//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
-//					v.push_from(j->first);
-//				}
-			}
-		}
-		for (f_i = super::factors.begin(); f_i != super::factors.end(); ++f_i) {
-			factor<T,P,M,N> &v = **f_i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (!v.to_exists(j->first)) v.push_to(j->first);
-//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-//					v.push_to(j->first);
-//				}
-			}
-			for (j = v.to_begin(); j != v.to_end(); ++j) {
-				if (!v.from_exists(j->first)) v.push_from(j->first);
-//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
-//					v.push_from(j->first);
-//				}
-			}
-		}
-	}
-
-	/**
-	 * Create from a moral graph a chordal graph, by introducing edges such that there is no cycle
-	 * of length 4. This is edges are so-called chords.
-	 */
-	void triangulation() {
-
-	}
-
-	/**
-	 * Get the root of the tree. If you descend to all vertices by going to "dest" you will never
-	 * encounter the root again. However, if you go from a random node to "src" you will always end
-	 * up in this vertex.
-	 */
-	vertex<T,P,M,N> & get_root() {
-		typedef graph<T,P,M,N,impl_type> super;
-		return super::front();
-	}
-};
 
 /**
- * Probability is in the end just an array with values. The default probability takes two values. A
- * probability over all possible outcomes should always add up to 1.0. We won't incorporate this
- * in our class, for example through allocating (t_size-1) objects and deriving the last one by
- * subtracting the sum from one. This because of the additional computations and more complex
- * implementation of normalization.
+ * Probability is a "difficult" entity when we move from the mathematical world to computers. This
+ * class could have been called "random variable". But, it is actually not a random variable which
+ * is a mapping from a sample space to real numbers. With a fair coin, "heads" can for example be
+ * arbitrarily mapped to "3.1415", "tails" to "5.76". It is neither a "probability mass function" in
+ * the sense that we define the probabilities corresponding to those values over the entire domain
+ * of real numbers (which gives those nice plots). It is only an array in which we assume that the
+ * user keeps track of the order of the outcomes throughout the program and we store only the
+ * probabilities for each of these outcomes.
+ *
+ * This "impoverished version" of the probability mass function is not normalized. It can be used
+ * to characterize a discrete probability distribution (and henceforth a discrete random variable),
+ * but it can also be used in an unnormalized fashion: as messages in message passing.
  *
  * It would have been possible to define the probability with a default template argument, like:
  *    template <typename P, typename T=int, T t_size=2>
  * However, in that case, it would not fit nicely together in a structure with variables that have
  * a different number of outcomes. In that case, the binary and ternary variables cannot be put in
- * the same vector.
+ * the same vector: probability<P,T>.
+ *
+ * The following template parameters can be used:
+ * @param T			type of an event, e.g. for a ternary event you will need at least an (u)int8_t type
+ * 					default: uint8_t
+ * @param P			type to indicate probabilities, should be floating point, e.g. float or double
+ * 					default: float
  */
 template <typename P, typename T=int>
 class probability {
 public:
-	probability(T t_size): number_of_different_outcomes(t_size) {
+	// Create an empty "probability mass function", does memory allocation
+	probability(T t_size): cardinality(t_size) {
 		outcome = new P[t_size];
 	}
+	// Destructor
 	~probability() {
 		delete [] outcome;
 	}
-	T size() { return number_of_different_outcomes; }
+	// The cardinality of this random variable
+	T size() { return cardinality; }
+	// The probability of the given indexed outcome (order preserved)
 	P & operator[](T n) { return outcome[n]; }
+	// The probability of the given indexed outcome (order preserved)
 	const P operator[](T n) const {
 		return *outcome[n];
 	}
-
 private:
+	// The outcome array stores a probability for every possible outcome
 	P *outcome;
-	T number_of_different_outcomes;
+	// The cardinality is the total number of possible outcomes
+	T cardinality;
+	// The probability of every outcome can be printed as space-separated stream
 	friend std::ostream& operator<<(std::ostream & os, const probability & p) {
-		for (int i = 0; i < p.number_of_different_outcomes; ++i) {
+		for (int i = 0; i < p.cardinality; ++i) {
 			os << (p.outcome[i]) << ' ';
 		}
 		return os;
@@ -380,18 +338,29 @@ private:
  * matrix representation, however, I do not want to include dependencies that are not really necessary.
  * It will store explicit references to the variables (vertices) that are involved.
  */
-template <typename T, typename P = float, typename M = float, typename N = size_t>
+template <typename T, typename P = float, typename N = size_t>
 class conditional_probability_table {
 public:
+	/**
+	 * Create a new, empty, conditional probability table. It requires one vector "dimensions".
+	 * This creates an object that is quite large. A vector "2, 3, 4" creates an array of size
+	 * 2x3x4 to store all individual conditional probabilities. Internally, everything is stored
+	 * as a linear array.
+	 *
+	 * The proper name for "dimensions" here is "cardinality".
+	 */
 	conditional_probability_table(//std::vector < N > & vertex_indices,
 			std::vector<N> & dimensions): /*vertex_indices(vertex_indices),*/ dimensions(dimensions) {
 		N size = 1;
-		for (int i = 0; i < dimensions.size(); ++i) {
-			size *= dimensions[i];
-		}
+		strides.clear();
 		vertex_indices.clear();
 		probabilities.clear();
 		probabilities.reserve(size);
+		for (int i = 0; i < dimensions.size(); ++i) {
+			strides.push_back(size);
+			size *= dimensions[i];
+		}
+		strides.push_back(size);
 		for (N i = 0; i < size; ++i) probabilities.push_back(P(0));
 		std::cout << "Created table with dimension " << dimensions.size(); std::endl(std::cout);
 	}
@@ -402,10 +371,19 @@ public:
 		probabilities = other.probabilities;
 	}
 
+	/**
+	 * Adds a vertex to the internally maintained lists of vertices. This should be a unique
+	 * identifier.
+	 */
 	void add_vertex(N index) {
 		vertex_indices.push_back(index);
 	}
 
+	/**
+	 * The dimension of the conditional probability table is defined in the constructor. Subsequently
+	 * the vertices that it is about can be added at a later stage through add_vertex. Hence, this
+	 * function checks if these figures actually match.
+	 */
 	bool initialized() {
 		if (vertex_indices.size() != dimensions.size()) return false;
 		return true;
@@ -420,13 +398,15 @@ public:
 	}
 
 	/**
-	 * Translate [i,j,k] to linear index i+j*i_size+k*i_size*j_size, etc.
+	 * Translate [i,j,k] to linear index i+j*i_size+k*i_size*j_size, etc. Actually, it is better
+	 * to store the "stride" per variable. Now, we are calculating it every time we use
+	 * get_linear_index() by the multiplication of "dim".
 	 */
 	inline N get_linear_index(std::vector<N> table_index) {
 		N i; size_t dim = 1;
 		for (int i = 0; i < table_index.size(); ++i) {
-			i += table_index[i] * dim;
-			dim *= dimensions[i];
+			i += table_index[i] * strides[i]; //dim;
+//			dim *= dimensions[i];
 		}
 		return i;
 	}
@@ -476,14 +456,22 @@ public:
 
 	/**
 	 * A matrix multiplication can of course be much more efficient. In this implementation
-	 * it is checked all the time if the index does not run over one of the dimension's
-	 * boundaries.
+	 * there is a for-loop in which the boundaries of a given dimension are checked every
+	 * time. So, in a conditional probability table of size 2x3x4=24, we have a variable that
+	 * corresponds to the first dimension, one with the second, and one with the third. If
+	 * we multiply with the second variable we need a probability that is of "size" 3, and
+	 * we will multiply 2x4 values with the first value, another 8 with the next, and another
+	 * 8 with the last probability. So, all values in this 3D object will be changed (except
+	 * if p = {1,1,1}).
+	 *
+	 * @param vertex_index		unique reference to the vertex (see add_vertex)
+	 * @param p					the probabilities with which all values will be multiplied
 	 */
 	void multiply(N vertex_index, probability<P,T> & p) {
 		N dimension = get_dimension(vertex_index);
 		assert (dimensions[dimension] == p.size());
-		N inc = block_size(dimension);
-		N reset = block_size(dimension+1);
+		N inc = strides[dimension];
+		N reset = strides[dimension+1];
 		N max = max_capacity();
 		for (int i = 0, j = 0; i < max; ++i) {
 			probabilities[i] *= p[j];
@@ -492,11 +480,40 @@ public:
 		}
 	}
 
+	/**
+	 * The opposite of multiply, with a specific exception clause to prevent division by zero.
+	 * An example of factor division is given in section 10.3.1 "Message Passing with Division"
+	 * in Probabilistic Graphical Models (Koller and Friedman), Figure 10.7. This is a nice
+	 * schema that prevents multiplication of all subsets of variables with only one variable
+	 * excluded.
+	 */
+	void divide(N vertex_index, probability<P,T> &p) {
+		N dimension = get_dimension(vertex_index);
+		assert (dimensions[dimension] == p.size());
+		N inc = strides[dimension];
+		N reset = strides[dimension+1];
+		N max = max_capacity();
+		for (int i = 0, j = 0; i < max; ++i) {
+			if (p[j] != 0)
+				probabilities[i] /= p[j];
+			else
+				probabilities[i] = 0;
+			if (((i+1) % inc) == 0) j++;
+			if (((i+1) % reset) == 0) j=0;
+		}
+	}
+
+	/**
+	 * See the detailed explanation of the function multiply, but the "direction" of information
+	 * is the other way around. The conditional probability table is left unchanged. The probability
+	 * "p" is adjusted in the sense that all values "intersecting" with it, are added up and added
+	 * as its entries.
+	 */
 	void sum(N vertex_index, probability<P,T> & p) {
 		N dimension = get_dimension(vertex_index);
 		assert (dimensions[dimension] == p.size());
-		N inc = block_size(dimension);
-		N reset = block_size(dimension+1);
+		N inc = strides[dimension];
+		N reset = strides[dimension+1];
 		N max = max_capacity();
 		for (int j = 0; j < dimension; ++j) {
 			p[j] = 0;
@@ -508,6 +525,10 @@ public:
 		}
 	}
 
+	/**
+	 * Returns the maximum size in the sense of memory requirements for this conditional probability
+	 * table.
+	 */
 	N max_capacity() const {
 		N max = 1;
 		for (int i = 0; i < dimensions.size(); ++i) {
@@ -516,23 +537,19 @@ public:
 		return max;
 	}
 
+	/**
+	 * Get the number of dimensions. A table with 4 variables, that have each a certain size, has a
+	 * total number of dimensions equal to 4. If each variable corresponds to a gray level in an image
+	 * this does not matter. If each pixel is considered as a variable however, this will add a dimension
+	 * for each pixel. With 10 bins for gray levels and 1000 pixels, there are 1000 dimensions. The
+	 * required capacity would be 10^1000 (compared to 10^82 atoms in the universe). There is just one
+	 * message here: do not store dependencies unless you have to. :-)
+	 */
 	N get_dimensions() const {
 		return dimensions.size();
 	}
 protected:
 
-	/**
-	 * In a d-dimensional table where you want to apply a certain calculations
-	 * over one of the d-dimensions, for example multiplying over
-	 */
-	N block_size(N dimension) const {
-		if (dimension == 0) return 1;
-		N block_size = 1;
-		for (int i = 0; i < dimension; ++i) {
-			block_size *= dimensions[i];
-		}
-		return block_size;
-	}
 
 	N get_dimension(N vertex_index) const {
 		for (int i = 0; i < vertex_indices.size(); ++i) {
@@ -550,6 +567,13 @@ private:
 	// The table of probabilities (linearized as a vector)
 	std::vector<P> probabilities;
 
+	std::vector<N> strides;
+
+	/**
+	 * Printing the table is useful for debugging purposes. The table does not have access to the
+	 * variables or factors involved, it is just a table. So, there is no way to equip it with variable
+	 * names for example.
+	 */
 	friend std::ostream& operator<<(std::ostream & os, const conditional_probability_table & table) {
 		int dimsize=table.dimensions.size();
 
@@ -588,81 +612,117 @@ private:
 };
 
 /**
- * A factor is a special type of vertex, namely one that contains a conditional probability table.
- * Depending on its incoming edges (variables) it knows the probability of the corresponding values.
+ * A factor is a special type of vertex, namely one that contains a reference to a conditional
+ * probability table. More general we can state that a factor for all incoming connections to
+ * variables comes up with an answer, in other words, it is a function defined over variables.
+ * Depending on its incoming edges (variables) it knows the probability of the corresponding
+ * values. Rather than implementing the factor as a general function, we subclass it here
+ * from a vertex with a conditional probability table as "function".
+ *
+ * The following template parameters can be used, observe that this is one parameter less than
+ * for the vertex class, which has an additional S state template parameter.
+ * @param T			type of an event, e.g. for a ternary event you will need at least an (u)int8_t type
+ * 					default: uint8_t
+ * @param P			type to indicate probabilities, should be floating point, e.g. float or double
+ * 					default: float
+ * @param M			type of the messages that are communicated between the nodes on the graph
+ * 					default: probability<P,T>
+ * @param N			type of the index to the nodes, e.g. uint8_t would limit the graph to 2^8-1 nodes
+ * 					default: size_t
  */
-template <typename T, typename P = float, typename M = float, typename N = size_t>
-class factor: public vertex< conditional_probability_table<T,P,M,N>, P, M, N> {
+template <typename T, typename P = float, typename M = probability<P,T>, typename N = size_t>
+class factor: public vertex< T, conditional_probability_table<T,P,N>, P, M, N> {
 public:
-	typedef conditional_probability_table<T,P,M,N> S;
-	factor(): vertex<S,P,M,N>(VT_FACTOR), initialized(false) {
+	// Shorthand for the conditional probability table is "S"
+	typedef conditional_probability_table<T,P,N> S;
+
+	// Construct factor, but do not fill with table values yet
+	factor(): vertex<T,S,P,M,N>(VT_FACTOR), initialized(false) {
 	}
 
-	factor(S & cond_prob_table): vertex<S,P,M,N>(VT_FACTOR) {
-		typedef vertex<S,P,M,N> super;
+	factor(S & cond_prob_table, std::string name=""): vertex<T,S,P,M,N>(VT_FACTOR) {
+		typedef vertex<T,S,P,M,N> super;
 		super::setValue(&cond_prob_table);
 		initialized = cond_prob_table.initialized();
+		this->name = name;
 	}
 
 	virtual ~factor() {
-//		typedef vertex<S,P,M,N> super;
-//		std::cout << "Deallocate factor " << super::index(); std::endl(std::cout);
 	}
 
-//	factor<T,P,M,N>& operator*= (const factor<T,P,M,N>& f) {
-//		assert(initialized);
-////		assert(f.initialized);
-//		factor<T,P,M,N> *newf = new factor<T,P,M,N>(f);
-//	}
-
 	void set(S & cond_prob_table) {
-		typedef vertex<S,P,M,N> super;
+		typedef vertex<T,S,P,M,N> super;
 		super::setValue(cond_prob_table);
 	}
 
 	void push_to(N index) {
-		typedef vertex<S,P,M,N> super;
+		typedef vertex<T,S,P,M,N> super;
 		super::push_to(index);
 		assert (super::getValue() != NULL);
 		super::getValue()->add_vertex(index);
 	}
 
 	void push_from(N index) {
-		typedef vertex<S,P,M,N> super;
+		typedef vertex<T,S,P,M,N> super;
 		super::push_from(index);
 		assert (super::getValue() != NULL);
 		super::getValue()->add_vertex(index);
 	}
 
+	/**
+	 * Calculate the marginal with respect to a certain variable. This can be calculated
+	 * if all variables attached to this factor do come with data with respect to their
+	 * probabilities. In other words, we have to multiply each field with the evidence
+	 * coming from all incoming variables including the incoming one. And then divide
+	 * the last one out again. This would work, except in the case that the incoming
+	 * variable does have a zero on one of its probability values.
+	 *
+	 * However, on this level we do not have access to anything on those vertices except
+	 * for the messages they send to us. Calculating the marginal is typically something
+	 * done on the "belief propagation" level that has access to the entire graph.
+	 *
+	 * What we would be able to do here is to marginalize out the variable v. However, the
+	 * result would not be a probability, but a new factor with a smaller dimension. We
+	 * sum out this variable v, also called variable elimination.
+	 */
 	probability<P,T> *marginal(variable<T,P,M,N> &v) {
+		assert(false); // this
+
 		// multiply all entries in the conditional probability table with the evidence
 		// on all vertices except for "v"
-		typedef vertex<S,P,M,N> super;
+		typedef vertex<T,S,P,M,N> super;
 		std::cout << "Calculate marginal \n";
 
 		probability<P,T> *evidence = v.getValue();
 		assert (evidence != NULL);
+
+		// create a temporary table to calculate the joint distribution
 		S *table = new S(*super::getValue());
-		int olddim = table->get_dimensions();
-		table->multiply(v.index(), *evidence);
-		int newdim = table->get_dimensions();
+		for (N i = 0; i < table->get_dimensions(); ++i) {
+			N e_i = super::to_at(i).first;
+			if (e_i == v.index()) continue; // don't multiply with this very vertex
+//			probability<P,T> *e = super::to_at(i).getsomehowthatvertexisimpossible().
+//			table->multiply(e_i, *e);
+		}
 
-//		for (int i = 0; i < olddim; ++i) {
-//			table->get()
-//		}
+		probability<P,T> *m = new probability<P,T>(evidence->size());
+		table->sum(v.index(), *m);
 
+//		int olddim = table->get_dimensions();
+//		table->multiply(v.index(), *evidence);
+//		int newdim = table->get_dimensions();
 
 		std::cout << *table << '\n';
-		return NULL;
+//		return NULL;
 
-		for (N i = 0; i < super::to_size(); ++i) {
-			if (super::to_at(i).first == v.index()) continue;
+//		for (N i = 0; i < super::to_size(); ++i) {
+//			if (super::to_at(i).first == v.index()) continue;
 //			probability<P,T> *p_new = table->sum();
 //			return *p_new;
-		}
+//		}
 		delete table;
 
-//		return 0;
+		return m;
 	}
 private:
 	bool initialized;
@@ -670,120 +730,86 @@ private:
 
 enum FactorCoupling { FC_UNARY, FC_BINARY, FC_TERNARY, FC_COUNT } ;
 
-/**
- * An Ising factor expects to be connected, either to one or two variables. Note that a graph is
- * defined for one type of "value" on the nodes. If you use booleans for the variables, you cannot
- * use integers for the factors. However, considering multiple booleans requires a probability
- * table of more than two entries, hence the Ising factors requires 2^N values, which is more than
- * a boolean. The simplest data type that can be used in this setting is hence a char.
- */
-template <typename T, typename P = float, typename M = float, typename N = size_t>
-class ising_factor: public factor<T,P,M,N> {
-public:
-	ising_factor(P coupling, const FactorCoupling fc): factor<T,P,M,N>() {
-		if (typeid(T) == typeid(bool)) {
-			std::cerr << "Type id of the graph / Ising factors should have at least the ordinality of a char";
-			std::endl(std::cout);
-			assert(typeid(T) != typeid(bool));
-		}
-		typedef factor<T,P,M,N> super;
-		switch(fc) {
-		case FC_UNARY: {
-			typedef conditional_probability_table<T,P,M,N> S;
-			std::vector<N> dimensions; dimensions.clear();
-			dimensions.push_back(2);
-			S *table = new S(dimensions);
-			super::setValue(table);
-			table->set(0, std::exp(coupling));
-			table->set(1, std::exp(-coupling));
-			nof_variables = 1;
-			break;
-		}
-		case FC_BINARY: {
-			typedef conditional_probability_table<T,P,M,N> S;
-			std::vector<N> dimensions; dimensions.clear();
-			dimensions.push_back(2);
-			dimensions.push_back(2);
-			S *table = new S(dimensions);
-			super::setValue(table);
-			table->set(0, 0, std::exp(coupling));
-			table->set(0, 1, std::exp(-coupling));
-			table->set(1, 0, std::exp(-coupling));
-			table->set(1, 1, std::exp(coupling));
-			nof_variables = 2;
-			break;
-		}
-		default: {
-			std::cerr << "Incorrect coupling"; std::endl(std::cerr);
-			break;
-		}
-		}
-	}
-
-	bool check() {
-		typedef factor<T,P> super;
-		return (super::from_size() == nof_variables);
-	}
-private:
-	int nof_variables;
-};
-
-template <typename T, typename P = float, typename M = float, typename N = size_t>
-class variable: public vertex< probability<P,T>, P, M, N> {
-public:
-	typedef probability<P,T> S;
-//	variable(): vertex<S,P,M,N>(VT_VARIABLE), initialized(false) {
-////		probability<P,T> *p = new probability<P,T,N>();
-////		typedef vertex<S,P,M,N> super;
-////		super::setValue(p);
-////		initialized = true;
-//	}
-
-
-	variable(N number_of_outcomes): vertex<S,P,M,N>(VT_VARIABLE) {
-		//probability<P,T> *p = new probability<P,T,2>();
-		probability<P,T> *p = new probability<P,T>(number_of_outcomes);
-		typedef vertex<S,P,M,N> super;
-		super::setValue(p);
-		initialized = true;
-	}
-
-	virtual ~variable() {
-//		typedef vertex<S,P,M,N> super;
-//		std::cout << "Deallocate variable " << super::index(); std::endl(std::cout);
-	}
-
-private:
-	bool initialized;
-};
-
-static size_t uuid = -1;
 
 /**
- * The implementation of the vertex class. In case of an Ising variable typename "T" would be a
- * boolean. Note that for a segmentation task you will need to transform a grayscale image to something
- * like a boolean, or you will generate for each possible value a huge conditional probability table
- * on the factors.
+ * A variable is a vertex in the factor graph that is only connected to factor nodes.
+ * It has a number of outcomes or possible values each with a certain probability. A
+ * variable attached to a dice has 6 outcomes with equal probabilities. A variable
+ * attached to a pixel has for example 16 outcomes (bins of 16 gray values adding up
+ * to a total of 256 values) with each of these outcomes a probability that depends
+ * on the scenario. A sunny day will make the "lighter" outcomes much more likely.
  *
- * The following template parameters can be used:
- * @param S			type of state on the vertex, for variable nodes this is an event (probability), for
- * 					factor nodes this is a conditional probability table
+ * The following template parameters can be used, observe that this is one parameter less than
+ * for the vertex class, which has an additional S state template parameter.
  * @param T			type of an event, e.g. for a ternary event you will need at least an (u)int8_t type
  * 					default: uint8_t
  * @param P			type to indicate probabilities, should be floating point, e.g. float or double
  * 					default: float
- * @param M			type of the messages that are communicated between the nodes on the graph, e.g. float
- * 					default: float
+ * @param M			type of the messages that are communicated between the nodes on the graph
+ * 					default: probability<P,T>
  * @param N			type of the index to the nodes, e.g. uint8_t would limit the graph to 2^8-1 nodes
  * 					default: size_t
  */
-template <typename S, typename P = float, typename M = float, typename N = size_t>
+template <typename T, typename P = float, typename M = probability<P,T>, typename N = size_t>
+class variable: public vertex< T, probability<P,T>, P, M, N> {
+public:
+	typedef probability<P,T> S;
+
+	/**
+	 * A variable comes with a name and a series of outcomes with different probabilities
+	 * defined by a probability density function. The latter is stored internally on a
+	 * "value" field as an "probability<P,T>" object. Moreover, the variable is defined as
+	 * a vertex and is hence an "enriched" random variable.
+	 */
+	variable(N cardinality, std::string name=""): vertex<T,S,P,M,N>(VT_VARIABLE) {
+		S *p = new S(cardinality);
+		typedef vertex<T,S,P,M,N> super;
+		super::setValue(p);
+		this->name = name;
+	}
+
+	// Destruction does not deallocate the value
+	virtual ~variable() { }
+
+private:
+};
+
+/**
+ * Global counter that increments the unique identifier for every vertex in the factor graph.
+ * The first vertex gets the id 0.
+ */
+static size_t uuid = -1;
+
+/**
+ * The implementation of the vertex class. In case of an Ising variable typename
+ * "T" would be a boolean. Note that for an image segmentation task you will
+ * need to map your samples (for example a grayscale image to real numbers:
+ * probabilities). Small bins will result in huge conditional probability table
+ * on the factors.
+ *
+ * The following template parameters can be used:
+ * @param T		type of an event, e.g. for a ternary event you will need at
+ * 				least an (u)int8_t type, default: uint8_t
+ * @param S		type of state on the vertex, for variable nodes this is an event
+ * 				(probability), for factor nodes this is a conditional
+ * 				probability table
+ * @param P		type to indicate probabilities, should be floating point, e.g.
+ * 				float or double, default: float
+ * @param M		type of the messages that are communicated between the nodes on
+ * 				the graph, default: probability<P,T>
+ * @param N		type of the index to the nodes, e.g. uint8_t would limit the
+ * 				graph to 2^8-1 nodes, default: size_t
+ */
+template <typename T, typename S, typename P = float,
+		typename M = probability<P,T>, typename N = size_t>
 class vertex {
 public:
 	//! Note that for the neighbours of vertices we store only references plus a message of type T
 
 	// Use "delegation" as programming pattern and just expose the iterator of the underlying
 	// (nested) container, see http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterator-define.html#TOC2
+
+	//! Reference to pair of vertex index (first) and message "object" (second) which is by default a float.
 	typedef std::vector<std::pair <N, M* > > vertex_index_container;
 	typedef typename vertex_index_container::value_type                   value_type;
 	typedef typename vertex_index_container::size_type                    size_type;
@@ -808,7 +834,7 @@ public:
 //		std::cout << "Deallocate vertex " << id; std::endl(std::cout);
 	}
 
-	vertex(const vertex<S,P,M,N> &other) {
+	vertex(const vertex<T,S,P,M,N> &other) {
 		value = other.value;
 		id = other.id;
 		vtype = other.vtype;
@@ -819,12 +845,12 @@ public:
 	/**
 	 * Check if vertices are equal by using their index (identifier)
 	 */
-	bool equal(const vertex<S,P,M,N> & other) const {
+	bool equal(const vertex<T,S,P,M,N> & other) const {
 		return other.id == id;
 	}
 
 	// TODO: use the copy-and-swap idiom
-	vertex<S,P,M,N> & operator=(const vertex<S,P,M,N> &other) {
+	vertex<T,S,P,M,N> & operator=(const vertex<T,S,P,M,N> &other) {
 		std::cerr << "Debug: copy action on vertex " << other.id; std::endl(std::cerr);
 		value = other.value;
 		id = other.id;
@@ -846,7 +872,9 @@ public:
 	 * See: http://stackoverflow.com/questions/4660123/overloading-friend-operator-for-template-class
 	 */
 	friend std::ostream& operator<<(std::ostream & os, const vertex & v) {
-		os << v.id << "(" << v.vtype << "): {";
+		os << v.id;
+		os << "[" << v.name << "] ";
+		os << "(" << (v.vtype ? "var" : "factor") << "): {";
 		if (!v.from.empty()) os << v.from[0].first;
 		for (int i = 1; i < v.from.size(); ++i) os << ',' << v.from[i].first;
 		os << "} {";
@@ -871,6 +899,7 @@ public:
 	reference from_at(size_t n) { return from[n]; }
 	const_reference from_at(size_t n) const { return from[n]; }
 
+	//! Get reference to indices of outgoing vertices (not the vertices themselves)
 	reference to_at(size_t n) { return to[n]; }
 	const_reference to_at(size_t n) const { return to[n]; }
 
@@ -896,6 +925,9 @@ public:
 		from.push_back(std::make_pair(index,new M(0)));
 	}
 
+protected:
+	// just for debugging purposes
+	std::string name;
 private:
 	// Value on the node, can be used to accumulate incoming messages
 	S *value;

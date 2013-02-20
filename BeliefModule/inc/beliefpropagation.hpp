@@ -42,7 +42,7 @@ namespace dobots {
  * It is the state of a visible variable which just shouldn't be adjusted. The ones
  * from the segmentation or depth map should however be adjusted.
  */
-template <typename T, typename P = float, typename M = float, typename N = size_t>
+template <typename T, typename P = float, typename M = probability<P,T>, typename N = size_t>
 class beliefpropagation {
 public:
 	beliefpropagation(): convergence(false), directed(true) {}
@@ -50,6 +50,9 @@ public:
 	/**
 	 * Do one pass of the message passing scheme. This will have as side-effect that
 	 * the convergence parameter is set, see @ converged().
+	 *
+	 * It is not possible to just start ticking variables and factors. Information flows in
+	 * a certain way through the network. If there is a certain
 	 */
 	template <ClassImplType impl_type>
 	void tick(const graph<T,P,M,N,impl_type> &g) {
@@ -79,20 +82,23 @@ protected:
 	 */
 	template <ClassImplType impl_type>
 	bool is_directed(const graph<T,P,M,N,impl_type> &g) {
-		typename vertex<T,P,M,N>::const_iterator j;
+//		typename vertex<T,P,M,N>::const_iterator j;
 		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
 		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
 		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
 			variable<T,P,M,N> &v = **v_i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (!v.to_exists(j->first)) return set_directed(true);
+			for (int j = 0; j < v.from_size(); ++j) {
+				if (!v.to_exists(v.from_at(j).first)) return set_directed(true);
 			}
+//			for (j = v.from_begin(); j != v.from_end(); ++j) {
+//				if (!v.to_exists(j->first)) return set_directed(true);
+//			}
 		}
 		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
-			factor<T,P,M,N> &v = **f_i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (!v.to_exists(j->first)) return set_directed(true);
-			}
+//			factor<T,P,M,N> &v = **f_i;
+//			for (j = v.from_begin(); j != v.from_end(); ++j) {
+//				if (!v.to_exists(j->first)) return set_directed(true);
+//			}
 		}
 		return set_directed(false);
 	}
@@ -103,6 +109,11 @@ protected:
 	}
 
 	/**
+	 * A factor is normally a function that is defined over the variables it is connected
+	 * to. In this case, there is a table defined on the factor that denotes the values
+	 * coming over the edges. These values come from variables nodes, and hence these messages
+	 * correspond to probabilities, or do they?
+	 *
 	 * @assumes an undirected graph
 	 */
 	template <ClassImplType impl_type>
