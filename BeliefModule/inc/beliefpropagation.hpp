@@ -82,7 +82,6 @@ protected:
 	 */
 	template <ClassImplType impl_type>
 	bool is_directed(const graph<T,P,M,N,impl_type> &g) {
-//		typename vertex<T,P,M,N>::const_iterator j;
 		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
 		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
 		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
@@ -90,15 +89,12 @@ protected:
 			for (int j = 0; j < v.from_size(); ++j) {
 				if (!v.to_exists(v.from_at(j).first)) return set_directed(true);
 			}
-//			for (j = v.from_begin(); j != v.from_end(); ++j) {
-//				if (!v.to_exists(j->first)) return set_directed(true);
-//			}
 		}
 		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
-//			factor<T,P,M,N> &v = **f_i;
-//			for (j = v.from_begin(); j != v.from_end(); ++j) {
-//				if (!v.to_exists(j->first)) return set_directed(true);
-//			}
+			factor<T,P,M,N> &v = **f_i;
+			for (int j = 0; j < v.from_size(); ++j) {
+				if (!v.to_exists(v.from_at(j).first)) return set_directed(true);
+			}
 		}
 		return set_directed(false);
 	}
@@ -118,27 +114,23 @@ protected:
 	 */
 	template <ClassImplType impl_type>
 	void tick_factor(const graph<T,P,M,N,impl_type> &g, factor<T,P,M,N> & v) {
-		T product = T(1);
 
-//		if (v.from_size() != 1) {
-			for (int i = 0; i < v.from_size(); ++i) {
-				product *= *v.from_at(i).second;
+		// make sure X=f(X) goes well
+
+		conditional_probability_table<T,P,N> jointtable = *v.getValue();
+		N size = jointtable.size();
+		std::vector<N> table_index(jointtable.get_dimensions());
+		for (int i = 0; i < size; ++i) {
+			for (int j = 0; j < v.to_size(); ++j) {
+				table_index = jointtable.get_tabular_index(i);
+				probability<P,T> jointvalue = jointtable.get(table_index, j);
+				for (int k = 0; k < v.from_size(); ++k) {
+					if (j == k) continue;
+					probability<P,T> incoming_msg = *v.from_at(k).second;
+					N value = table_index[k];
+					jointvalue *= incoming_msg[value];
+				}
 			}
-//		}
-		for (int i = 0; i < v.to_size(); ++i) {
-			// product part of the message
-			T message;
-			if (!v.from_exists(i)) message = product;
-			message = product ? (product / *v.from_at(i).second) : 0;
-
-			// take all possible combinations of variable nodes that are pointing towards this factor node, except for v.to[i]
-			// and perform factor function vertex.function(node values) on them
-			// each time multiplied by the message from this node
-			// and eventually a function defined on that variable node
-			N index = v.to_at(i).first;
-			variable<T,P,M,N> *t = g.get(index);
-			v.marginal(*t);
-//			*v.to_at(i).second = v.function(v.to_at(i).first) * message;
 		}
 	}
 
@@ -153,23 +145,28 @@ protected:
 	 */
 	template <ClassImplType impl_type>
 	void tick_variable(const graph<T,P,M,N,impl_type> &g, variable<T,P,M,N> & v) {
-		T product = T(1);
-
+		probability<P,T> product(v.cardinality());
+		probability<P,T> identity(v.cardinality());
+		for (T i = 0; i < v.cardinality(); ++i) {
+			identity[i] = 1;
+		}
+		std::cout << "Tick variable" << std::endl;
 		// leaf, send uniform distribution
 		if (v.from_size() == 1) {
-			*v.to_at(0).second = 1;
+			*v.to_at(0).second = identity;
 			std::cout << "Send (uniform) message (1) to factor node " << v.to_at(0).first; std::endl(std::cout);
 			return;
 		}
 		// collect all messages from incoming factor nodes
 		for (int i = 0; i < v.from_size(); ++i) {
-			product *= *v.from_at(i).second;
+			probability<P,T> msg = *v.from_at(i).second;
+			product *= msg;
 		}
 		// send to each target node
 		for (int i = 0; i < v.to_size(); ++i) {
 			// correct the multiplication by division (if product != 0)
-			T message = product;
-			if (!directed) message = product ? (product / *v.from_at(i).second) : 0;
+			T message = T(1); //product;
+//			if (!directed) message = product ? (product / *v.from_at(i).second) : 0;
 			*v.to_at(i).second = message;
 			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first; std::endl(std::cout);
 		}

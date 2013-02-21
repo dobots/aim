@@ -51,42 +51,30 @@ public:
 	 */
 	void moralization() {
 		typedef graph<T,P,M,N,impl_type> super;
-//		typename vertex<T,P,M,N>::const_iterator j;
+		//		typename vertex<T,P,M,N>::const_iterator j;
 		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
-//		typename graph<T,P,M,N>::variable_container::iterator v_j;
+		//		typename graph<T,P,M,N>::variable_container::iterator v_j;
 		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
-#ifdef DOESNOTWORK
+
 		for (v_i = super::variables.begin(); v_i != super::variables.end(); ++v_i) {
 			variable<T,P,M,N> &v = **v_i;
-			for (v_j = v.from_begin(); v_j != v.from_end(); ++v_j) {
-				if (!v.to_exists(v_j->first)) v.push_to(v_j->first);
-//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-//					v.push_to(j->first);
-//				}
+			for (int j = 0; j < v.from_size(); ++j) {
+				if (!v.to_exists(v.from_at(j).first)) v.push_to(v.from_at(j).first);
 			}
-			for (j = v.to_begin(); j != v.to_end(); ++j) {
-				if (!v.from_exists(j->first)) v.push_from(j->first);
-//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
-//					v.push_from(j->first);
-//				}
+			for (int j = 0; j < v.to_size(); ++j) {
+				if (!v.from_exists(v.to_at(j).first)) v.push_from(v.to_at(j).first);
 			}
 		}
+
 		for (f_i = super::factors.begin(); f_i != super::factors.end(); ++f_i) {
 			factor<T,P,M,N> &v = **f_i;
-			for (j = v.from_begin(); j != v.from_end(); ++j) {
-				if (!v.to_exists(j->first)) v.push_to(j->first);
-//				if (find(v.to_begin(), v.to_end(), *j) == v.to_end()) {
-//					v.push_to(j->first);
-//				}
+			for (int j = 0; j < v.from_size(); ++j) {
+				if (!v.to_exists(v.from_at(j).first)) v.push_to(v.from_at(j).first);
 			}
-			for (j = v.to_begin(); j != v.to_end(); ++j) {
-				if (!v.from_exists(j->first)) v.push_from(j->first);
-//				if (find(v.from_begin(), v.from_end(), *j) == v.from_end()) {
-//					v.push_from(j->first);
-//				}
+			for (int j = 0; j < v.to_size(); ++j) {
+				if (!v.from_exists(v.to_at(j).first)) v.push_from(v.to_at(j).first);
 			}
 		}
-#endif //DOESNOTWORK
 	}
 
 	/**

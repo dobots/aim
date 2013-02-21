@@ -43,6 +43,8 @@ typedef size_t ValueType;
 
 typedef double ProbType;
 
+typedef probability<ProbType,int> MessageType;
+
 //! Define the type of implementation we want
 const ClassImplType impl_type = CIT_CHECK;
 
@@ -75,16 +77,16 @@ const ClassImplType impl_type = CIT_CHECK;
 //};
 
 
-typedef graph<int,ProbType,ValueType,int,impl_type> graph_type;
-typedef tree<int,ProbType,ValueType,int,impl_type> tree_type;
-typedef variable<int,ProbType,ValueType,int> variable_type;
-typedef factor<int,ProbType,ValueType,int> factor_type;
-typedef ising_factor<int,ProbType,ValueType,int> image_factor;
-typedef beliefpropagation<int,ProbType,ValueType,int> belief_prop;
+typedef graph<int,ProbType,MessageType,int,impl_type> graph_type;
+typedef tree<int,ProbType,MessageType,int,impl_type> tree_type;
+typedef variable<int,ProbType,MessageType,int> variable_type;
+typedef factor<int,ProbType,MessageType,int> factor_type;
+typedef ising_factor<int,ProbType,MessageType,int> image_factor;
+typedef beliefpropagation<int,ProbType,MessageType,int> belief_prop;
 typedef conditional_probability_table<int,ProbType,int> cond_table;
 
 #ifdef BUILD_EIGEN
-typedef graph2matrix<int,ProbType,ValueType,int> graph2matrix_type;
+typedef graph2matrix<int,ProbType,MessageType,int> graph2matrix_type;
 #endif
 
 /**
