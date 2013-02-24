@@ -1,58 +1,84 @@
 #include <ZmqModuleExt.h>
 
-#include <zmq.h>
-#include <stdio.h>
+//#include <stdio.h>
+//#include <unistd.h>
+#include <string>
+#include <iostream>
 #include <unistd.h>
-#include <string.h>
 
 using namespace rur;
 using namespace std;
 
 static int lifetime = 10;
 
-ZmqModuleExt::ZmqModuleExt() {
+ZmqModuleExt::ZmqModuleExt(): context(1) {
+}
+
+ZmqModuleExt::~ZmqModuleExt() {
+	delete socket;
 }
 
 // zmq_ctx_new used to be zmq_init which is by default installed in Ubuntu with apt-get install libzmq-dev
-// so you'll need to deinstall that...
-void ZmqModuleExt::Prepare() {
-	printf("Open ZMQ socket\n");
-	context = zmq_ctx_new ();
-	responder = zmq_socket (context, ZMQ_REP);
-	zmq_bind (responder, "tcp://*:5555");
+// so you'll need to deinstall that... and install zmq from source
+// see: http://zguide.zeromq.org/cpp:hwserver and http://zguide.zeromq.org/cpp:hwclient
+// see: http://zguide.zeromq.org/c:hwserver
+void ZmqModuleExt::Init(std::string & name) {
+	this->name = name;
+	server = (name.find("server") != std::string::npos);
+
+	if (server) {
+		std::cout << "Starting server on port 5555" << std::endl;
+		socket = new zmq::socket_t(context, ZMQ_REP);
+		socket->bind("tcp://*:5555");
+	} else {
+		std::cout << "Connecting to server..." << std::endl;
+		socket = new zmq::socket_t(context, ZMQ_REQ);
+		socket->connect("tcp://127.0.0.1:5555");
+	}
+}
+
+void ZmqModuleExt::TickClient() {
+	zmq::message_t request (6);
+	memcpy ((void *) request.data (), "Hello", 5);
+	std::cout << "Sending Hello " << std::endl;
+	socket->send (request);
+
+	sleep (1);
+
+	// Get the reply.
+	zmq::message_t reply;
+	socket->recv (&reply);
+	std::cout << "Received World " << std::endl;
+}
+
+void ZmqModuleExt::TickServer() {
+	// Wait for next request from client
+	zmq::message_t request;
+	std::cout << "Send request" << std::endl;
+	socket->recv(&request);
+	std::cout << "Received Hello" << std::endl;
+
+	sleep (1);
+
+	// Send reply back to client
+	zmq::message_t reply(5);
+	memcpy((void*)reply.data(), "World", 5);
+	socket->send(reply);
 }
 
 /**
  * This example is from the web, but doesn't seem to work.
  */
 void ZmqModuleExt::Tick() {
-	printf("One request-respond cycle\n");
-
-	// Wait for next request from client
-	zmq_msg_t request;
-	zmq_msg_init (&request);
-	zmq_msg_recv (&request, responder, 0);
-	printf ("Received Hello\n");
-	zmq_msg_close (&request);
-
-	// Do some 'work'
-	sleep (1);
-	printf("Sleep\n");
-
-	// Send reply back to client
-	zmq_msg_t reply;
-	zmq_msg_init_size (&reply, 5);
-	memcpy (zmq_msg_data (&reply), "World", 5);
-	zmq_msg_send (&reply, responder, 0);
-	zmq_msg_close (&reply);
+	server ? TickServer() : TickClient();
 }
 
 bool ZmqModuleExt::Stop() {
 	if (--lifetime) {
 		return false;
 	}
-	zmq_close (responder);
-	zmq_ctx_destroy (context);
+//	zmq_close (responder);
+//	zmq_ctx_destroy (context);
 	return true;
 }
 

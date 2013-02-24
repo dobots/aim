@@ -42,7 +42,6 @@ int main(int argc, char *argv[])  {
 	std::string identifier = argv[1];
 	m->Init(identifier);
 
-	m->Prepare();
 	do {
 		std::cout << "Tick!" << endl;
 		m->Tick();
