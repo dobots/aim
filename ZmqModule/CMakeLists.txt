@@ -52,6 +52,8 @@ SET(LIBS ${LIBS} rt)
 # Include aim stuff
 ADD_SUBDIRECTORY(aim)
 
+SET(CMAKE_CXX_FLAGS -std=c++11)
+
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
 MESSAGE("[*] Libraries included: ${LIBS}")

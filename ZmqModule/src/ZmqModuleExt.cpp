@@ -17,6 +17,9 @@ static int lifetime = 10;
 static const string Value_type_str[] = { "obj_type", "array_type", "str_type", "bool_type", "int_type", "real_type", "null_type" };
 
 ZmqModuleExt::ZmqModuleExt(): context(1), socket(NULL), server(false) {
+	socket_state.push_back(true);
+	socket_state.push_back(true);
+	socket_state.push_back(true);
 }
 
 ZmqModuleExt::~ZmqModuleExt() {
@@ -30,11 +33,17 @@ ZmqModuleExt::~ZmqModuleExt() {
 void ZmqModuleExt::Init(std::string & name) {
 	this->name = name;
 	server = (name.find("server") != std::string::npos);
+	connect = (name.find("connect") != std::string::npos);
 
 	if (server) {
 		std::cout << "Starting name server on port 10101" << std::endl;
 		socket = new zmq::socket_t(context, ZMQ_REP);
-		socket->bind("tcp://*:10101");
+		try {
+			socket->bind("tcp://*:10101");
+		} catch (error_t) {
+			printf ("Error: bind failed: %s\n", strerror (errno));
+			return;
+		}
 	} else {
 		std::cout << "Connecting to name server..." << std::endl;
 		socket = new zmq::socket_t(context, ZMQ_REQ);
@@ -42,10 +51,11 @@ void ZmqModuleExt::Init(std::string & name) {
 
 		// Get the reply.
 		for (int i = 0; i < channel_count; ++i) {
-			std::string name = "/resolve/" + string(channel[i]);
-			std::cout << "Acquire TCP/IP port for " << name << std::endl;
-			zmq::message_t request (name.size() + 1);
-			memcpy ((void *) request.data (), name.c_str(), name.size());
+			std::string resolve = "/resolve/" + string(channel[i]);
+			//resolve = resolve + '_' + name;
+			std::cout << "Acquire TCP/IP port for " << resolve << std::endl;
+			zmq::message_t request (resolve.size() + 1);
+			memcpy ((void *) request.data (), resolve.c_str(), resolve.size());
 			socket->send(request);
 
 			zmq::message_t reply;
@@ -58,7 +68,14 @@ void ZmqModuleExt::Init(std::string & name) {
 			std::cout << "Received " << json << std::endl;
 			delete [] address;
 
-			zmq::socket_t(context, ZMQ_REP);
+			zmq::socket_t *s;
+			if (connect) {
+				s = new zmq::socket_t(context, ZMQ_REP);
+				socket_state[i] = false;
+			} else {
+				s = new zmq::socket_t(context, ZMQ_REQ);
+			}
+			sockets.push_back(s);
 			bool valid;
 			json_spirit::Value value;
 			if (!json_spirit::read(json, value)) {
@@ -96,26 +113,82 @@ void ZmqModuleExt::Init(std::string & name) {
 			std::stringstream ss;
 			ss << "tcp://" << json_server << ":" << json_port;
 			std::string sock = ss.str();
-			std::cout << "Bind to socket " << sock << std::endl;
-			socket->bind(sock.c_str());
+			if (connect) {
+				std::cout << "Bind to socket " << sock << std::endl;
+				sockets[i]->bind(sock.c_str());
+			} else {
+				std::cout << "Connect to socket " << sock << std::endl;
+				sockets[i]->connect(sock.c_str());
+			}
 		}
 	}
 }
 
-void ZmqModuleExt::TickClient() {
-	/*
-	zmq::message_t request (6);
-	memcpy ((void *) request.data (), "Hello", 5);
-	std::cout << "Sending Hello " << std::endl;
-	socket->send (request);
+void ZmqModuleExt::WriteExample() {
+	int socket_i = 0;
+	zmq::socket_t *s = sockets[socket_i];
 
-	sleep (1);
+	if (socket_state[socket_i]) {
+		std::string str = "sensor data...";
+		zmq::message_t request(str.size()+1);
+		memcpy ((void *) request.data (), str.c_str(), str.size());
+		std::cout << "Send: " << str << std::endl;
+		s->send (request);
+	}
 
 	// Get the reply.
 	zmq::message_t reply;
-	socket->recv (&reply);
-	std::cout << "Received World " << std::endl;
-	*/
+	try {
+//		std::cout << "Poll" << std::endl;
+		socket_state[socket_i] = s->recv(&reply, ZMQ_DONTWAIT);
+	} catch (error_t) {
+		std::cout << "Received something" << std::endl;
+	}
+	if (socket_state[socket_i]) {
+		size_t msg_size = reply.size();
+		char* result = new char[msg_size+1];
+		memcpy (result, (void *) reply.data(), msg_size);
+		result[msg_size] = '\0';
+		std::string ack = string(result);
+		if (ack != "ACK") {
+			std::cerr << "Error: no ACK, state compromised" << std::endl;
+		}
+	}
+}
+
+void ZmqModuleExt::ReadExample() {
+	int socket_i = 1;
+	zmq::socket_t *s = sockets[socket_i];
+
+	if (socket_state[socket_i]) {
+		std::string str = "REQ";
+		zmq::message_t request(str.size()+1);
+		memcpy((void *) request.data(), str.c_str(), str.size());
+		std::cout << "Send: " << str << std::endl;
+		s->send(request);
+	}
+
+	// Get the reply.
+	zmq::message_t reply;
+	try {
+//		std::cout << "Poll" << std::endl;
+		socket_state[socket_i] = s->recv(&reply, ZMQ_DONTWAIT);
+	} catch (error_t) {
+		std::cout << "Received something" << std::endl;
+	}
+	if (socket_state[socket_i]) {
+		size_t msg_size = reply.size();
+		char* result = new char[msg_size+1];
+		memcpy (result, (void *) reply.data(), msg_size);
+		result[msg_size] = '\0';
+		std::cerr << "Result" << string(result) << std::endl;
+	}
+}
+
+void ZmqModuleExt::TickClient() {
+	WriteExample();
+	ReadExample();
+	sleep(1);
 }
 
 void ZmqModuleExt::TickServer() {
