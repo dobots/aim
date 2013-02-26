@@ -287,6 +287,11 @@ public:
 	probability(T t_size): cardinality(t_size) {
 		outcome = new P[t_size];
 	}
+	//! Initialize probability vector with initial value
+	probability(T t_size, T init): cardinality(t_size) {
+		outcome = new P[t_size];
+		for (T i = 0; i < t_size; ++i) outcome[i] = init;
+	}
 	// Destructor
 	~probability() {
 		delete [] outcome;
@@ -299,7 +304,8 @@ public:
 	const P operator[](T n) const {
 		return *outcome[n];
 	}
-	// Define multiplication with another "probability"
+
+	//! Multiplication with another "probability vector"
 	probability<P,T> operator*(const probability<P,T> &other) {
 		probability<P,T> result(other.size());
 		if (size() != other.size()) {
@@ -311,6 +317,7 @@ public:
 		return result;
 	}
 
+	//! Multiplication with other "probability vector" and subsequent alignment
 	probability<P,T> & operator*=(probability<P,T> &other) {
 		if (size() != other.size()) {
 			std::cerr << "Sizes are different: " << size() << " vs " << other.size() << std::endl;
@@ -321,6 +328,7 @@ public:
 		return *this;
 	}
 
+	//! Multiply with scalar
 	probability<P,T> & operator*(const P &other) {
 		probability<P,T> result(other.size());
 		for (T i = 0; i < size(); ++i)
@@ -328,9 +336,33 @@ public:
 		return result;
 	}
 
+	//! Multiply with scalar and subsequent assignment
 	probability<P,T> & operator*=(P &other) {
 		for (T i = 0; i < size(); ++i)
 			outcome[i] *= other;
+		return *this;
+	}
+
+	//! Adding another "probability vector"
+	probability<P,T> operator+(const probability<P,T> &other) {
+		probability<P,T> result(other.size());
+		if (size() != other.size()) {
+			std::cerr << "Sizes are different: " << size() << " vs " << other.size() << std::endl;
+		}
+		assert (size() == other.size());
+		for (T i = 0; i < size(); ++i)
+			result[i] = outcome[i]+other[i];
+		return result;
+	}
+
+	//! Adding another "probability vector" and subsequent alignment
+	probability<P,T> & operator+=(probability<P,T> &other) {
+		if (size() != other.size()) {
+			std::cerr << "Sizes are different: " << size() << " vs " << other.size() << std::endl;
+		}
+		assert (size() == other.size());
+		for (T i = 0; i < size(); ++i)
+			outcome[i] += other[i];
 		return *this;
 	}
 
@@ -418,9 +450,8 @@ public:
 	}
 
 	/**
-	 * Translate [i,j,k] to linear index i+j*i_size+k*i_size*j_size, etc. Actually, it is better
-	 * to store the "stride" per variable. Now, we are calculating it every time we use
-	 * get_linear_index() by the multiplication of "dim".
+	 * Translate [i,j,k] to linear index i+j*i_size+k*i_size*j_size, etc. Actually, it is better to store the "stride"
+	 * per variable. Now, we are calculating it every time we use get_linear_index() by the multiplication of "dim".
 	 */
 	inline N get_linear_index(std::vector<N> table_index) {
 		N i; size_t dim = 1;
@@ -430,13 +461,17 @@ public:
 		return i;
 	}
 
+	/**
+	 * From "Probabilistic Graphical Models", Chap 10. Clique Trees. Box 10.A "Skill: Efficient Implementation of Factor
+	 * Manipulation Algorithms".
+	 */
 	inline std::vector<N> get_tabular_index(N linear_index) {
 		assert(false); // to be done
 		std::vector<N> result(cardinalities.size());
 		N i; size_t dim = 1;
-//		for (int i = 0; i < table_index.size(); ++i) {
-//			i += table_index[i] * strides[i];
-//		}
+		for (int i = 0; i < cardinalities.size(); ++i) {
+			result[i] = (linear_index / strides[i]) % cardinalities[i];
+		}
 		return result;
 	}
 
@@ -469,26 +504,24 @@ public:
 		return probabilities[get_linear_index(table_index)];
 	}
 
-	//! Gets a random variable
+	/**
+	 * Iterates over a table, using a vector as index, going from (0,0,0) to (1,1,1) for example for binary variables in
+	 * a 3D matrix. The function returns the values that would correspond to a "column" in a 2D table, or an "array" in
+	 * a 3D matrix.
+	 *
+	 * @param summarize		Index of variable to summarize over
+	 * @return 				A random variable.
+	 */
 	probability<P,T> const get(std::vector<N> table_index, N summarize) {
+		assert (summarize < cardinalities.size());
 		N cardinality = cardinalities[summarize];
 		probability<P,T> result(cardinality);
 		for (int i = 0; i < cardinality; ++i) {
-			table_index[summarize] = i;
+			table_index[summarize] = i; // only set this index to "i" keeping the rest the same
 			result[i] = probabilities[get_linear_index(table_index)];
 		}
 		return result;
 	}
-
-//	probability<P,T> const get(N table_index, N summarize) {
-//		N cardinality = cardinalities[summarize];
-//		probability<P,T> result(cardinality);
-//		for (int i = 0; i < cardinality; ++i) {
-////			table_index[summarize] = i; // adjust table_index, inverse of get_linear...
-//			result[i] = probabilities[table_index];
-//		}
-//		return result;
-//	}
 
 	T const get(size_t index0) {
 		assert (cardinalities.size() == 1);

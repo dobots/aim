@@ -49,6 +49,8 @@ IF (BUILD_EIGEN)
   INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 ENDIF()
 
+SET(CMAKE_CXX_FLAGS -std=c++11)
+
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
 MESSAGE ("[*] Libraries included: ${LIBS}")

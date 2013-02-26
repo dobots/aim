@@ -1,5 +1,7 @@
 /**
- * @brief
+ * 456789------------------------------------------------------------------------------------------------------------120
+ *
+ * @brief Belief propagation or message passing on a factor graph
  * @file beliefpropagation.hpp
  * 
  * This file is created at Almende B.V. It is open-source software and part of the Common
@@ -21,9 +23,9 @@
  * @case      Cognitive Sensor Fusion
  */
 
-/************************************************************************************
+/***********************************************************************************************************************
  * Configuration
- ************************************************************************************/
+ **********************************************************************************************************************/
 
 #ifndef BELIEFPROPAGATION_HPP_
 #define BELIEFPROPAGATION_HPP_
@@ -105,12 +107,34 @@ protected:
 	}
 
 	/**
-	 * A factor is normally a function that is defined over the variables it is connected
-	 * to. In this case, there is a table defined on the factor that denotes the values
-	 * coming over the edges. These values come from variables nodes, and hence these messages
-	 * correspond to probabilities, or do they?
+	 * A factor is normally a function that is defined over the variables it is connected to. In this case, there is a
+	 * conditional probability table defined on the factor. It is used together with the values arriving over the edges
+	 * from the variables to calculate the "not sum's" for each variable. The incoming values are probabilities which
+	 * are characterized in the discrete case by a small vector.
 	 *
-	 * @assumes an undirected graph
+	 * We calculate here for example:
+	 *
+	 *   \sum_{x2} ( fb(x2,x3) \mu_{x2->fb}(x2) ) for all x2
+	 *
+	 * which means in case x2 takes the values 0 and 1:
+	 *    fb(0,x3) \mu_{x2->fb}(0)
+	 *    fb(1,x3) \mu_{x2->fb}(1) +
+	 *    ------------------------
+	 *                      xxxxxx
+	 *
+	 * The values fb (of factor "b") are stored in the "jointtable", the conditional probability table. We iterate over
+	 * all possible values, retrieving them as a vector "table_index". That runs from (0,0,0), (0,0,1), etc. over all
+	 * variables. The index "j" indicates the variable we are going to send a message towards too (and which should be
+	 * excluded from the summation). With get() we only get the values in the conditional probability table that are
+	 * associated with this variable. Suppose it is x2 we sum over, it is fb(0,x3) and fb(1,x3). If it is x1 and x2 we
+	 * sum over, it is fb(0,0,x3), fb(0,1,x3), fb(1,0,x3), and fb(1,1,x3). Observe that the entity we retrieve is of the
+	 * cardinality of x3. So fb(0,x3) results in values for the random variable x3 that correspond to x2=0, and other
+	 * values for x2=1. The outer loop "i" is over all possible permutations, so fb(0,0), fb(0,1), fb(1,0), and fb(1,1).
+	 * Hence, we get the variable x3 multiple times for x2=0, hence there is one if condition that uses it only once.
+	 *
+	 * "jointvalue" with one specific variable, say fb(0,x3) for variable x3.
+	 *
+	 * A factor sums over all variables except for one.
 	 */
 	template <ClassImplType impl_type>
 	void tick_factor(const graph<T,P,M,N,impl_type> &g, factor<T,P,M,N> & v) {
@@ -120,16 +144,25 @@ protected:
 		conditional_probability_table<T,P,N> jointtable = *v.getValue();
 		N size = jointtable.size();
 		std::vector<N> table_index(jointtable.get_dimensions());
-		for (int i = 0; i < size; ++i) {
-			for (int j = 0; j < v.to_size(); ++j) {
+
+		for (size_t j = 0; j < v.to_size(); ++j)  // set all outgoing messages to 0
+			*v.to_at(j).second = 0;
+
+		for (size_t i = 0; i < size; ++i) { // sum over f(0,0,0,...) to f(1,1,1,...) in case of binary values
+			for (size_t j = 0; j < v.to_size(); ++j) { // sum over all variables to be excluded themselves
 				table_index = jointtable.get_tabular_index(i);
-				probability<P,T> jointvalue = jointtable.get(table_index, j);
-				for (int k = 0; k < v.from_size(); ++k) {
+				probability<P,T> jointvalue = jointtable.get(table_index, j); // if i=(0,0,0,0), this obtains (0,0,j,0)
+				// the same happens with i=(0,0,1,0), so we have to exclude that one or we count it multiple times
+				if (table_index[j] != 0) continue;
+				// we multiply it with the messages from the incoming variables
+				for (size_t k = 0; k < v.from_size(); ++k) {
 					if (j == k) continue;
 					probability<P,T> incoming_msg = *v.from_at(k).second;
 					N value = table_index[k];
 					jointvalue *= incoming_msg[value];
 				}
+				// add to outgoing message
+				*v.to_at(j).second += jointvalue;
 			}
 		}
 	}
@@ -138,7 +171,7 @@ protected:
 	 * Calculates an outgoing message to the vertex "v" which should be a factor node. It uses the
 	 * incoming messages in the standard way: it calculates the product of all incoming messages,
 	 * except for the one from the target node. It sends a uniform message (1) if there is only one
-	 * outgoing edge.
+	 * outgoing edge. The uniform value is a "probability vector" with "1" at all entries.
 	 *
 	 * @param g				undirected graph
 	 * @param v				factor node
@@ -146,10 +179,7 @@ protected:
 	template <ClassImplType impl_type>
 	void tick_variable(const graph<T,P,M,N,impl_type> &g, variable<T,P,M,N> & v) {
 		probability<P,T> product(v.cardinality());
-		probability<P,T> identity(v.cardinality());
-		for (T i = 0; i < v.cardinality(); ++i) {
-			identity[i] = 1;
-		}
+		probability<P,T> identity(v.cardinality(), 1);
 		std::cout << "Tick variable" << std::endl;
 		// leaf, send uniform distribution
 		if (v.from_size() == 1) {
