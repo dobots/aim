@@ -127,11 +127,9 @@ public:
 	}
 
 	/**
-	 * We will not explicitly destruct all variables and factors, use erase() instead.
+	 * We will NOT destruct all variables and factors, use erase() instead.
 	 */
-	~graph() {
-//		erase();
-	}
+	~graph() { }
 
 	/**
 	 * Copy all vertices individually or else way only the pointer is copied. This is also used by subclasses (such as
@@ -146,11 +144,18 @@ public:
 			variable<T,P,M,N> *v = new variable<T,P,M,N >(*g.variables[i]);
 			variables.push_back(v);
 		}
+		std::cerr << "Copying of message buffers can go wrong" << std::endl;
 		return *this;
 	}
 
 	/**
-	 * This push version adds no vertices, but it adds an edge between two existing vertices.
+	 * This push version adds no vertices, but it adds an edge between two existing(!) vertices. The edge is internally
+	 * represented by an index of the vertex on incoming and outgoing arrays. This representation henceforth fits
+	 * static graphs, not so much reconfigurable ones. The message entity is not allocated, this needs to be done
+	 * separately, because this graph does not have a constructor available to know how to create a message object.
+	 *
+	 * The created edge is unidirectional. From source to destination. The reference is both ways. It is possible to go
+	 * from destination to source via the "from" array.
 	 */
 	bool push(factor<T,P,M,N> * src, variable<T,P,M,N> * dest) {
 		if (impl_type == CIT_CHECK) {
@@ -164,6 +169,10 @@ public:
 		return true;
 	}
 
+	/**
+	 * See other "push" function. This push function adds an edge from a variable as source, towards a factor as
+	 * destination.
+	 */
 	bool push(variable<T,P,M,N> * src, factor<T,P,M,N> * dest) {
 		if (impl_type == CIT_CHECK) {
 			if ((!exists(*src)) || (!exists(*dest))) {
@@ -216,10 +225,19 @@ public:
 		return factors.size() + variables.size();
 	}
 
-	variable<T,P,M,N> * get(N index) const  {
+	//! Return a variable node by index (pair->first on the edges)
+	variable<T,P,M,N> * get_var(N index) const  {
 		for (int i = 0; i < variables.size(); ++i) {
 			if (variables[i]->index() == index)
 				return variables[i];
+		}
+		return NULL;
+	}
+
+	factor<T,P,M,N> * get_factor(N index) const  {
+		for (int i = 0; i < factors.size(); ++i) {
+			if (factors[i]->index() == index)
+				return factors[i];
 		}
 		return NULL;
 	}
@@ -301,8 +319,17 @@ public:
 	// The probability of the given indexed outcome (order preserved)
 	P & operator[](T n) { return outcome[n]; }
 	// The probability of the given indexed outcome (order preserved)
-	const P operator[](T n) const {
-		return *outcome[n];
+	const P operator[](T n) const { return outcome[n]; }
+
+	//! Deep copy from other "probability vector"
+	probability<P,T> & operator=(const probability<P,T> &other) {
+        if (this == &other) return *this; // protect against invalid self-assignment
+        //std::cout << "Copy probability vector" << std::endl;
+        P * temp = new P[other.size()];
+        std::copy(other.outcome, other.outcome + other.size(), temp);
+        delete [] outcome;
+        outcome = temp;
+		return *this; // for chained assignment operators: a = b = c
 	}
 
 	//! Multiplication with another "probability vector"
@@ -317,7 +344,7 @@ public:
 		return result;
 	}
 
-	//! Multiplication with other "probability vector" and subsequent alignment
+	//! Multiplication with other "probability vector" and subsequent assignment
 	probability<P,T> & operator*=(probability<P,T> &other) {
 		if (size() != other.size()) {
 			std::cerr << "Sizes are different: " << size() << " vs " << other.size() << std::endl;
@@ -326,6 +353,23 @@ public:
 		for (T i = 0; i < size(); ++i)
 			outcome[i] *= other[i];
 		return *this;
+	}
+
+	//! Division by another "probability vector" (0/0 is defined as 0).
+	probability<P,T> operator/(const probability<P,T> &other) {
+		probability<P,T> result(other.size());
+		if (size() != other.size()) {
+			std::cerr << "Sizes are different: " << size() << " vs " << other.size() << std::endl;
+		}
+		assert (size() == other.size());
+		for (T i = 0; i < size(); ++i) {
+			if (other[i])
+				result[i] = outcome[i]/other[i];
+			else {
+				result[i] = other[i];
+			}
+		}
+		return result;
 	}
 
 	//! Multiply with scalar
@@ -373,7 +417,7 @@ private:
 	T cardinality;
 	// The probability of every outcome can be printed as space-separated stream
 	friend std::ostream& operator<<(std::ostream & os, const probability & p) {
-		for (int i = 0; i < p.cardinalities; ++i) {
+		for (int i = 0; i < p.size(); ++i) {
 			os << (p.outcome[i]) << ' ';
 		}
 		return os;
@@ -421,6 +465,7 @@ public:
 		vertex_indices = other.vertex_indices;
 		cardinalities = other.cardinalities;
 		probabilities = other.probabilities;
+		strides = other.strides;
 	}
 
 	/**
@@ -454,11 +499,11 @@ public:
 	 * per variable. Now, we are calculating it every time we use get_linear_index() by the multiplication of "dim".
 	 */
 	inline N get_linear_index(std::vector<N> table_index) {
-		N i; size_t dim = 1;
+		N i; N result = 0;
 		for (int i = 0; i < table_index.size(); ++i) {
-			i += table_index[i] * strides[i];
+			result += table_index[i] * strides[i];
 		}
-		return i;
+		return result;
 	}
 
 	/**
@@ -466,12 +511,21 @@ public:
 	 * Manipulation Algorithms".
 	 */
 	inline std::vector<N> get_tabular_index(N linear_index) {
-		assert(false); // to be done
-		std::vector<N> result(cardinalities.size());
-		N i; size_t dim = 1;
-		for (int i = 0; i < cardinalities.size(); ++i) {
+		assert (linear_index < size());
+		std::vector<N> result(cardinalities.size(), T(0));
+
+		std::cout << "Get tabular index for " << linear_index << std::endl;
+		for (N i = 0; i < cardinalities.size(); ++i) {
+			std::cout << "Stride " << strides[i] << " and card " << cardinalities[i] << std::endl;
 			result[i] = (linear_index / strides[i]) % cardinalities[i];
 		}
+#define DEBUG
+#ifdef DEBUG
+		std::cout << "Result = { ";
+		for (N i = 0; i < result.size(); ++i) std::cout << result[i] << ' ';
+		std::cout << '}' << std::endl;
+		assert (linear_index == get_linear_index(result));
+#endif
 		return result;
 	}
 
@@ -515,7 +569,7 @@ public:
 	probability<P,T> const get(std::vector<N> table_index, N summarize) {
 		assert (summarize < cardinalities.size());
 		N cardinality = cardinalities[summarize];
-		probability<P,T> result(cardinality);
+		probability<P,T> result(cardinality, T(0));
 		for (int i = 0; i < cardinality; ++i) {
 			table_index[summarize] = i; // only set this index to "i" keeping the rest the same
 			result[i] = probabilities[get_linear_index(table_index)];
@@ -720,10 +774,11 @@ public:
 	// Shorthand for the conditional probability table is "S"
 	typedef conditional_probability_table<T,P,N> S;
 
-	// Construct factor, but do not fill with table values yet
+	//! Construct factor, but do not fill with table values yet
 	factor(): vertex<T,S,P,M,N>(VT_FACTOR), initialized(false) {
 	}
 
+	//! Create a factor with a given conditional probability table and eventually a name
 	factor(S & cond_prob_table, std::string name=""): vertex<T,S,P,M,N>(VT_FACTOR) {
 		typedef vertex<T,S,P,M,N> super;
 		super::setValue(&cond_prob_table);
@@ -731,83 +786,30 @@ public:
 		this->name = name;
 	}
 
-	virtual ~factor() {
-	}
+	//! Default destructor
+	virtual ~factor() { }
 
+	//! Set the "value" on the factor, which is a function: a conditional probability table
 	void set(S & cond_prob_table) {
 		typedef vertex<T,S,P,M,N> super;
 		super::setValue(cond_prob_table);
 	}
 
-	void push_to(N index) {
-		typedef vertex<T,S,P,M,N> super;
-		super::push_to(index);
-		assert (super::getValue() != NULL);
-		super::getValue()->add_vertex(index);
-	}
+	//!
+//	void push_to(N index) {
+//		typedef vertex<T,S,P,M,N> super;
+//		super::push_to(index);
+//		assert (super::getValue() != NULL);
+//		super::getValue()->add_vertex(index);
+//	}
 
-	void push_from(N index) {
-		typedef vertex<T,S,P,M,N> super;
-		super::push_from(index);
-		assert (super::getValue() != NULL);
-		super::getValue()->add_vertex(index);
-	}
+//	void push_from(N index) {
+//		typedef vertex<T,S,P,M,N> super;
+//		super::push_from(index);
+//		assert (super::getValue() != NULL);
+//		super::getValue()->add_vertex(index);
+//	}
 
-	/**
-	 * Calculate the marginal with respect to a certain variable. This can be calculated
-	 * if all variables attached to this factor do come with data with respect to their
-	 * probabilities. In other words, we have to multiply each field with the evidence
-	 * coming from all incoming variables including the incoming one. And then divide
-	 * the last one out again. This would work, except in the case that the incoming
-	 * variable does have a zero on one of its probability values.
-	 *
-	 * However, on this level we do not have access to anything on those vertices except
-	 * for the messages they send to us. Calculating the marginal is typically something
-	 * done on the "belief propagation" level that has access to the entire graph.
-	 *
-	 * What we would be able to do here is to marginalize out the variable v. However, the
-	 * result would not be a probability, but a new factor with a smaller dimension. We
-	 * sum out this variable v, also called variable elimination.
-	 */
-	probability<P,T> *marginal(variable<T,P,M,N> &v) {
-		assert(false); // this
-
-		// multiply all entries in the conditional probability table with the evidence
-		// on all vertices except for "v"
-		typedef vertex<T,S,P,M,N> super;
-		std::cout << "Calculate marginal \n";
-
-		probability<P,T> *evidence = v.getValue();
-		assert (evidence != NULL);
-
-		// create a temporary table to calculate the joint distribution
-		S *table = new S(*super::getValue());
-		for (N i = 0; i < table->get_dimensions(); ++i) {
-			N e_i = super::to_at(i).first;
-			if (e_i == v.index()) continue; // don't multiply with this very vertex
-//			probability<P,T> *e = super::to_at(i).getsomehowthatvertexisimpossible().
-//			table->multiply(e_i, *e);
-		}
-
-		probability<P,T> *m = new probability<P,T>(evidence->size());
-		table->sum(v.index(), *m);
-
-//		int olddim = table->get_dimensions();
-//		table->multiply(v.index(), *evidence);
-//		int newdim = table->get_dimensions();
-
-		std::cout << *table << '\n';
-//		return NULL;
-
-//		for (N i = 0; i < super::to_size(); ++i) {
-//			if (super::to_at(i).first == v.index()) continue;
-//			probability<P,T> *p_new = table->sum();
-//			return *p_new;
-//		}
-		delete table;
-
-		return m;
-	}
 private:
 	bool initialized;
 };
@@ -850,7 +852,12 @@ public:
 		typedef vertex<T,S,P,M,N> super;
 		super::setValue(p);
 		this->name = name;
+		ready_flag = true;
 	}
+
+	inline bool ready() { return ready_flag; }
+
+	void set_ready(bool flag) { ready_flag = flag; }
 
 	/**
 	 * Get cardinality of this (random) variable
@@ -864,6 +871,7 @@ public:
 	virtual ~variable() { }
 
 private:
+	bool ready_flag;
 };
 
 /**
@@ -901,7 +909,7 @@ public:
 	// Use "delegation" as programming pattern and just expose the iterator of the underlying
 	// (nested) container, see http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterator-define.html#TOC2
 
-	//! Reference to pair of vertex index (first) and message "object" (second) which is by default a float.
+	//! Reference to pair of vertex index (1st) and message "object" (2nd) which is by default a "probability vector"
 	typedef std::vector<std::pair <N, M* > > vertex_index_container;
 	typedef typename vertex_index_container::value_type                   value_type;
 	typedef typename vertex_index_container::size_type                    size_type;
@@ -1025,7 +1033,7 @@ protected:
 	// just for debugging purposes
 	std::string name;
 private:
-	// Value on the node, can be used to accumulate incoming messages
+	// Value on the node, can be used to aggregate incoming messages or store a function over these messages
 	S *value;
 
 	// Identifier of the node, increases on construction

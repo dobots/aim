@@ -69,15 +69,57 @@ public:
 		}
 		typename graph<T,P,M,N>::factor_container::const_iterator f_i;
 		for (f_i = g.factors.begin(); f_i != g.factors.end(); ++f_i) {
-			factor<T,P,M,N> &v = **f_i;
-			tick_factor(g, v);
+			factor<T,P,M,N> &f = **f_i;
+			tick_factor(g, f);
 		}
-
 	}
 
 	bool converged() { return convergence; }
 
+	/**
+	 * Initialize all messages in the graph such that the incoming messages on the variables equate the outgoing
+	 * messages on the factor nodes. This is the only place where the messages are allocated.
+	 */
+	template <ClassImplType impl_type>
+	void init(const graph<T,P,M,N,impl_type> &g) {
+		typename graph<T,P,M,N>::variable_container::const_iterator v_i;
+
+		int m = 0;
+		for (v_i = g.variables.begin(); v_i != g.variables.end(); ++v_i) {
+			variable<T,P,M,N> &v = **v_i;
+
+			// allocate message for all incoming edges
+			for (int j = 0; j < v.from_size(); ++j) {
+				N index = v.from_at(j).first;
+				v.from_at(j).second = new probability<P,T>(v.cardinality(), 0);
+				m++;
+				factor<T,P,M,N> &f = *g.get_factor(index);
+				for (size_t i = 0; i < f.to_size(); ++i) {
+					if (f.to_at(i).first == index) {
+						f.to_at(i).second = v.from_at(j).second; // no copy, "message" is the same object here
+					}
+				}
+			}
+
+			// allocate message for all outgoing edges
+			for (int j = 0; j < v.to_size(); ++j) {
+				N index = v.to_at(j).first;
+				v.to_at(j).second = new probability<P,T>(v.cardinality(), 0);
+				m++;
+				factor<T,P,M,N> &f = *g.get_factor(index);
+				for (size_t i = 0; i < f.from_size(); ++i) {
+					if (f.from_at(i).first == index) {
+						f.from_at(i).second = v.to_at(j).second; // no copy, "message" is the same object here
+					}
+				}
+			}
+		}
+		std::cout << "Allocated " << m << " messages on " << g.variables.size() << " variables " << std::endl;
+	}
+
 protected:
+
+
 	/**
 	 * Check if the graph is actually indeed undirected in the sense that all vertices in the
 	 * "from" array are also in the "to" array.
@@ -131,13 +173,11 @@ protected:
 	 * cardinality of x3. So fb(0,x3) results in values for the random variable x3 that correspond to x2=0, and other
 	 * values for x2=1. The outer loop "i" is over all possible permutations, so fb(0,0), fb(0,1), fb(1,0), and fb(1,1).
 	 * Hence, we get the variable x3 multiple times for x2=0, hence there is one if condition that uses it only once.
-	 *
-	 * "jointvalue" with one specific variable, say fb(0,x3) for variable x3.
-	 *
-	 * A factor sums over all variables except for one.
 	 */
 	template <ClassImplType impl_type>
 	void tick_factor(const graph<T,P,M,N,impl_type> &g, factor<T,P,M,N> & v) {
+
+		//std::cout << "Tick factor" << std::endl;
 
 		// make sure X=f(X) goes well
 
@@ -145,8 +185,28 @@ protected:
 		N size = jointtable.size();
 		std::vector<N> table_index(jointtable.get_dimensions());
 
-		for (size_t j = 0; j < v.to_size(); ++j)  // set all outgoing messages to 0
-			*v.to_at(j).second = 0;
+		//std::cout << "From size " << v.from_size() << std::endl;
+		for (size_t j = 0; j < v.from_size(); ++j) {
+			probability<P,T> *incoming_msg = v.from_at(j).second;
+			std::cout << "Message " << *incoming_msg << std::endl;
+			if (!incoming_msg || !incoming_msg->size()) {
+				N index = v.from_at(j).first;
+				std::cout << "Cannot calculate factor " << v.index() << " yet: no message from variable " << index \
+						<< std::endl;
+				return;
+			} else {
+				N index = v.from_at(j).first;
+				std::cout << "Incoming message on factor " << v.index() << " from variable " << index << ": \"" << \
+						*v.from_at(j).second << "\"" << std::endl;
+			}
+		}
+
+		//std::cout << "To size " << v.from_size() << std::endl;
+		for (size_t j = 0; j < v.to_size(); ++j) { // set all outgoing messages to 0 (use cardinality info from "from"
+			probability<P,T> incoming_msg = *v.from_at(j).second;
+			*v.to_at(j).second = probability<P,T>(incoming_msg.size(), 0);
+			std::cout << "Set message to " << *v.to_at(j).second << std::endl;
+		}
 
 		for (size_t i = 0; i < size; ++i) { // sum over f(0,0,0,...) to f(1,1,1,...) in case of binary values
 			for (size_t j = 0; j < v.to_size(); ++j) { // sum over all variables to be excluded themselves
@@ -168,10 +228,14 @@ protected:
 	}
 
 	/**
-	 * Calculates an outgoing message to the vertex "v" which should be a factor node. It uses the
-	 * incoming messages in the standard way: it calculates the product of all incoming messages,
-	 * except for the one from the target node. It sends a uniform message (1) if there is only one
-	 * outgoing edge. The uniform value is a "probability vector" with "1" at all entries.
+	 * Calculates an outgoing message to the vertex "v" which should be a factor node. It uses the incoming messages in
+	 * the standard way: it calculates the product of all incoming messages, except for the one from the target node. It
+	 * sends a uniform message (1) if there is only one outgoing edge. This uniform message is a "probability vector"
+	 * with "1" at all entries. Multiplication by it leaves a message unchanged. Obviously, it is not a real
+	 * probability (because it does not sum to 1).
+	 *
+	 * The normal operation multiplies all messages and performs so-called "Message Passing with Division", namely it
+	 * divides this overall value by the message it got from the factor node it sends its message to.
 	 *
 	 * @param g				undirected graph
 	 * @param v				factor node
@@ -179,24 +243,49 @@ protected:
 	template <ClassImplType impl_type>
 	void tick_variable(const graph<T,P,M,N,impl_type> &g, variable<T,P,M,N> & v) {
 		probability<P,T> product(v.cardinality());
+		// can be stored as static vectors if we wouldn't need one of different length depending on the cardinality
 		probability<P,T> identity(v.cardinality(), 1);
-		std::cout << "Tick variable" << std::endl;
+
+//		std::cout << "Tick variable" << std::endl;
+
 		// leaf, send uniform distribution
-		if (v.from_size() == 1) {
-			*v.to_at(0).second = identity;
-			std::cout << "Send (uniform) message (1) to factor node " << v.to_at(0).first; std::endl(std::cout);
+		if (v.from_size() == 1) { // || v.ready()) {
+			for (N i = 0; i < v.to_size(); ++i) {
+//				std::cout << "Message was " << v.to_at(i).second << std::endl;
+				*v.to_at(i).second = identity; // deep copy
+				std::cout << "Send (uniform) message from variable " << v.index() << " to factor " << v.to_at(i).first \
+						<< std::endl;
+//				std::cout << "Message is " << v.to_at(i).second << std::endl;
+			}
+			v.set_ready(false);
 			return;
 		}
-		// collect all messages from incoming factor nodes
+
+		// check that all messages are there...
+		for (size_t j = 0; j < v.from_size(); ++j) {
+			probability<P,T> *incoming_msg = v.from_at(j).second;
+			if (!incoming_msg || !incoming_msg->size()) {
+				N index = v.from_at(j).first;
+				std::cout << "Cannot calculate variable " << v.index() << " yet: no message from factor " << index \
+						<< std::endl;
+				return;
+			} else {
+				N index = v.from_at(j).first;
+				std::cout << "Incoming message on variable " << v.index() << " from factor " << index << ": \"" << \
+						*v.from_at(j).second << "\"" << std::endl;
+			}
+		}
+
+		// collect all messages from incoming factor nodes, so really all nodes, none excluded
 		for (int i = 0; i < v.from_size(); ++i) {
 			probability<P,T> msg = *v.from_at(i).second;
 			product *= msg;
 		}
-		// send to each target node
-		for (int i = 0; i < v.to_size(); ++i) {
+		// send to each target node, now we have to divide again by the message from this factor node
+		for (N i = 0; i < v.to_size(); ++i) {
 			// correct the multiplication by division (if product != 0)
-			T message = T(1); //product;
-//			if (!directed) message = product ? (product / *v.from_at(i).second) : 0;
+			probability<P,T> message(v.cardinality(), 1);
+			message = (product / *v.from_at(i).second);
 			*v.to_at(i).second = message;
 			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first; std::endl(std::cout);
 		}

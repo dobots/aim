@@ -251,7 +251,8 @@ void sprinkler_test() {
 	// no joint conditions
 	cout << "Propagate beliefs" << std::endl << std::endl;
 	belief_prop bprop;
-	int ticks = 1;
+	bprop.init(g);
+	int ticks = 2;
 	for (int i = 0; i < ticks; ++i) {
 		bprop.tick(g);
 	}
