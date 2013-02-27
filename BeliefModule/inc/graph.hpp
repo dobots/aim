@@ -310,6 +310,13 @@ public:
 		outcome = new P[t_size];
 		for (T i = 0; i < t_size; ++i) outcome[i] = init;
 	}
+	//! Copy constructor, or else destruction after assignment leads to double free errors
+	probability(const probability<P,T> &p): cardinality(p.size()) {
+//		std::cout << "+ Construct " << this << std::endl;
+		T t_size = p.size();
+		outcome = new P[t_size];
+		for (T i = 0; i < t_size; ++i) outcome[i] = p[i];
+	}
 	// Destructor
 	~probability() {
 		delete [] outcome;
@@ -324,7 +331,6 @@ public:
 	//! Deep copy from other "probability vector"
 	probability<P,T> & operator=(const probability<P,T> &other) {
         if (this == &other) return *this; // protect against invalid self-assignment
-        //std::cout << "Copy probability vector" << std::endl;
         P * temp = new P[other.size()];
         std::copy(other.outcome, other.outcome + other.size(), temp);
         delete [] outcome;
@@ -417,8 +423,14 @@ private:
 	T cardinality;
 	// The probability of every outcome can be printed as space-separated stream
 	friend std::ostream& operator<<(std::ostream & os, const probability & p) {
-		for (int i = 0; i < p.size(); ++i) {
-			os << (p.outcome[i]) << ' ';
+		if (p.size()) {
+			os << '[' << (p.outcome[0]);
+			for (int i = 1; i < p.size(); ++i) {
+				os << ' ' << (p.outcome[i]);
+			}
+			os << ']';
+		} else {
+			os << "[]";
 		}
 		return os;
 	}
@@ -514,18 +526,11 @@ public:
 		assert (linear_index < size());
 		std::vector<N> result(cardinalities.size(), T(0));
 
-		std::cout << "Get tabular index for " << linear_index << std::endl;
+//		std::cout << "Get tabular index for " << linear_index << std::endl;
 		for (N i = 0; i < cardinalities.size(); ++i) {
-			std::cout << "Stride " << strides[i] << " and card " << cardinalities[i] << std::endl;
+//			std::cout << "Stride " << strides[i] << " and card " << cardinalities[i] << std::endl;
 			result[i] = (linear_index / strides[i]) % cardinalities[i];
 		}
-#define DEBUG
-#ifdef DEBUG
-		std::cout << "Result = { ";
-		for (N i = 0; i < result.size(); ++i) std::cout << result[i] << ' ';
-		std::cout << '}' << std::endl;
-		assert (linear_index == get_linear_index(result));
-#endif
 		return result;
 	}
 
@@ -566,10 +571,10 @@ public:
 	 * @param summarize		Index of variable to summarize over
 	 * @return 				A random variable.
 	 */
-	probability<P,T> const get(std::vector<N> table_index, N summarize) {
+	probability<P,T> * get(std::vector<N> table_index, N summarize) {
 		assert (summarize < cardinalities.size());
 		N cardinality = cardinalities[summarize];
-		probability<P,T> result(cardinality, T(0));
+		probability<P,T> *result = new probability<P,T>(cardinality, T(0));
 		for (int i = 0; i < cardinality; ++i) {
 			table_index[summarize] = i; // only set this index to "i" keeping the rest the same
 			result[i] = probabilities[get_linear_index(table_index)];
@@ -795,21 +800,6 @@ public:
 		super::setValue(cond_prob_table);
 	}
 
-	//!
-//	void push_to(N index) {
-//		typedef vertex<T,S,P,M,N> super;
-//		super::push_to(index);
-//		assert (super::getValue() != NULL);
-//		super::getValue()->add_vertex(index);
-//	}
-
-//	void push_from(N index) {
-//		typedef vertex<T,S,P,M,N> super;
-//		super::push_from(index);
-//		assert (super::getValue() != NULL);
-//		super::getValue()->add_vertex(index);
-//	}
-
 private:
 	bool initialized;
 };
@@ -842,10 +832,10 @@ public:
 	typedef probability<P,T> S;
 
 	/**
-	 * A variable comes with a name and a series of outcomes with different probabilities
-	 * defined by a probability density function. The latter is stored internally on a
-	 * "value" field as an "probability<P,T>" object. Moreover, the variable is defined as
-	 * a vertex and is hence an "enriched" random variable.
+	 * A variable comes with a name and a series of outcomes with different probabilities defined by a probability
+	 * density function. The latter is stored internally on a "value" field as an "probability<P,T>" object. Moreover,
+	 * the variable is defined as a vertex and is hence an "enriched" random variable. Anything with respect to the
+	 * message system is only used to know its type, there is nothing allocated.
 	 */
 	variable(N cardinality, std::string name=""): vertex<T,S,P,M,N>(VT_VARIABLE) {
 		S *p = new S(cardinality);
@@ -881,30 +871,22 @@ private:
 static size_t uuid = -1;
 
 /**
- * The implementation of the vertex class. In case of an Ising variable typename
- * "T" would be a boolean. Note that for an image segmentation task you will
- * need to map your samples (for example a grayscale image to real numbers:
- * probabilities). Small bins will result in huge conditional probability table
- * on the factors.
+ * The implementation of the vertex class. In case of an Ising variable typename "T" would be a boolean. Note that for
+ * an image segmentation task you will need to map your samples (for example a grayscale image to real numbers:
+ * probabilities). Small bins will result in huge conditional probability table on the factors.
  *
  * The following template parameters can be used:
- * @param T		type of an event, e.g. for a ternary event you will need at
- * 				least an (u)int8_t type, default: uint8_t
- * @param S		type of state on the vertex, for variable nodes this is an event
- * 				(probability), for factor nodes this is a conditional
- * 				probability table
- * @param P		type to indicate probabilities, should be floating point, e.g.
- * 				float or double, default: float
- * @param M		type of the messages that are communicated between the nodes on
- * 				the graph, default: probability<P,T>
- * @param N		type of the index to the nodes, e.g. uint8_t would limit the
- * 				graph to 2^8-1 nodes, default: size_t
+ * @param T		type of an event, e.g. for a ternary event you will need at least an (u)int8_t type, default: uint8_t
+ * @param S		type of state on the vertex, for variable nodes this is an event (probability), for factor nodes this is
+ * 				a conditional probability table
+ * @param P		type to indicate probabilities, should be floating point, e.g. float or double, default: float
+ * @param M		type of the messages that are communicated between the nodes on the graph, default: probability<P,T>
+ * @param N		type of the index to the nodes, e.g. uint8_t would limit the graph to 2^8-1 nodes, default: size_t
  */
-template <typename T, typename S, typename P = float,
-		typename M = probability<P,T>, typename N = size_t>
+template <typename T, typename S, typename P = float, typename M = probability<P,T>, typename N = size_t>
 class vertex {
 public:
-	//! Note that for the neighbours of vertices we store only references plus a message of type T
+	//! Note that for the neighbours of vertices we store only references plus a message of type M*
 
 	// Use "delegation" as programming pattern and just expose the iterator of the underlying
 	// (nested) container, see http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterator-define.html#TOC2
@@ -927,12 +909,9 @@ public:
 	vertex(VertexType type): value(NULL), id(++uuid), vtype(type) {
 		to.clear();
 		from.clear();
-//		std::cout << "Created vertex " << id; std::endl(std::cout);
 	}
 
-	virtual ~vertex() {
-//		std::cout << "Deallocate vertex " << id; std::endl(std::cout);
-	}
+	virtual ~vertex() {}
 
 	vertex(const vertex<T,S,P,M,N> &other) {
 		value = other.value;
@@ -966,9 +945,8 @@ public:
 	inline S* getValue() const { return value; }
 
 	/**
-	 * Friend inline. We use the "introvert" variant of the serial operator. The vertex needs to be
-	 * of the same type T as the class. We do not(!) create a templated version of the serialization
-	 * operator.
+	 * Friend inline. We use the "introvert" variant of the serial operator. The vertex needs to be of the same type T
+	 * as the class. We do not(!) create a template version of the serialization operator.
 	 * See: http://stackoverflow.com/questions/4660123/overloading-friend-operator-for-template-class
 	 */
 	friend std::ostream& operator<<(std::ostream & os, const vertex & v) {

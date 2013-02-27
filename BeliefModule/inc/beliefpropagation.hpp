@@ -91,11 +91,14 @@ public:
 			// allocate message for all incoming edges
 			for (int j = 0; j < v.from_size(); ++j) {
 				N index = v.from_at(j).first;
-				v.from_at(j).second = new probability<P,T>(v.cardinality(), 0);
+				probability<P,T> *p = new probability<P,T>(v.cardinality(), 0);
+				v.from_at(j).second = p;
+				std::cout << "* Allocate message buffer " << index << "->" << v.index() << " at " << p << std::endl;
 				m++;
 				factor<T,P,M,N> &f = *g.get_factor(index);
 				for (size_t i = 0; i < f.to_size(); ++i) {
-					if (f.to_at(i).first == index) {
+//					std::cout << "Compare " << f.to_at(i).first << " with " << v.index() << std::endl;
+					if (f.to_at(i).first == v.index()) {
 						f.to_at(i).second = v.from_at(j).second; // no copy, "message" is the same object here
 					}
 				}
@@ -104,11 +107,13 @@ public:
 			// allocate message for all outgoing edges
 			for (int j = 0; j < v.to_size(); ++j) {
 				N index = v.to_at(j).first;
-				v.to_at(j).second = new probability<P,T>(v.cardinality(), 0);
+				probability<P,T> *p = new probability<P,T>(v.cardinality(), 0);
+				v.to_at(j).second = p;
+				std::cout << "* Allocate message buffer " << v.index() << "->" << index << " at " << p << std::endl;
 				m++;
 				factor<T,P,M,N> &f = *g.get_factor(index);
 				for (size_t i = 0; i < f.from_size(); ++i) {
-					if (f.from_at(i).first == index) {
+					if (f.from_at(i).first == v.index()) {
 						f.from_at(i).second = v.to_at(j).second; // no copy, "message" is the same object here
 					}
 				}
@@ -188,7 +193,7 @@ protected:
 		//std::cout << "From size " << v.from_size() << std::endl;
 		for (size_t j = 0; j < v.from_size(); ++j) {
 			probability<P,T> *incoming_msg = v.from_at(j).second;
-			std::cout << "Message " << *incoming_msg << std::endl;
+			std::cout << "Message " << *incoming_msg << " on " << v.from_at(j).second << std::endl;
 			if (!incoming_msg || !incoming_msg->size()) {
 				N index = v.from_at(j).first;
 				std::cout << "Cannot calculate factor " << v.index() << " yet: no message from variable " << index \
@@ -196,7 +201,7 @@ protected:
 				return;
 			} else {
 				N index = v.from_at(j).first;
-				std::cout << "Incoming message on factor " << v.index() << " from variable " << index << ": \"" << \
+				std::cout << "Incoming message on factor " << v.index() << "<-" << index << ": \"" << \
 						*v.from_at(j).second << "\"" << std::endl;
 			}
 		}
@@ -204,25 +209,27 @@ protected:
 		//std::cout << "To size " << v.from_size() << std::endl;
 		for (size_t j = 0; j < v.to_size(); ++j) { // set all outgoing messages to 0 (use cardinality info from "from"
 			probability<P,T> incoming_msg = *v.from_at(j).second;
-			*v.to_at(j).second = probability<P,T>(incoming_msg.size(), 0);
+			probability<P,T> *zero = new probability<P,T>(incoming_msg.size(), 0);
+			(*v.to_at(j).second) = *zero;
 			std::cout << "Set message to " << *v.to_at(j).second << std::endl;
 		}
 
 		for (size_t i = 0; i < size; ++i) { // sum over f(0,0,0,...) to f(1,1,1,...) in case of binary values
 			for (size_t j = 0; j < v.to_size(); ++j) { // sum over all variables to be excluded themselves
 				table_index = jointtable.get_tabular_index(i);
-				probability<P,T> jointvalue = jointtable.get(table_index, j); // if i=(0,0,0,0), this obtains (0,0,j,0)
+				probability<P,T> *jointvalue = jointtable.get(table_index, j); // if i=(0,0,0,0), this obtains (0,0,j,0)
 				// the same happens with i=(0,0,1,0), so we have to exclude that one or we count it multiple times
 				if (table_index[j] != 0) continue;
 				// we multiply it with the messages from the incoming variables
 				for (size_t k = 0; k < v.from_size(); ++k) {
 					if (j == k) continue;
-					probability<P,T> incoming_msg = *v.from_at(k).second;
+					probability<P,T> *incoming_msg = v.from_at(k).second;
 					N value = table_index[k];
-					jointvalue *= incoming_msg[value];
+					*jointvalue *= (*incoming_msg)[value];
 				}
 				// add to outgoing message
-				*v.to_at(j).second += jointvalue;
+				*v.to_at(j).second += *jointvalue;
+				delete jointvalue;
 			}
 		}
 	}
@@ -251,11 +258,9 @@ protected:
 		// leaf, send uniform distribution
 		if (v.from_size() == 1) { // || v.ready()) {
 			for (N i = 0; i < v.to_size(); ++i) {
-//				std::cout << "Message was " << v.to_at(i).second << std::endl;
 				*v.to_at(i).second = identity; // deep copy
 				std::cout << "Send (uniform) message from variable " << v.index() << " to factor " << v.to_at(i).first \
-						<< std::endl;
-//				std::cout << "Message is " << v.to_at(i).second << std::endl;
+						<< " on " << v.to_at(i).second << std::endl;
 			}
 			v.set_ready(false);
 			return;
@@ -271,8 +276,8 @@ protected:
 				return;
 			} else {
 				N index = v.from_at(j).first;
-				std::cout << "Incoming message on variable " << v.index() << " from factor " << index << ": \"" << \
-						*v.from_at(j).second << "\"" << std::endl;
+				std::cout << "Incoming message on variable " << v.index() << "<-" << index << ": \"" << \
+						*v.from_at(j).second << " on " << v.from_at(j).second << "\"" << std::endl;
 			}
 		}
 
@@ -287,7 +292,8 @@ protected:
 			probability<P,T> message(v.cardinality(), 1);
 			message = (product / *v.from_at(i).second);
 			*v.to_at(i).second = message;
-			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first; std::endl(std::cout);
+			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first << " on " << \
+					v.to_at(i).second << std::endl;
 		}
 	}
 
