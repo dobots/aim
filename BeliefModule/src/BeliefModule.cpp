@@ -252,7 +252,7 @@ void sprinkler_test() {
 	cout << "Propagate beliefs" << std::endl << std::endl;
 	belief_prop bprop;
 	bprop.init(g);
-	int ticks = 2;
+	int ticks = 3;
 	for (int i = 0; i < ticks; ++i) {
 		bprop.tick(g);
 	}

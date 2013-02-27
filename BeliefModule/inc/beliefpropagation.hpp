@@ -93,7 +93,9 @@ public:
 				N index = v.from_at(j).first;
 				probability<P,T> *p = new probability<P,T>(v.cardinality(), 0);
 				v.from_at(j).second = p;
+#ifdef DEBUG
 				std::cout << "* Allocate message buffer " << index << "->" << v.index() << " at " << p << std::endl;
+#endif
 				m++;
 				factor<T,P,M,N> &f = *g.get_factor(index);
 				for (size_t i = 0; i < f.to_size(); ++i) {
@@ -109,7 +111,9 @@ public:
 				N index = v.to_at(j).first;
 				probability<P,T> *p = new probability<P,T>(v.cardinality(), 0);
 				v.to_at(j).second = p;
+#ifdef DEBUG
 				std::cout << "* Allocate message buffer " << v.index() << "->" << index << " at " << p << std::endl;
+#endif
 				m++;
 				factor<T,P,M,N> &f = *g.get_factor(index);
 				for (size_t i = 0; i < f.from_size(); ++i) {
@@ -119,7 +123,9 @@ public:
 				}
 			}
 		}
+#ifdef DEBUG
 		std::cout << "Allocated " << m << " messages on " << g.variables.size() << " variables " << std::endl;
+#endif
 	}
 
 protected:
@@ -184,17 +190,23 @@ protected:
 
 		//std::cout << "Tick factor" << std::endl;
 
-		// make sure X=f(X) goes well
 
 		conditional_probability_table<T,P,N> jointtable = *v.getValue();
 		N size = jointtable.size();
 		std::vector<N> table_index(jointtable.get_dimensions());
 
-		//std::cout << "From size " << v.from_size() << std::endl;
+		// make sure X=f(X) goes well if there is only one variable on each side
+		if (v.from_size() == 1) {
+			table_index = jointtable.get_tabular_index(0);
+			probability<P,T> *jointvalue = jointtable.get(table_index, 0);
+			*v.to_at(0).second = *jointvalue;
+			return;
+		}
+
 		for (size_t j = 0; j < v.from_size(); ++j) {
 			probability<P,T> *incoming_msg = v.from_at(j).second;
-			std::cout << "Message " << *incoming_msg << " on " << v.from_at(j).second << std::endl;
-			if (!incoming_msg || !incoming_msg->size()) {
+//			std::cout << "Message " << *incoming_msg << " on " << v.from_at(j).second << std::endl;
+			if (incoming_msg->zero()) {
 				N index = v.from_at(j).first;
 				std::cout << "Cannot calculate factor " << v.index() << " yet: no message from variable " << index \
 						<< std::endl;
@@ -206,12 +218,13 @@ protected:
 			}
 		}
 
-		//std::cout << "To size " << v.from_size() << std::endl;
-		for (size_t j = 0; j < v.to_size(); ++j) { // set all outgoing messages to 0 (use cardinality info from "from"
+		// intialize all outgoing messages to 0 (use cardinality info from "from")
+		for (size_t j = 0; j < v.to_size(); ++j) {
 			probability<P,T> incoming_msg = *v.from_at(j).second;
 			probability<P,T> *zero = new probability<P,T>(incoming_msg.size(), 0);
 			(*v.to_at(j).second) = *zero;
-			std::cout << "Set message to " << *v.to_at(j).second << std::endl;
+//			std::cout << "Initialize message " << v.to_at(j).second << std::endl;
+			delete zero;
 		}
 
 		for (size_t i = 0; i < size; ++i) { // sum over f(0,0,0,...) to f(1,1,1,...) in case of binary values
@@ -259,8 +272,8 @@ protected:
 		if (v.from_size() == 1) { // || v.ready()) {
 			for (N i = 0; i < v.to_size(); ++i) {
 				*v.to_at(i).second = identity; // deep copy
-				std::cout << "Send (uniform) message from variable " << v.index() << " to factor " << v.to_at(i).first \
-						<< " on " << v.to_at(i).second << std::endl;
+				std::cout << "Send \"uniform\" message from variable " << v.index() << "->" << v.to_at(i).first \
+						<< std::endl;
 			}
 			v.set_ready(false);
 			return;
@@ -269,15 +282,16 @@ protected:
 		// check that all messages are there...
 		for (size_t j = 0; j < v.from_size(); ++j) {
 			probability<P,T> *incoming_msg = v.from_at(j).second;
-			if (!incoming_msg || !incoming_msg->size()) {
+//			if (!incoming_msg || !incoming_msg->size()) {
+			if (incoming_msg->zero()) {
 				N index = v.from_at(j).first;
 				std::cout << "Cannot calculate variable " << v.index() << " yet: no message from factor " << index \
 						<< std::endl;
 				return;
 			} else {
 				N index = v.from_at(j).first;
-				std::cout << "Incoming message on variable " << v.index() << "<-" << index << ": \"" << \
-						*v.from_at(j).second << " on " << v.from_at(j).second << "\"" << std::endl;
+				std::cout << "Incoming message on variable " << v.index() << "<-" << index << ": " << \
+						*v.from_at(j).second << std::endl;
 			}
 		}
 

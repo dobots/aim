@@ -303,34 +303,42 @@ class probability {
 public:
 	// Create an empty "probability mass function", does memory allocation
 	probability(T t_size): cardinality(t_size) {
+//		std::cout << "+ Construct " << this << std::endl;
+		assert (t_size > 0);
 		outcome = new P[t_size];
+//		std::cout << "   of size " << t_size << std::endl;
 	}
 	//! Initialize probability vector with initial value
 	probability(T t_size, T init): cardinality(t_size) {
+//		std::cout << "+ Construct and init " << this << std::endl;
+		assert (t_size > 0);
 		outcome = new P[t_size];
 		for (T i = 0; i < t_size; ++i) outcome[i] = init;
 	}
 	//! Copy constructor, or else destruction after assignment leads to double free errors
 	probability(const probability<P,T> &p): cardinality(p.size()) {
-//		std::cout << "+ Construct " << this << std::endl;
+//		std::cout << "+ Construct by copy constructor " << this << std::endl;
 		T t_size = p.size();
+		assert (t_size > 0);
 		outcome = new P[t_size];
 		for (T i = 0; i < t_size; ++i) outcome[i] = p[i];
 	}
 	// Destructor
-	~probability() {
+	virtual ~probability() {
+//		std::cout << "~ Destruct " << this << std::endl;
 		delete [] outcome;
 	}
 	// The cardinality of this random variable
 	const T size() const { return cardinality; }
-	// The probability of the given indexed outcome (order preserved)
+	//! The probability of the given indexed outcome (order preserved), don't forget to dereference "probability"
 	P & operator[](T n) { return outcome[n]; }
-	// The probability of the given indexed outcome (order preserved)
+	// The probability of the given indexed outcome (order preserved), don't forget to dereference "probability"
 	const P operator[](T n) const { return outcome[n]; }
 
 	//! Deep copy from other "probability vector"
 	probability<P,T> & operator=(const probability<P,T> &other) {
         if (this == &other) return *this; // protect against invalid self-assignment
+//		std::cout << "+ Assignment " << this << std::endl;
         P * temp = new P[other.size()];
         std::copy(other.outcome, other.outcome + other.size(), temp);
         delete [] outcome;
@@ -416,6 +424,11 @@ public:
 		return *this;
 	}
 
+	bool zero() {
+		for (T i = 0; i < size(); ++i) if (outcome[i]) return false;
+		return true;
+	}
+
 private:
 	// The outcome array stores a probability for every possible outcome
 	P *outcome;
@@ -470,7 +483,7 @@ public:
 		}
 		strides.push_back(size);
 		for (N i = 0; i < size; ++i) probabilities.push_back(P(0));
-		std::cout << "Created table with dimension " << dimensions.size(); std::endl(std::cout);
+//		std::cout << "Created table with dimension " << dimensions.size(); std::endl(std::cout);
 	}
 
 	conditional_probability_table(const conditional_probability_table & other) {
@@ -478,6 +491,13 @@ public:
 		cardinalities = other.cardinalities;
 		probabilities = other.probabilities;
 		strides = other.strides;
+	}
+
+	virtual ~conditional_probability_table() {
+		strides.clear();
+		vertex_indices.clear();
+		probabilities.clear();
+		cardinalities.clear();
 	}
 
 	/**
@@ -574,11 +594,15 @@ public:
 	probability<P,T> * get(std::vector<N> table_index, N summarize) {
 		assert (summarize < cardinalities.size());
 		N cardinality = cardinalities[summarize];
-		probability<P,T> *result = new probability<P,T>(cardinality, T(0));
+		assert (cardinality > 0);
+		probability<P,T> *result = NULL;
+//		std::cout << "Create new probability vector of size " << cardinality << std::endl;
+		result = new probability<P,T>(cardinality, T(0));
 		for (int i = 0; i < cardinality; ++i) {
 			table_index[summarize] = i; // only set this index to "i" keeping the rest the same
-			result[i] = probabilities[get_linear_index(table_index)];
+			(*result)[i] = probabilities[get_linear_index(table_index)];
 		}
+//		std::cout << "Probability vector for " << summarize << " is " << *result << std::endl;
 		return result;
 	}
 
@@ -999,12 +1023,12 @@ public:
 
 	//! Push new index with default message on the list of outgoing edges
 	void push_to(N index) {
-		to.push_back(std::make_pair(index,new M(0)));
+		to.push_back(std::make_pair<N,M*>(N(index),NULL));
 	}
 
 	//! Push new index with default message on the list of incoming edges
 	void push_from(N index) {
-		from.push_back(std::make_pair(index,new M(0)));
+		from.push_back(std::make_pair<N,M*>(N(index),NULL));
 	}
 
 protected:
