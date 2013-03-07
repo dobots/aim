@@ -36,11 +36,23 @@ int main(int argc, char *argv[])  {
 	ZmqModuleExt *m = new ZmqModuleExt();
 
 	if (argc < 2) {
-		std::cout << "Use an identifier as argument for this instance" << endl;
+		std::cout << "Usage: " << argv[0] << " identifier | command " << endl;
 		return EXIT_FAILURE;
 	}
 	std::string identifier = argv[1];
+
+	bool connect = (identifier.find("connect") != std::string::npos);
+	if (connect & argc < 4) {
+		std::cout << "Usage: " << argv[0] << " connect /port0 /port1" << endl;
+		return EXIT_FAILURE;
+	}
+
 	m->Init(identifier);
+
+	if (connect) {
+		m->SetConnectSource(argv[2]);
+		m->SetConnectTarget(argv[3]);
+	}
 
 	do {
 		std::cout << "Tick!" << endl;
@@ -48,6 +60,8 @@ int main(int argc, char *argv[])  {
 	} while (!m->Stop()); 
 
 	delete m;
+
+	std::cout << "End of " << identifier << endl;
 
 	return EXIT_SUCCESS;
 }

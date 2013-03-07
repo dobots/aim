@@ -10,33 +10,39 @@ public:
 
 	~ZmqModuleExt();
 
-	void Init(std::string & name);
+//	void Init(std::string & name);
 
-	void Tick();
+//	void Open(const pns_record & record, bool first);
+
+	bool Tick();
 
 	void TickServer();
 
 	void TickClient();
 
-	void WriteExample();
+//	void WriteExample();
 
-	void ReadExample();
+//	void ReadExample();
 
 	bool Stop();
+
+	inline void SetConnectSource(std::string source) { connect_source = source; }
+
+	inline void SetConnectTarget(std::string target) { connect_target = target; }
 private:
-	zmq::context_t context;
-
-	zmq::socket_t *socket;
-
-	std::vector<zmq::socket_t*> sockets;
+//	std::vector<zmq::socket_t*> sockets;
 
 	std::vector<bool> socket_state;
 
 	std::string name;
 
-	bool server;
+//	bool server;
 
-	bool connect;
+//	bool connect;
+
+	std::string connect_source;
+
+	std::string connect_target;
 };
 
 }

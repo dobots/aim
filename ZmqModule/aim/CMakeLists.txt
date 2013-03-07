@@ -37,18 +37,22 @@ MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "Requires an out of source build." )
 # Build options
 OPTION(BUILD_YARP      "Build module with YARP" OFF)
 OPTION(BUILD_ROS       "Build module with ROS" OFF)
+OPTION(BUILD_ZEROMQ    "Build module with ZeroMQ" OFF)
 OPTION(BUILD_STANDARD  "Default build option" ON)
 
-IF (NOT (BUILD_YARP OR BUILD_ROS))
+# Check first if on command line CMAKE has set one of the options
+IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ))
+  # If not, load the option from file
   INCLUDE(default.cmake)
   INCLUDE(local.cmake OPTIONAL)
+ENDIF()
+
+# Check again if one of the options has turned on from one of the .cmake files
+IF (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ)
+  SET(BUILD_STANDARD OFF)
 ENDIF ()
 
 INCLUDE(~/.rur/backends_path.cmake OPTIONAL)
-
-IF (BUILD_YARP OR BUILD_ROS)
-  SET(BUILD_STANDARD OFF)
-ENDIF ()
 
 # Set commands for header generation
 IF (BUILD_YARP) 
@@ -57,6 +61,10 @@ ENDIF ()
 
 IF (BUILD_ROS) 
   SET(MIDDLEWARE "ros")
+ENDIF ()
+
+IF (BUILD_ZEROMQ) 
+  SET(MIDDLEWARE "zeromq")
 ENDIF ()
 
 IF (BUILD_STANDARD) 
@@ -83,6 +91,20 @@ IF (BUILD_ROS)
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   rosbuild_init()
 ENDIF (BUILD_ROS)
+
+IF (BUILD_ZEROMQ)
+  MESSAGE("ZeroMQ build, useful for ZeroMQ message queues")
+  FIND_PACKAGE(ZMQ REQUIRED)
+  INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
+  SET(LIBS ${LIBS} ${ZMQ_LIBRARIES})
+
+  FIND_PACKAGE(JsonSpirit REQUIRED)
+  INCLUDE_DIRECTORIES(${JSON_SPIRIT_INCLUDE_DIRS})
+  SET(LIBS ${LIBS} ${JSON_SPIRIT_LIBRARIES})
+
+  #FIND_PACKAGE(Librt REQUIRED)
+  SET(LIBS ${LIBS} rt)
+ENDIF (BUILD_ZEROMQ)
 
 # Source directory
 SET(SOURCE_DIR "src")

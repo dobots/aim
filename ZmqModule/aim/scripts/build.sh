@@ -3,7 +3,7 @@
 # Check if we have at least the backend as argument
 if [[ "$1" == "" ]]
 then
-	echo "No args supplied! Use backend as argument"
+	echo "No args supplied! Usage: ./build.sh backend"
 	exit 1
 fi
 

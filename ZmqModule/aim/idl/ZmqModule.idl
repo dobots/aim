@@ -25,19 +25,19 @@ struct Param {
 };
 
 // Typedef for array of integers
-typedef sequence<long> long_seq;
+//typedef sequence<long> long_seq;
 
 // We want to be able to give our class a name
 interface ZmqModule {
 
   // Input from sensor in the form of array
-  void Sensor(in long_seq input);
+  void Value(in long input);
 
   // Length of default sensor input (needed by some middlewares)
-  void SensorArrayLength(in long sensor_l);
+//  void SensorArrayLength(in long sensor_l);
 
   // Output is one value each time
-  void Result(out long output);
+//  void MovingAverage(out long output);
 
 };
 
