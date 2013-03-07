@@ -120,7 +120,14 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         
         # end of private section    
         self.st.dec_indent()
-        
+
+	# protected part        
+        self.st.out("")
+        self.st.out("protected:")
+        self.st.inc_indent()
+	self.writePortsAsArray()
+        self.st.dec_indent()
+
         # begin of public section
         self.st.out("")
         self.st.out("public:")
@@ -199,6 +206,8 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     def writeConstructor(self):
         self.st.out( self.classname + "() {" )
         self.st.inc_indent()
+        for p in self.portList:
+            self.writeDummyInitiation(p)
         for s in self.structList:
             self.writeStructAllocation(s)
         self.st.dec_indent()
@@ -236,6 +245,25 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out("}")
                   self.st.out("")
                 
+    def writePortsAsArray(self):
+        names = [];
+        for m in self.portList:
+            for p in m.parameters():
+                param_name = p.identifier()
+                self.__prefix = ""
+                p.paramType().accept(self)
+                param_type = self.__result_type
+                portname = "port" + m.identifier()
+
+                if p.is_in():
+                  names.append("\"read" + m.identifier() + "\"") 
+                  
+                if p.is_out():
+                  names.append( "\"write" + m.identifier() + "\"") 
+
+	self.st.out("static const int channel_count = " + str(len(names)) + ";")
+        self.st.out("const char* const channel[" + str(len(names)) + "] = {" + ', '.join(names) + "};")
+
     def writeDummyAllocation(self, node):
         self.st.out("")
         for p in node.parameters():
@@ -245,6 +273,15 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 p.paramType().accept(self)
                 param_type = self.__result_type
                 self.st.out( param_type + " dummy" + node.identifier() + ";")  
+
+    def writeDummyInitiation(self, node):
+        for p in node.parameters():
+            if p.is_in():
+                param_name = p.identifier()
+                self.__prefix = ""
+                p.paramType().accept(self)
+                param_type = self.__result_type
+                self.st.out( "dummy" + node.identifier() + " = " + param_type + "(0);")  
   
 ##########################################################################################
 # Visitor functions
