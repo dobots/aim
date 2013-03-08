@@ -15,11 +15,12 @@ var nameserver_port = 10101;
  * General functions
  ***********************************************************************************************************************/
 
-function record(identifier, server, port) {
+function record(identifier, server, port, pid) {
 	var self = this;
 	self.identifier = identifier;
 	self.server = server;
 	self.port = port;
+        self.pid = pid;
 }
 
 function getrecord(list, identifier) {
@@ -31,15 +32,17 @@ function getrecord(list, identifier) {
 	return null;
 }
 
-function resolve(identifier) {
+function resolve(identifier, pid) {
 	var rec;
 	if ((rec = getrecord(records, identifier)) == null) {
 		port++;
 		console.log(' * register ' + identifier);
 		console.log('   + set ' + identifier + ' ' + host + ':' + String(port));
-		rec = new record(identifier, host, String(port));
+		rec = new record(identifier, host, String(port), pid);
 		records.push(rec);	
 	}
+	if (pid != "")
+		rec.pid = pid;
 	return JSON.stringify(rec);
 }
 
@@ -53,7 +56,8 @@ app.get('/', function(req, res) {
 
 app.get('/resolve/:identifier', function(req, res) {
 	var identifier = request.params.identifier;
-	var rec = resolve(identifier);
+	var pid = request.params.pid;
+	var rec = resolve(identifier, pid);
 	res.send(rec);
 });
 
@@ -82,8 +86,10 @@ socket.bind('tcp://' + host + ':' + nameserver_port, function(err) {
 			}
 		}
 		str = data.toString('utf8', start, data.length-1);
+		var identifier = str.split(':')[0];
+		var pid = str.split(':')[1];
 		console.log(socket.identity + ': received ' + str);
-		var response = resolve(str);
+		var response = resolve(identifier, pid);
 		console.log(socket.identity + ': sent ' + response);		
 		socket.send(response);
 	});
