@@ -61,15 +61,15 @@ app.get('/resolve/:identifier', function(req, res) {
 	res.send(rec);
 });
 
-//app.listen(nameserver_port);
-
-var socket = zeromq.socket('rep');
-
-socket.identity = 'server [' + process.pid + ']';
 
 /************************************************************************************************************************
  * Actual server using zeromq channels
  ***********************************************************************************************************************/
+
+// the name server is a "rep" socket, it accepts connections and responds to requests directly.
+
+var socket = zeromq.socket('rep');
+socket.identity = 'server [' + process.pid + ']';
 
 socket.bind('tcp://' + host + ':' + nameserver_port, function(err) {
 	if (err) throw err;
