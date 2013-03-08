@@ -6,7 +6,8 @@ RurBuilder uses omniIDL and supports the following middlewares:
 
 1. YARP, Yet Another Robot Platform
 2. ROS, Robotic Operating System
-3. AgentScape (to be implemented)
+3. ZeroMQ, ZeroMQ is the middleware used in the Storm data processing topology of Twitter
+4. AgentScape (to be implemented)
 
 ## Abstraction support
 The abstractions are written in IDL and look like a Java or C++ interface. The current abstractions allow for:
@@ -26,6 +27,10 @@ The RurBuilder can be used together with AIM (Artificial Intelligence Modules) u
 - aimconnect: Connects port/channel on one module to port on another module. The additional abstraction of ports/channels above only modules gives enough flexibility for most real-life situations. It is clear that the middleware only sets up how the AI modules are connected to each other, but does not dictate how the data is processed through this network of modules. This is left to the middleware.
 
 Obviously, these tools are similar to the ones used in the ROS environment. Instead of creating ROS nodes, AI modules are created, etc.
+
+## Installation
+
+The rur-builder itself does not need to be installed. It exists out of Python scripts. However, to find the rur-builder from the diverse set of AIM modules, see the installation instructions at the ![the aim tools](https://github.com/mrquincle/aimtools "aimtools").
 
 ## Example
 An example that shows the first automatically generated structures, instances, and functions of a so-called ARTMAP module to be used in YARP middleware:
