@@ -141,7 +141,13 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         print '	std::string pid;'
         print '} pns_record;'
         print
-
+        print '// Following structure makes it easier to store state information per socket'
+        print 'typedef struct zmq_socket_ext_t {'
+        print '	zmq::socket_t *sock;'
+        print '	std::string name;'
+        print '	bool ready;'
+        print '} zmq_socket_ext;'
+        print
 
     def writeNamespaceStart(self):
         print "// recommended namespace: \"rur\""
@@ -290,6 +296,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 	self.st.out( "zmq::socket_t *ns_socket;")
 	self.st.out( "// standard control socket over which commands arrive to connect to some port for example")
 	self.st.out( "zmq::socket_t *cmd_socket;")
+	self.st.out( "// standard control socket over which commands arrive to connect to some port for example")
+	self.st.out( "std::vector<zmq_socket_ext*> zmq_sockets;")
         self.st.dec_indent()
         
     def writeClassEnd(self):
@@ -318,7 +326,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.inc_indent()
         for m in self.portList:
             self.writePortDestruction(m)
-        self.st.out("delete cliParam;" ) 
+#        self.st.out("delete cliParam;" ) 
         self.st.dec_indent()
         self.st.out( "}" )   
 
@@ -327,12 +335,12 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "void Tick() {")
         self.st.inc_indent()
         self.st.out("HandleCommand();")
- #       self.st.out("")
+#       self.st.out("")
         self.st.dec_indent()
         self.st.out("}")
         self.st.out("")
         self.st.out( "bool Stop(); ")
-  #      self.st.out("")
+#      self.st.out("")
         
     def writeInit(self):
         self.st.out( "// After construction you will need to call this function first. It binds all the sockets." )
@@ -342,7 +350,11 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out("")	
         self.st.out( "std::cout << \"Connecting to name server...\" << std::endl;")
         self.st.out( "ns_socket = new zmq::socket_t(*context, ZMQ_REQ);")
-        self.st.out( "ns_socket->connect(\"tcp://127.0.0.1:10101\"); // port to connect to, REQ/REP")
+        self.st.out("try {")
+        self.st.out( "  ns_socket->connect(\"tcp://127.0.0.1:10101\"); // port to connect to, REQ/REP")
+        self.st.out("} catch (zmq::error_t) {")	
+        self.st.out("   std::cerr << \"Error: Could not connect to the name server!\" << std::endl;")	
+        self.st.out("}")	
         self.st.out( "cmd_socket = new zmq::socket_t(*context, ZMQ_REP);")
         self.st.out("")	
         self.st.out( "{")
@@ -433,20 +445,20 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 	}
   }
 
-  void SendGeneralRequest(zmq::socket_t *s, bool state) {
-	SendRequest(s, state, false, "REQ");
+  void SendAck(zmq::socket_t *s, bool state) {
+	SendRequest(s, state, true, "ACK");
   }
 
-  bool ReceiveGeneralRequest(zmq::socket_t *s, bool & state, bool blocking) {
+  bool ReceiveAck(zmq::socket_t *s, bool & state, bool blocking) {
 	int reply_size = 0;
 	char *reply = GetReply(s, state, blocking, reply_size);
 	if (reply == NULL) return false;
 	std::string req = std::string(reply);
-	if (req == "REQ") {
+	delete [] reply;
+	if (req.find("ACK") != std::string::npos) {
 		return true;
 	}
-	delete [] reply;
-	std::cerr << "Error: no REQ, state compromised" << std::endl;
+	std::cerr << "Error: no ACK, state compromised" << std::endl;
 	return false;
   }
 
@@ -463,67 +475,77 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 		std::cout << "Error in receiving" << std::endl;
 	}
 	if (state) {
-		std::cout << "Received something" << std::endl;
 		size_t msg_size = reply.size();
 		result = new char[msg_size+1];
 		memcpy (result, (void *) reply.data(), msg_size);
 		result[msg_size] = \'\\0\';
 		reply_size = msg_size;
-		std::cerr << "Result" << std::string(result) << std::endl;
-	} else {
-		std::cout << "Received nothing now" << std::endl;
+		//std::cout << "Result: \\"" << std::string(result) << "\\"" << std::endl;
 	}
 	return result;
   }
 
   void SendRequest(zmq::socket_t *s, bool & state, bool blocking, std::string str) {
-	//if (!s->connected()) { // does not work...
-	//	std::cout << "Waiting to be connected..." << std::endl;
-	//	return;
-	//}
 	if (state) {
 		zmq::message_t request(str.size()+1);
 		memcpy((void *) request.data(), str.c_str(), str.size());
-		std::cout << "Send: " << str << std::endl;
+		//std::cout << "Send: " << str << std::endl;
 		if (blocking)
 			state = s->send(request);
 		else
 			state = s->send(request, ZMQ_DONTWAIT);
-		if (!state) std::cout << "Sending message failed" << std::endl;
 	} else {
 		std::cout << "Send nothing (still waiting to receive) " << std::endl;
 	}
   }
 
   void HandleCommand() {
-    std::cout << __func__ << std::endl;
     int reply_size = -1;
     bool state = false;
     char *reply = GetReply(cmd_socket, state, false, reply_size);
-    if (state) std::cout << "Yeah!" << std::endl;
     if (reply == NULL) return;
     if (reply_size < 2) std::cerr << "Error: Reply is not large for magic header + command string" << std::endl;
     char magic_value = reply[0];
     reply[reply_size-1] = \'\\0\';
     if (magic_value == 0x01) { // connect to command...
-    	std::string name = std::string(reply+1);
-        std::cout << "Connect to " << name << std::endl;
-    	Connect(name);
+        std::string name = std::string(reply+1);
+        int pos = name.find("->");
+        if (pos == std::string::npos) {
+           std::cerr << "Error: no -> separator in connect command" << std::endl;
+        }
+        std::string source = name.substr(0, pos);
+        std::string target = name.substr(pos+1);
+        std::cout << "Connect from " << source << " to " << target << std::endl;
+    	Connect(source, target);
     } else {
         std::cerr << "Error: Unknown command!" << std::endl;
     }
     delete [] reply;
   }
 
-  void Connect(std::string name) {
-    pns_record record;
-    record.name = "/resolve" + name;
-    Resolve(record);
+  void Connect(std::string source, std::string target) {
+    zmq::socket_t *s = GetSocket(source);
+    pns_record t_record;
+    t_record.name = "/resolve" + target;
+    Resolve(t_record);
     std::stringstream ss; ss.clear(); ss.str("");
-    ss << "tcp://" << record.host << ":" << record.port; 
+    ss << "tcp://" << t_record.host << ":" << t_record.port; 
     std::string sock = ss.str(); 
     std::cout << "Connect to socket " << sock << std::endl; 
-    cmd_socket->connect(sock.c_str());
+    try {
+        s->connect(sock.c_str());
+    } catch (zmq::error_t) {
+        std::cerr << "Error: Could not connect to " << target << "!" << std::endl;
+    }
+  }
+
+  zmq::socket_t* GetSocket(std::string name) {
+	for (int i = 0; i < zmq_sockets.size(); ++i) {
+		if (zmq_sockets[i]->name.find(name) != std::string::npos) return zmq_sockets[i]->sock;
+	}
+	std::cerr << "Error: socket name could not be found!" << std::endl;
+	return NULL;
+	//assert(false); // todo, get the previously registered socket by name
   }
 '''
 	print function_body
@@ -558,9 +580,11 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 param_type = "Bottle"
 
             self.st.out("// the port " + portname + " itself") 
-            self.st.out( "zmq::socket_t *" + portname + ";")
-            self.st.out("// the REQ/REP sockets combined with non-blocking functionality requires the status of " + portname) 
-            self.st.out( "bool " + portname + "Ready;")
+#indir            self.st.out( "zmq::socket_t *" + portname + ";")
+            self.st.out( "zmq_socket_ext " + portname + ";")
+
+#            self.st.out("// the REQ/REP sockets combined with non-blocking functionality requires the status of " + portname) 
+#            self.st.out( "bool " + portname + "Ready;")
 
     # In the constructor we allocate the port, most often we will need a new BufferedPort with a 
     # Bottle as parameter. In case of a sequence we need to allocate a corresponding vector
@@ -575,6 +599,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.__prefix = ""
             p.paramType().accept(self)
             param_type = self.__result_type
+
+            portname = "port" + node.identifier()
             
             if p.paramType().kind() == 3:
                 param_type = "Bottle"
@@ -582,13 +608,15 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 if p.is_in():
                     self.getSeqType(param_type)
                     seq_type = self.__result_type
-                    self.st.out("port" + node.identifier() + "Values = new std::vector<" + seq_type + ">();")
+                    self.st.out(portname + "Values = new std::vector<" + seq_type + ">();")
                 param_type = "Bottle"
 
             if p.is_in():
-              self.st.out( "port" + node.identifier() + " = new zmq::socket_t(*context, ZMQ_REP);")
+              self.st.out( portname + ".sock = new zmq::socket_t(*context, ZMQ_REP);")
             if p.is_out():
-              self.st.out( "port" + node.identifier() + " = new zmq::socket_t(*context, ZMQ_REQ);")
+              self.st.out( portname + ".sock = new zmq::socket_t(*context, ZMQ_REQ);")
+
+            self.st.out( "zmq_sockets.push_back(&" + portname + ");")
 
     # In the constructor we allocate the port, most often we will need a new BufferedPort with a 
     # Bottle as parameter. In case of a sequence we need to allocate a corresponding vector
@@ -602,7 +630,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                     self.getSeqType(param_type)
                     seq_type = self.__result_type
                     self.st.out("delete port" + node.identifier() + "Values;")
-            self.st.out("delete port" + node.identifier() + ";" ) 
+            self.st.out("delete port" + node.identifier() + ".sock;" ) 
 
     # In the Init() routine we open the port and if necessary set the default values of the corresponding
     # data structures 
@@ -627,6 +655,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
        
             self.st.out( "std::stringstream portName; portName.str(""); portName.clear();" )
             self.st.out( "portName << \"" + '/' + self.classname.lower() + '\" << module_id << \"/' + node.identifier().lower() + "\";") 
+            self.st.out( portname + ".name = portName.str();")
             self.st.out( "std::string resolve = \"/resolve\" + portName.str();" );
             self.st.out( "pns_record record;" )
             self.st.out( "record.name = resolve;" )
@@ -640,7 +669,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
               self.st.out( "ss << \"tcp://\" << record.host << \":\" << record.port; ")
               self.st.out( "std::string sock = ss.str(); ")
               self.st.out( "std::cout << \"Bind to socket \" << sock << std::endl; ")
-              self.st.out( portname + "->bind(sock.c_str());")
+              self.st.out( portname + ".sock->bind(sock.c_str());")
 		
             self.st.dec_indent()
             self.st.out("}")
@@ -659,7 +688,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             if p.paramType().kind() == 3:
                 param_type = "Bottle"
 
-            self.st.out( portname + "->close();")
+            self.st.out( portname + ".sock->close();")
 
     # The ports themselves will become again functions, like readInput() or writeOutput()
     # The result of this function will be a list of such functions
@@ -674,31 +703,51 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 portname = "port" + m.identifier()
 
                 if p.is_in():
+                  self.st.out( "/**" )
+                  self.st.out( " * The \"read" + param_name + "\" function receives stuff over a zeromq REP socket. It works as a client. It cannot be blocking" )
+                  self.st.out( " * because this would make it impossible to receive message on other ports (under which the /pid/control port). There" )
+                  self.st.out( " * is an additional \"new_item\" state boolean that indicates if the value is new if the function operates in" )
+                  self.st.out( " * non-blocking mode." )
+                  self.st.out( " */" )
+
                   # function signature
                   if p.paramType().kind() == 21: # sequence
                      self.getSeqType(param_type)
                      seq_type = self.__result_type
                      self.st.out( "// Remark: caller is responsible for evoking vector.clear()" )
-                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool blocking=true) {" ) 
+                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
                   else:
-                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking=true) {" )
+                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" )
 
                   # function content 
                   self.st.inc_indent()
                   self.st.out( "// For now only int return values are supported" )
 #                  self.st.out("SendGeneralRequest(" + portname + ", " + portname + "Ready);")
-                  self.st.out("int reply_size = -1;")
-                  self.st.out("char *reply = GetReply(" + portname + ", " + portname + "Ready, blocking, reply_size);")
-                  self.st.out("if (reply == NULL) return &" + portname + "Value;")
-                  self.st.out("if (reply_size < 3) std::cerr << \"Error: Reply is not large enough to store an integer!\" << std::endl;")
-                  self.st.out(portname + "Value = (reply[0] << 8) + reply[1]; // check endianness")
-                  self.st.out("delete [] reply;")
-                  self.st.out("return &" + portname + "Value;")
+                  self.st.out( "int reply_size = -1;")
+                  self.st.out( "char *reply = GetReply(" + portname + ".sock, " + portname + ".ready, blocking, reply_size);")
+                  self.st.out( "new_item = " + portname + ".ready;" )
+                  self.st.out( "if (reply == NULL) return &" + portname + "Value;")
+                  self.st.out( "SendAck(" + portname + ".sock, " + portname + ".ready);")
+                  self.st.out( "if (reply_size < 3) std::cerr << \"Error: Reply is not large enough to store an integer!\" << std::endl;")
+                  self.st.out( "std::stringstream ss; ss.clear(); ss.str(\"\");")
+                  self.st.out( "ss << std::string(reply);")
+                  self.st.out( "ss >> " + portname + "Value;")
+#                  self.st.out( portname + "Value = (reply[0]) + (reply[1] << 8); // little-endianness")
+#                  self.st.out( " std::cout << \"Values\" << (reply[0]) << \" and \" << (reply[1]) << std::endl; " )
+                  self.st.out( "delete [] reply;")
+                  self.st.out( "return &" + portname + "Value;")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
                   
                 if p.is_out():
+                  self.st.out( "/**" )
+                  self.st.out( " * The " + param_name + " function sends stuff over a zeromq REQ socket. It works as a server. It cannot be blocking because this" )
+                  self.st.out( " * would make it impossible to receive message on other ports (under which the /pid/control port). It could have been" )
+                  self.st.out( " * blocking if it is known if it is connected to a REP port (but the connected() function is apparently not meant for" )
+                  self.st.out( " * that). " )
+                  self.st.out( " */" )
+
                   # function signature
                   if p.paramType().kind() == 21: # sequence
                       self.getSeqType(param_type)
@@ -712,9 +761,14 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out( "// For now only int return values are supported" )
  #                 self.st.out("if (!ReceiveGeneralRequest(" + portname + ", " + portname + "Ready, false)) return false;")
                   self.st.out( "std::stringstream ss; ss.clear(); ss.str(\"\");")
-                  self.st.out( "ss << " + param_name + ";")
+                  self.st.out( "ss << " + param_name + "; // very dirty, no endianness, etc, just use the stream operator itself") 
+#                  self.st.out( "ss << (" + param_name + "& 0xFF) << (" + param_name + ">> 8); // little-endian") 
                   self.st.out( "bool state = true;")
-                  self.st.out( "SendRequest(" + portname + ", state, true, ss.str());")
+                  self.st.out( "SendRequest(" + portname + ".sock, state, true, ss.str());")
+                  self.st.out( "if (state) {")
+                  self.st.out( "  bool ack_state = true;")
+                  self.st.out( "  ReceiveAck(" + portname + ".sock, ack_state, true);")
+                  self.st.out( "}")
                   self.st.out( "return state;")
                   self.st.dec_indent()
                   self.st.out("}")
