@@ -24,10 +24,6 @@
 
 using namespace rur;
 
-void ZmqModule::Tick() {
-
-}
-
 bool ZmqModule::Stop() {
 	return false;
 }

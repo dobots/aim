@@ -7,11 +7,13 @@
  * ends with a number, like "void Sensor(in long input2);" there will be two
  * portnames created.
  *
- * Author: 
+ * Author: Anne C. van Rossum
  * Copyright: 
  * Date: 
  * License: 
  */
+
+#pragma copyright LGPLv3
 
 // Recommended namespace "rur"
 module rur {
@@ -31,12 +33,13 @@ struct Param {
 interface ZmqModule {
 
   // Input from sensor in the form of array
-  void Value(in long input);
+  void Input(in long input);
 
   // Length of default sensor input (needed by some middlewares)
 //  void SensorArrayLength(in long sensor_l);
 
   // Output is one value each time
+  void Output(out long output);
 //  void MovingAverage(out long output);
 
 };
