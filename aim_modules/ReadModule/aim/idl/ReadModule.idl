@@ -1,0 +1,29 @@
+/**
+ * IDL description of the ReadModule
+ *
+ * This file is automatically parsed by the rurbuilder backends for the omniidl 
+ * compiler. The names of the functions will become port identifiers. The names 
+ * of the function variables are not used. For now, if the function variable 
+ * ends with a number, like "void Sensor(in long input2);" there will be two
+ * portnames created.
+ *
+ * Author: Anne C. van Rossum
+ * Copyright: 
+ * Date: 
+ * License: 
+ */
+
+#pragma copyright LGPLv3
+
+// Recommended namespace "rur"
+module rur {
+
+// We want to be able to give our class a name
+interface ReadModule {
+
+  // Input from sensor as individual values
+  void Input(in long input);
+
+};
+
+};
