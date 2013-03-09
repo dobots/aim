@@ -1,0 +1,78 @@
+#!/bin/bash
+
+PROGRAM="aimconnect"
+
+VERSION="$PROGRAM 0.1"
+
+if [[ $# -ne 4 ]]
+then
+	echo "We need two Module names and two ports for a connection! Run $0 -h for more info, currently it is $#"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM \"Module1Name\" \"outputPort\" \"Module2Name\" \"inputPort\"
+	echo
+	exit 0 
+fi 
+
+MODULE_NAME1=${1%/}
+MODULE_NAME2=${3%/}
+echo $MODULE_NAME1
+echo ${3}
+
+# Configuration directory for RUR
+RUR_HOME=~/.rur
+mkdir -p ${RUR_HOME}
+
+AIM_REGISTRY=aim_registry.txt
+
+echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+SUCCESS1=false
+SUCCESS2=false
+
+MODULE_FULLNAME=
+while read LINE; do
+	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+	M_I_STRIPPED=${MODULE_I//[[:space:]]}
+#	echo $M_I_STRIPPED
+	if [[  ${1} == ${M_I_STRIPPED}*  ]]; then
+        #if [[ "$M_I_STRIPPED" == 'echo "$1"| cut -d'Module' -f1' ]]; then
+		echo "$1 found. prepare to connect it"
+		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
+		SUCCESS1=true
+		break
+	fi
+done < "${RUR_HOME}/${AIM_REGISTRY}"
+
+
+while read LINE; do
+	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+	M_I_STRIPPED=${MODULE_I//[[:space:]]}
+#	echo $M_I_STRIPPED
+	if [[  ${3} == $M_I_STRIPPED* ]]; then
+		echo "$3 found. prepare to connect it"
+		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
+		SUCCESS2=true
+		break
+	fi
+done < "${RUR_HOME}/${AIM_REGISTRY}"
+
+
+if [ $SUCCESS1 == true ] && [ $SUCCESS2 == true ]; then
+	#echo "Kill previous connection"
+	#pkill -9 $MODULE_NAME
+        echo "Start connection, sir!!!"
+	echo "Connect $MODULE_NAME1 and $MODULE_NAME2"
+	#yarp clean
+        sleep 4
+	yarp connect /${MODULE_NAME1,,}/$2 /${MODULE_NAME2,,}/$4
+	
+else
+	echo "One of the modules is not found (${MODULE_NAME1}) or (${MODULE_NAME2})"
+fi
+
+exit 0

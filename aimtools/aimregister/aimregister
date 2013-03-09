@@ -1,0 +1,88 @@
+#!/bin/bash
+
+PROGRAM="aimregister"
+
+VERSION="$PROGRAM 0.1"
+
+# Check if we have sudo rights
+if [ `id -u` -eq 0 ]
+then
+	echo "Sorry, should not be run as super user"
+	exit 1
+fi
+
+if [[ "$1" == "" ]]
+then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM \"ModuleName\"
+	echo
+	exit 0 
+fi 
+
+MODULE_NAME=${1%/}
+
+# Configuration directory for RUR
+RUR_HOME=~/.rur
+mkdir -p ${RUR_HOME}
+
+AIM_REGISTRY=aim_registry.txt
+
+if [ -e "${MODULE_NAME}" ]; then
+	if [ -e "${MODULE_NAME}/build/${MODULE_NAME}" ]; then
+		echo Add "${MODULE_NAME}" to registry
+	else
+		echo Cannot find "${MODULE_NAME}/build/${MODULE_NAME}"
+		echo Make sure naming is consistent and the binary built properly
+		exit 0
+	fi
+else
+	echo Cannot find "${MODULE_NAME}"
+	exit 0
+fi
+
+FULL_MODULE_NAME="$(readlink --canonicalize --no-newline $MODULE_NAME)"
+
+echo "$MODULE_NAME = $FULL_MODULE_NAME" >> "${RUR_HOME}/${AIM_REGISTRY}"
+
+# Remove duplicate entries
+uniq "${RUR_HOME}/${AIM_REGISTRY}" | tac > reversed.txt
+awk '!x[$1]++' FS=\= reversed.txt | tac > "${RUR_HOME}/${AIM_REGISTRY}"
+rm reversed.txt
+
+# Create registry directory with port names for each module
+mkdir -p ${RUR_HOME}/registry
+
+# Source global file to get backends env. variable
+RURMK="${RUR_HOME}/rur.mk"
+if [ -e "${RURMK}" ]; then
+	. "${RURMK}"
+fi
+
+# Source default default.mk file to get backends env. variable
+DEFAULTMK="${MODULE_NAME}/default.mk"
+if [ -e "${DEFAULTMK}" ]; then
+	. "${DEFAULTMK}"
+fi
+
+# Source local.mk file to get backends env. variable
+LOCALMK="${MODULE_NAME}/local.mk"
+if [ -e "${LOCALMK}" ]; then
+	. "${LOCALMK}"
+fi
+
+if [[ "${RUR_BACKENDS}" == "" ]]; then
+	echo "No RUR_BACKENDS env variable set (in ${MODULE_NAME}/local.mk)"
+	exit 0
+fi
+omniidl -p${RUR_BACKENDS} -bextract ${MODULE_NAME}/aim/idl/${MODULE_NAME}.idl > "ports.txt"
+
+echo "Move port definition to registry"
+mv ports.txt ${RUR_HOME}/registry/${MODULE_NAME}.ports
+

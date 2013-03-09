@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PROGRAM="$0"
+VERSION="$PROGRAM 0.1"
+#DATE=`date -d @1353294612 "+%Y-%m-%d %T"`
+DATE=`date "+%b%d_%H.%M"`
+
+THREENODESPATH="/home/$USER/server/ThreeNodes.js"
+LOG="/home/$USER/aimlog_${DATE}"
+
+THREENODESPATH="/home/$USER/myworkspace/rur/ThreeNodes/git_threenodes"
+
+echo "Run server from $THREENODESPATH"
+echo "Write to log $LOG"
+
+if [[ "$1" == "" ]]
+then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM --stop
+	echo $PROGRAM --start
+	exit 0 
+fi 
+
+if [[ "$1" == "--start" ]]
+then
+	process_id=`ps aux | grep -v grep | grep "node server.js" | awk '{print (/^\// ? $1 : $2) }'`
+	if [[ $process_id == "" ]]
+	then
+		echo "Start aim"
+		( cd $THREENODESPATH && node server.js > $LOG &)
+	else
+		echo "It seems aim runs already, first stop by $PROGRAM --stop"
+		exit 1
+	fi
+fi
+
+if [[ "$1" == "--stop" ]]
+then
+	echo "Stop aim"
+	process_id=`ps aux | grep -v grep | grep "node server.js" | awk '{print (/^\// ? $1 : $2) }'`
+	if [[ $process_id == "" ]]
+	then
+		echo "It seems aim does not run, if I am wrong, kill it manually, sorry!"
+		exit 1
+	else
+		kill $process_id
+	fi
+fi
+

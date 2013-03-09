@@ -1,0 +1,80 @@
+#!/bin/bash
+
+PROGRAM="aimstop"
+
+VERSION="$PROGRAM 0.1"
+
+if [[ $# -ne 2 ]]
+then
+	echo "Not enough args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo $VERSION \- Usage
+	echo 
+	echo $PROGRAM \"ModuleName\" \"ModuleId\"
+	echo
+	exit 0 
+fi 
+
+MODULE_NAME=${1%/}
+ModuleId=${2%/}
+
+# Configuration directory for RUR
+RUR_HOME=~/.rur
+mkdir -p ${RUR_HOME}
+
+AIM_REGISTRY=aim_registry.txt
+
+echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+SUCCESS=false
+MODULE_FULLNAME=
+while read LINE; do
+	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+	M_I_STRIPPED=${MODULE_I//[[:space:]]}
+#	echo $M_I_STRIPPED
+	if [[ "$M_I_STRIPPED" == "$1" ]]; then
+#		echo "$MODULE_NAME found. Run it"
+		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
+		SUCCESS=true
+		break
+	fi
+done < "${RUR_HOME}/${AIM_REGISTRY}"
+
+index=0
+Registered_port={}
+while read LINE; 
+do
+        port=`echo "$LINE" | cut -d' ' -f 2`
+	Registered_port[$index]=$port
+	index=$(($index + 1))
+        #echo $port
+done < "${RUR_HOME}/registry/$1.ports"
+
+
+
+
+
+
+if [[ $SUCCESS == true ]]; then
+	# echo "Kill previous one"
+	# pkill -9 $MODULE_NAME
+	#echo "Stop $MODULE_NAME $ModuleId"
+
+
+        
+        # for port1 in $Registered_port
+        for (( i=0; i< $index; i++ ))
+        do
+          echo ${Registered_port[$i]}
+          yarp terminate /${1,,}$2/${Registered_port[$i]}
+        done
+	yarp clean
+	
+else
+	echo "No such module found ($MODULE_NAME)"
+fi
+
+exit 0
