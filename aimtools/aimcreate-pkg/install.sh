@@ -32,7 +32,7 @@ RUR_MK=templates/rur.mk
 cp templates/rur_header.mk $RUR_MK
 
 # Tentative backends directory
-BACKENDS_PATH="$HOME/workspace/rur-builder/backends"
+BACKENDS_PATH="/etc/aim/rur-builder/backends"
 
 # Retrieve backends directory from file if it exists
 if [ -e ${BACKENDS_PATH_FILE} ]; then
