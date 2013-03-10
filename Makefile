@@ -14,11 +14,12 @@ YARP_FLAG=-DBUILD_YARP:bool=off
 FLAGS=$(ROS_FLAG) $(YARP_FLAG) -DBUILD_$(BACKEND):bool=on
 
 all:
-	cd scripts && ./example_sum.sh
-	@echo $(ROS_PACKAGE_PATH)
+	@cd scripts && ./example_sum.sh; if [ $$? -eq 2 ]; then echo "Error: Cannot make because no proper header file generated!"; exit 2; fi
+#	@echo "Ros package path: $(ROS_PACKAGE_PATH)"
 	@mkdir -p build
-	cd build && cmake $(CMAKE_FLAGS) .. $(FLAGS)
-	cd build && make
+	@echo "Run cmake with the flags: $(FLAGS)"
+	@cd build && cmake $(CMAKE_FLAGS) .. $(FLAGS)
+	@cd build && make
 
 clean:
 	cd build && make clean
