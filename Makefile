@@ -6,6 +6,8 @@
 # This include file should define BACKEND
 include local.mk
 
+INSTALL_PATH:=/etc/aim/rur-builder/backends
+
 CURRENT_MODULE_PATH:=$(CURDIR)
 ROS_PACKAGE_PATH:=$(ROS_PACKAGE_PATH):$(CURRENT_MODULE_PATH)
 
@@ -20,6 +22,11 @@ all:
 	@echo "Run cmake with the flags: $(FLAGS)"
 	@cd build && cmake $(CMAKE_FLAGS) .. $(FLAGS)
 	@cd build && make
+
+install:
+	@echo "The default installation will be in the path: /etc/aim/rur-builder"
+	@mkdir -p $(INSTALL_PATH)
+	@cp backends/*.py $(INSTALL_PATH)
 
 clean:
 	cd build && make clean
