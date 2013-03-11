@@ -9,13 +9,13 @@
 # Space-separated list of subdirectories that have to be made, the construction here is that
 # make <TAB> will allow bash-completion for individual directories.
 
-subdir_list := \
-	aimtools rur-builder
+subdirs=aimtools rur-builder
 
-$(phony subdirs): $(subdir_list)
+.PHONY: subdir
+subdir: $(subdirs)
 
-.PHONY: $(subdir_list) 
-$(subdir_list): 
+.PHONY: $(subdirs) 
+$(subdirs): 
 	$(MAKE) -C $@
 
 .PHONY: all
@@ -25,6 +25,9 @@ install:
 	for dir in $(subdirs); do \
 		$(MAKE) install -C $$dir; \
 	done
+
+clean:
+	echo "Not implemented clean targets yet"
 
 help:
 	@echo "Type make <TAB> to make a sub-project"
