@@ -6,7 +6,7 @@
 # This include file should define BACKEND
 include local.mk
 
-INSTALL_PATH:=/etc/aim/rur-builder/backends
+INSTALL_PATH:=$(DESTDIR)/etc/aim/rur-builder/backends
 
 CURRENT_MODULE_PATH:=$(CURDIR)
 ROS_PACKAGE_PATH:=$(ROS_PACKAGE_PATH):$(CURRENT_MODULE_PATH)
@@ -24,9 +24,9 @@ all:
 	@cd build && make
 
 install:
-	@echo "The default installation will be in the path: /etc/aim/rur-builder"
+	@echo "The installation will be in the path: $(INSTALL_PATH)"
 	@mkdir -p $(INSTALL_PATH)
-	@cp backends/*.py $(INSTALL_PATH)
+	@install backends/*.py $(INSTALL_PATH)
 
 clean:
 	cd build && make clean
