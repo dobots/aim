@@ -1,13 +1,16 @@
 #!/bin/bash
 
-PROGRAM="aimconnect"
+program=aimconnect
 
-if [ `id -u` -eq 0 ]
-then
-	echo "Install $PROGRAM"
+# Check if we have sudo rights
+if [ `id -u` -eq 0 ]; then
+	echo "Install $program"
 else
 	echo "Sorry, super user rights needed (run with sudo)"
 	exit 1
 fi
 
-cp $PROGRAM /usr/bin
+targetdir=$DESTDIR/usr/bin
+mkdir -p $targetdir
+install $program $targetdir
+

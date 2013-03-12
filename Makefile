@@ -21,4 +21,7 @@ install:
 		$(MAKE) install -C $$dir; \
 	done
 
+clean:
+	echo "Not implemented clean targets yet"
+
 .PHONY: subdirs $(SUBDIRS)
