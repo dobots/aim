@@ -1,6 +1,9 @@
 #!/bin/bash
 
-RUR_TEMPLATES="$1"
+# Installation target is expected as argument to this installation script
+RUR_TEMPLATES="$DESTDIR/$1"
+
+mkdir -p ${RUR_TEMPLATES}
 
 # Check if we have sudo rights
 if [ `id -u` -eq 0 ]; then
@@ -29,10 +32,10 @@ BACKENDS_PATH_FILE="${RUR_HOME}/backends_path"
 
 # The different possible backends
 RUR_MK=templates/rur.mk
-cp templates/rur_header.mk $RUR_MK
+install templates/rur_header.mk $RUR_MK
 
 # Tentative backends directory
-BACKENDS_PATH="/etc/aim/rur-builder/backends"
+BACKENDS_PATH="$DESTDIR/etc/aim/rur-builder/backends"
 
 # Retrieve backends directory from file if it exists
 if [ -e ${BACKENDS_PATH_FILE} ]; then
@@ -51,7 +54,9 @@ echo "SET(BACKENDS_PATH $BACKENDS_PATH)" > "${BACKENDS_PATH_FILE}.cmake"
 echo "RUR_BACKENDS=$BACKENDS_PATH" >> ${RUR_MK}
 
 # Copy to system-wide directories
-rsync -avzuL templates/ --exclude="*.svn" ${RUR_TEMPLATES}
+install templates/* ${RUR_TEMPLATES}
+mkdir -p ${RUR_TEMPLATES}/cmake
+install templates/cmake/* ${RUR_TEMPLATES}/cmake
 
 # Remove files we do not need per project (and obsolete ones)
 rm -f ${RUR_TEMPLATES}/local.mk
@@ -60,7 +65,7 @@ rm -f ${RUR_TEMPLATES}/rur_header.mk
 
 # Copy aimcreate-pkg itself
 echo "Copy aimcreate-pkg to /usr/bin"
-cp aimcreate-pkg /usr/bin
+install aimcreate-pkg $DESTDIR/usr/bin
 
 cp -f ${RUR_MK} ${RUR_HOME}/rur.mk
 
