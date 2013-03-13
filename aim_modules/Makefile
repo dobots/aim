@@ -30,9 +30,12 @@ endif
 force_all: $(subdirs)
 
 install:
-	for dir in $(subdirs); do \
-		$(MAKE) install -C $$dir; \
-	done
+	@echo "Even less than compiling all the modules at once, we will not install them all at once"
+	@echo "Most modules are not meant to be run as root and it's better practise to sandbox them in a specific directory"
+	@echo "Do also not forget to run aimregister on compiled modules to have other aim tools find them"
+#	for dir in $(subdirs); do \
+#		$(MAKE) install -C $$dir; \
+#	done
 
 clean:
 	echo "Not implemented clean targets yet"
