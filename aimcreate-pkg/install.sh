@@ -32,7 +32,7 @@ BACKENDS_PATH_FILE="${RUR_HOME}/backends_path"
 
 # The different possible backends
 RUR_MK=templates/rur.mk
-install templates/rur_header.mk $RUR_MK
+cp templates/rur_header.mk $RUR_MK
 
 # Tentative backends directory
 BACKENDS_PATH="$DESTDIR/etc/aim/rur-builder/backends"
@@ -54,9 +54,9 @@ echo "SET(BACKENDS_PATH $BACKENDS_PATH)" > "${BACKENDS_PATH_FILE}.cmake"
 echo "RUR_BACKENDS=$BACKENDS_PATH" >> ${RUR_MK}
 
 # Copy to system-wide directories
-install templates/* ${RUR_TEMPLATES}
+cp templates/* ${RUR_TEMPLATES}
 mkdir -p ${RUR_TEMPLATES}/cmake
-install templates/cmake/* ${RUR_TEMPLATES}/cmake
+cp templates/cmake/* ${RUR_TEMPLATES}/cmake
 
 # Remove files we do not need per project (and obsolete ones)
 rm -f ${RUR_TEMPLATES}/local.mk
