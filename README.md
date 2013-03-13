@@ -28,9 +28,9 @@ As explained at [kernel.org](https://www.kernel.org/pub/software/scm/git/docs/ho
     git commit --message "Merge zmqconnect as subdirectory \"zmqconnect\""
     git push
 
-And later on the merges are done as:
+And later on the merges are done with:
 
-    git pull --strategy subtree aimconnect master
+    git pull --strategy subtree zmqconnect master
 
 How to indicate when a module is ready to be included in the compilation process will be described soon.
 
