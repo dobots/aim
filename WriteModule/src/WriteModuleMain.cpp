@@ -36,23 +36,12 @@ int main(int argc, char *argv[])  {
 	WriteModuleExt *m = new WriteModuleExt();
 
 	if (argc < 2) {
-		std::cout << "Usage: " << argv[0] << " identifier | command " << endl;
+		std::cout << "Usage: " << argv[0] << " identifier" << endl;
 		return EXIT_FAILURE;
 	}
 	std::string identifier = argv[1];
 
-	bool connect = (identifier.find("connect") != std::string::npos);
-	if (connect & argc < 4) {
-		std::cout << "Usage: " << argv[0] << " connect /port0 /port1" << endl;
-		return EXIT_FAILURE;
-	}
-
 	m->Init(identifier);
-
-	if (connect) {
-		m->SetConnectSource(argv[2]);
-		m->SetConnectTarget(argv[3]);
-	}
 
 	do {
 		m->Tick();

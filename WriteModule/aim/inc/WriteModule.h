@@ -94,6 +94,7 @@ public:
   // The constructor needs to be called, also when you derive from this class
   WriteModule(): ns_socket(NULL), cmd_socket(NULL) {
     context = new zmq::context_t(1);
+    debug = 0;
     portOutput.sock = new zmq::socket_t(*context, ZMQ_REQ);
     zmq_sockets.push_back(&portOutput);
   }
@@ -117,8 +118,8 @@ public:
     ns_socket = new zmq::socket_t(*context, ZMQ_REQ);
     try {
       ns_socket->connect("tcp://127.0.0.1:10101"); // port to connect to, REQ/REP
-    } catch (zmq::error_t) {
-       std::cerr << "Error: Could not connect to the name server!" << std::endl;
+    } catch (zmq::error_t & e) {
+       std::cerr << "Error: Could not connect to the name server: = " << e.what() << std::endl;
     }
     cmd_socket = new zmq::socket_t(*context, ZMQ_REP);
     
@@ -163,6 +164,8 @@ protected:
   zmq::context_t *context;
   // the user-defined id of a module
   std::string module_id;
+  // some default debug parameter
+  char debug;
   // All subsequent functions should be called from "within" this module
   // From either the Tick() routine itself, or Tick() in a derived class
   
@@ -241,6 +244,7 @@ protected:
   }
 
   void SendAck(zmq::socket_t *s, bool state) {
+	std::cout << "Send ACK" << std::endl;
 	SendRequest(s, state, true, "ACK");
   }
 
@@ -251,9 +255,10 @@ protected:
 	std::string req = std::string(reply);
 	delete [] reply;
 	if (req.find("ACK") != std::string::npos) {
+		if (debug) std::cout << "Got ACK, thanks!" << std::endl;
 		return true;
 	}
-	std::cerr << "Error: no ACK, state compromised" << std::endl;
+	std::cerr << "Error: got \"" << req << "\", no ACK, state compromised" << std::endl;
 	return false;
   }
 
@@ -266,8 +271,8 @@ protected:
 			state = s->recv(&reply);
 		else
 			state = s->recv(&reply, ZMQ_DONTWAIT);
-	} catch (zmq::error_t) {
-		std::cout << "Error in receiving" << std::endl;
+	} catch (zmq::error_t &e) {
+		std::cout << "Error: received zmq::error_t " << e.what() << std::endl;
 	}
 	if (state) {
 		size_t msg_size = reply.size();
@@ -284,7 +289,7 @@ protected:
 	if (state) {
 		zmq::message_t request(str.size()+1);
 		memcpy((void *) request.data(), str.c_str(), str.size());
-		//std::cout << "Send: " << str << std::endl;
+		if (debug) std::cout << "Send request: " << str << std::endl;
 		if (blocking)
 			state = s->send(request);
 		else
@@ -309,12 +314,13 @@ protected:
            std::cerr << "Error: no -> separator in connect command" << std::endl;
         }
         std::string source = name.substr(0, pos);
-        std::string target = name.substr(pos+1);
+        std::string target = name.substr(pos+2); // todo: 
         std::cout << "Connect from " << source << " to " << target << std::endl;
     	Connect(source, target);
     } else {
         std::cerr << "Error: Unknown command!" << std::endl;
     }
+    SendAck(cmd_socket, true);
     delete [] reply;
   }
 

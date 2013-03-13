@@ -9,7 +9,7 @@
 using namespace rur;
 using namespace std;
 
-static int lifetime = 10;
+static int lifetime = 1000;
 
 /***********************************************************************************************************************
  * Implementation
@@ -28,10 +28,12 @@ WriteModuleExt::~WriteModuleExt() {
 bool WriteModuleExt::Tick() {
 	std::cout << '[' << getpid() << "] Tick " << lifetime << endl;
 	WriteModule::Tick();
-	if (lifetime == 9) {
+#ifdef SHOW_YOU_CAN_CONNECT_DIRECTLY
+	if (lifetime == 1000) {
 		Connect("/writemodule0/output", "/readmodule0/input");
 	}
-	if (lifetime == 5) {
+#endif
+	if (!(lifetime % 7)) { // every 7 ticks send a value
 		int value = 666;
 		std::cout << "Send value " << value << std::endl;
 		writeOutput(value);
