@@ -1,0 +1,26 @@
+/**
+ * IDL description of the zmqconnect
+ *
+ * This file is automatically parsed by the rurbuilder backends for the omniidl 
+ * compiler. The names of the functions will become port identifiers. The names 
+ * of the function variables are not used. For now, if the function variable 
+ * ends with a number, like "void Sensor(in long input2);" there will be two
+ * portnames created.
+ *
+ * Author: Anne C. van Rossum
+ * Copyright: 
+ * Date: 
+ * License: 
+ */
+
+#pragma copyright LGPLv3
+
+// Recommended namespace "rur"
+module rur {
+
+// We want to be able to give our class a name
+interface zmqconnect {
+
+};
+
+};
