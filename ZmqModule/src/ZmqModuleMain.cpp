@@ -55,7 +55,7 @@ int main(int argc, char *argv[])  {
 	}
 
 	do {
-		std::cout << "Tick " << getpid() << endl;
+		std::cout << "[" << getpid() << "] Tick" << endl;
 		m->Tick();
 	} while (!m->Stop()); 
 

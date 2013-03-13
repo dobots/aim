@@ -110,7 +110,6 @@ public:
   ~ZmqModule() {
     delete portInput;
     delete portOutput;
-    delete cliParam;
   }
   
   // This is the function you will need to implement. Do not forget to call this parent function.
@@ -204,6 +203,12 @@ protected:
     return &portInputValue;
   }
   
+  /**
+   * The output function sends stuff over a zeromq REQ socket. It works as a server. It cannot be blocking because this
+   * would make it impossible to receive message on other ports (under which the /pid/control port). It could have been
+   * blocking if it is known if it is connected to a REP port (but the connected() function is apparently not meant for
+   * that). 
+   */
   inline bool writeOutput(const int output) {
     // For now only int return values are supported
     std::stringstream ss; ss.clear(); ss.str("");

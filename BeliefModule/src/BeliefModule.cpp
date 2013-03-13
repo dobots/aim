@@ -144,11 +144,77 @@ void wikipedia_test() {
 
 	probability<float,int> marginal(2);
 	table.sum(1, marginal);
-	cout << "Marginal probability: " << std::endl;
+	cout << "The marginal probability for [not hit, hit] should be [0.428, 0.572] " << std::endl;
+
+	std::cout << "Calculated marginal probability: " << std::endl;
 	for (int i = 0; i < marginal.size(); ++i) {
 		cout << " * " << i << " : " << marginal[i] << '\n';
 	}
 	cout << std::endl;
+}
+
+void wikipedia_bp() {
+	tree_type g;
+
+	variable_type vlight(3, "traffic light");
+	variable_type vhit(2, "hit");
+
+	g.push(vlight);
+	g.push(vhit);
+
+	std::vector<int> three_by_one;
+	three_by_one.clear();
+	three_by_one.push_back(3);
+
+	std::vector<int> two_by_three;
+	two_by_three.clear();
+	two_by_three.push_back(2);
+	two_by_three.push_back(3);
+
+	cond_table l_table(three_by_one);
+	factor_type flight(l_table, "traffic light");
+	l_table.set(0,0.2);
+	l_table.set(1,0.1);
+	l_table.set(2,0.7);
+
+	cond_table lh_table(two_by_three);
+	factor_type flighthit(lh_table, "light,hit");
+	lh_table.set(0,0,0.99);
+	lh_table.set(0,1,0.9);
+	lh_table.set(0,2,0.2);
+	lh_table.set(1,0,0.01);
+	lh_table.set(1,1,0.1);
+	lh_table.set(1,2,0.8);
+
+//	lh_table.set(0,0,0.198);
+//	lh_table.set(0,1,0.09);
+//	lh_table.set(0,2,0.14);
+//	lh_table.set(1,0,0.002);
+//	lh_table.set(1,1,0.01);
+//	lh_table.set(1,2,0.56);
+
+	g.push(flight);
+	g.push(flighthit);
+
+	g.push(&flight,&vlight); // from var -> factor
+	g.push(&vhit,&flighthit); // from light|hit -> hit
+	g.push(&vlight,&flighthit); // from light|hit -> light
+
+	g.moralization();
+	cout << g << std::endl;
+
+	// running belief propagation should return the marginal of each variable
+	// no joint conditions
+	cout << "Propagate beliefs" << std::endl << std::endl;
+	belief_prop bprop;
+	bprop.init(g);
+	int ticks = 3;
+	for (int i = 0; i < ticks; ++i) {
+		bprop.tick(g);
+	}
+
+	// create marginal of vhit
+
 }
 
 /**
@@ -225,7 +291,7 @@ void sprinkler_test() {
 	// here we can try to multiply all factors with each other to build one large joint probability table
 	// however, it is more convenient to "push in the sums" to calculate the marginals efficiently
 
-	cout << srw_table << std::endl;
+//	cout << srw_table << std::endl;
 	g.push(fcloudy);
 	g.push(fcloudy_sprinkler);
 	g.push(fcloudy_rain);
@@ -252,7 +318,7 @@ void sprinkler_test() {
 	cout << "Propagate beliefs" << std::endl << std::endl;
 	belief_prop bprop;
 	bprop.init(g);
-	int ticks = 3;
+	int ticks = 10;
 	for (int i = 0; i < ticks; ++i) {
 		bprop.tick(g);
 	}
@@ -289,9 +355,11 @@ void BeliefModule::Tick() {
 //	p[1] = 0.7;
 //	cout << "Probability test: " << p << '\n';
 
-//	wikipedia_test();
+	wikipedia_test();
 
-	sprinkler_test();
+//	sprinkler_test();
+
+	wikipedia_bp();
 
 	return;
 

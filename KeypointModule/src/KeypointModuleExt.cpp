@@ -87,6 +87,7 @@ void KeypointModuleExt::Tick() {
 	for (int i=0; i < 2; ++i) {
 		std::stringstream strs; strs.clear(); strs.str("");
 		strs << "replicator" << i;
+//		strs << "room" << i;
 		string index = strs.str();
 		images.push_back(new Img(width, height));
 		images[i]->Load(string(index + ".bmp").c_str());
@@ -124,6 +125,9 @@ void KeypointModuleExt::Tick() {
 	   CV_FM_7POINT);       // 7-point method
 //	  cv::Mat fundamental= ransacTest(symMatches,
 //			  images[0]->keypoints, images[1]->keypoints, matches);
+
+	std::cout << "F-Matrix size= " << fundamental.rows << "," << fundamental.cols << std::endl;
+
 	Matx33d K(430.21554970319971, 0.0, 306.6913434743704,
 				0.0, 430.53169252696676, 227.22480030078816,
 				0.0, 0.0, 1.0);

@@ -429,6 +429,14 @@ public:
 		return true;
 	}
 
+	void normalize() {
+		if (zero()) return;
+		P sum = 0;
+		for (T i = 0; i < size(); ++i) sum += outcome[i]; // e.g. 0.2 0.3 = 0.5, should be *2 = 0.4 0.6
+		P factor = P(1) / P(sum);
+		for (T i = 0; i < size(); ++i) outcome[i] = outcome[i] * factor;
+	}
+
 private:
 	// The outcome array stores a probability for every possible outcome
 	P *outcome;
@@ -586,21 +594,28 @@ public:
 	/**
 	 * Iterates over a table, using a vector as index, going from (0,0,0) to (1,1,1) for example for binary variables in
 	 * a 3D matrix. The function returns the values that would correspond to a "column" in a 2D table, or an "array" in
-	 * a 3D matrix.
+	 * a 3D matrix. For a 2D matrix:
+	 *    0.99  0.01
+	 *    0.9   0.1
+	 *    0.2   0.8
+	 * This should return for (0,*), with 0th index of card 3 and 1st cardinality 2, summarize=1: [0.99 0.01]. It should
+	 * return [0.01, 0.1, 0.8] for index=(*,1) and summarize=0.
 	 *
 	 * @param summarize		Index of variable to summarize over
 	 * @return 				A random variable.
 	 */
-	probability<P,T> * get(std::vector<N> table_index, N summarize) {
+	probability<P,T> * get(const std::vector<N> & table_index, N summarize) {
 		assert (summarize < cardinalities.size());
+		std::vector<N> index = table_index;
 		N cardinality = cardinalities[summarize];
 		assert (cardinality > 0);
 		probability<P,T> *result = NULL;
 //		std::cout << "Create new probability vector of size " << cardinality << std::endl;
 		result = new probability<P,T>(cardinality, T(0));
 		for (int i = 0; i < cardinality; ++i) {
-			table_index[summarize] = i; // only set this index to "i" keeping the rest the same
-			(*result)[i] = probabilities[get_linear_index(table_index)];
+			index[summarize] = i; // only set this index to "i" keeping the rest the same
+			(*result)[i] = probabilities[get_linear_index(index)];
+			index[summarize] = table_index[summarize];
 		}
 //		std::cout << "Probability vector for " << summarize << " is " << *result << std::endl;
 		return result;
