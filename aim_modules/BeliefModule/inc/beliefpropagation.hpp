@@ -195,7 +195,7 @@ protected:
 		N size = jointtable.size();
 		std::vector<N> table_index(jointtable.get_dimensions());
 
-		// make sure X=f(X) goes well if there is only one variable on each side
+		// make sure X=f(X) goes well if the factor is a leaf
 		if (v.from_size() == 1) {
 			table_index = jointtable.get_tabular_index(0);
 			probability<P,T> *jointvalue = jointtable.get(table_index, 0);
@@ -203,14 +203,18 @@ protected:
 			return;
 		}
 
+		int no_msg_from = -1;
 		for (size_t j = 0; j < v.from_size(); ++j) {
 			probability<P,T> *incoming_msg = v.from_at(j).second;
 //			std::cout << "Message " << *incoming_msg << " on " << v.from_at(j).second << std::endl;
 			if (incoming_msg->zero()) {
-				N index = v.from_at(j).first;
-				std::cout << "Cannot calculate factor " << v.index() << " yet: no message from variable " << index \
-						<< std::endl;
-				return;
+				if (no_msg_from > 0) {
+					N index = v.from_at(j).first;
+					std::cout << "Cannot calculate factor " << v.index() << " yet: no message from variable " << index \
+							<< std::endl;
+					return;
+				}
+				no_msg_from = j;
 			} else {
 				N index = v.from_at(j).first;
 				std::cout << "Incoming message on factor " << v.index() << "<-" << index << ": \"" << \
@@ -227,12 +231,24 @@ protected:
 			delete zero;
 		}
 
+//		std::cout << "Print table" << jointtable << std::endl;
 		for (size_t i = 0; i < size; ++i) { // sum over f(0,0,0,...) to f(1,1,1,...) in case of binary values
 			for (size_t j = 0; j < v.to_size(); ++j) { // sum over all variables to be excluded themselves
+				if (no_msg_from > 0) {
+					j = no_msg_from;
+				}
 				table_index = jointtable.get_tabular_index(i);
 				probability<P,T> *jointvalue = jointtable.get(table_index, j); // if i=(0,0,0,0), this obtains (0,0,j,0)
 				// the same happens with i=(0,0,1,0), so we have to exclude that one or we count it multiple times
+//				std::cout << "Get index ";
+//				for (size_t j = 0; j < v.to_size(); ++j) std::cout << table_index[j] << ' ';
+//				std::cout << std::endl;
+//				std::cout << "Get joint value " << *jointvalue << " for variable " << j << std::endl;
 				if (table_index[j] != 0) continue;
+//				std::cout << "Get index ";
+//				for (size_t j = 0; j < v.to_size(); ++j) std::cout << table_index[j] << ' ';
+//						std::cout << std::endl;
+//				std::cout << "Get joint value because index[j] == 0: " << *jointvalue << std::endl;
 				// we multiply it with the messages from the incoming variables
 				for (size_t k = 0; k < v.from_size(); ++k) {
 					if (j == k) continue;
@@ -243,8 +259,20 @@ protected:
 				// add to outgoing message
 				*v.to_at(j).second += *jointvalue;
 				delete jointvalue;
+				if (no_msg_from > 0) {
+					break;
+				}
 			}
 		}
+
+		// normalize outgoing messages
+		for (size_t j = 0; j < v.to_size(); ++j) {
+			probability<P,T> message = *v.to_at(j).second;
+			message.normalize();
+			std::cout << "Send message to variable " << v.to_at(j).first << "<-" << v.index() << ": " << message \
+					<< std::endl;
+		}
+
 	}
 
 	/**
@@ -262,14 +290,16 @@ protected:
 	 */
 	template <ClassImplType impl_type>
 	void tick_variable(const graph<T,P,M,N,impl_type> &g, variable<T,P,M,N> & v) {
-		probability<P,T> product(v.cardinality());
+		probability<P,T> product(v.cardinality(), 1);
 		// can be stored as static vectors if we wouldn't need one of different length depending on the cardinality
 		probability<P,T> identity(v.cardinality(), 1);
 
 //		std::cout << "Tick variable" << std::endl;
 
+		bool init_all = false;
+
 		// leaf, send uniform distribution
-		if (v.from_size() == 1) { // || v.ready()) {
+		if (v.from_size() == 1 || (v.ready() && init_all)) {
 			for (N i = 0; i < v.to_size(); ++i) {
 				*v.to_at(i).second = identity; // deep copy
 				std::cout << "Send \"uniform\" message from variable " << v.index() << "->" << v.to_at(i).first \
@@ -299,15 +329,17 @@ protected:
 		for (int i = 0; i < v.from_size(); ++i) {
 			probability<P,T> msg = *v.from_at(i).second;
 			product *= msg;
+//			std::cout << "Calculated product " << product << " on factor " << v.index() << std::endl;
 		}
 		// send to each target node, now we have to divide again by the message from this factor node
 		for (N i = 0; i < v.to_size(); ++i) {
 			// correct the multiplication by division (if product != 0)
 			probability<P,T> message(v.cardinality(), 1);
 			message = (product / *v.from_at(i).second);
+			message.normalize();
 			*v.to_at(i).second = message;
-			std::cout << "Send message " << message << " to factor node " << v.to_at(i).first << " on " << \
-					v.to_at(i).second << std::endl;
+			std::cout << "Send message to factor " << v.to_at(i).first << "<-" << v.index() << ": " << message \
+					<< std::endl;
 		}
 	}
 

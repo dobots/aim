@@ -36,8 +36,14 @@ private:
   
   Param *cliParam;
 
+protected:
+  static const int channel_count = 3;
+  const char* const channel[3] = {"readSensor", "readSensorArrayLength", "writeResult"};
+
 public:
   KeypointModule() {
+    dummySensor = long_seq(0);
+    dummySensorArrayLength = int(0);
     cliParam = new Param();
   }
   
