@@ -230,6 +230,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 	self.st.out( "zmq::context_t *context;")
         self.st.out( "// the user-defined id of a module")
         self.st.out( "std::string module_id;")
+        self.st.out( "// some default debug parameter")
+        self.st.out( "char debug;")
 
         self.st.out("// All subsequent functions should be called from \"within\" this module" )
         self.st.out("// From either the Tick() routine itself, or Tick() in a derived class" )
@@ -308,9 +310,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "// The constructor needs to be called, also when you derive from this class" )
         self.st.out( self.classname + "(): ns_socket(NULL), cmd_socket(NULL) {" )
         self.st.inc_indent()
-
         self.st.out( "context = new zmq::context_t(1);")
-
+	self.st.out( "debug = 0;")
         # We allocate all user-defined structs
         for s in self.structList:
             self.writeStructAllocation(s)
@@ -352,8 +353,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "ns_socket = new zmq::socket_t(*context, ZMQ_REQ);")
         self.st.out("try {")
         self.st.out( "  ns_socket->connect(\"tcp://127.0.0.1:10101\"); // port to connect to, REQ/REP")
-        self.st.out("} catch (zmq::error_t) {")	
-        self.st.out("   std::cerr << \"Error: Could not connect to the name server!\" << std::endl;")	
+        self.st.out("} catch (zmq::error_t & e) {")	
+        self.st.out("   std::cerr << \"Error: Could not connect to the name server: = \" << e.what() << std::endl;")	
         self.st.out("}")	
         self.st.out( "cmd_socket = new zmq::socket_t(*context, ZMQ_REP);")
         self.st.out("")	
@@ -446,6 +447,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
   }
 
   void SendAck(zmq::socket_t *s, bool state) {
+	std::cout << "Send ACK" << std::endl;
 	SendRequest(s, state, true, "ACK");
   }
 
@@ -456,9 +458,10 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 	std::string req = std::string(reply);
 	delete [] reply;
 	if (req.find("ACK") != std::string::npos) {
+		if (debug) std::cout << "Got ACK, thanks!" << std::endl;
 		return true;
 	}
-	std::cerr << "Error: no ACK, state compromised" << std::endl;
+	std::cerr << "Error: got \\"" << req << "\\", no ACK, state compromised" << std::endl;
 	return false;
   }
 
@@ -471,8 +474,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 			state = s->recv(&reply);
 		else
 			state = s->recv(&reply, ZMQ_DONTWAIT);
-	} catch (zmq::error_t) {
-		std::cout << "Error in receiving" << std::endl;
+	} catch (zmq::error_t &e) {
+		std::cout << "Error: received zmq::error_t " << e.what() << std::endl;
 	}
 	if (state) {
 		size_t msg_size = reply.size();
@@ -489,7 +492,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 	if (state) {
 		zmq::message_t request(str.size()+1);
 		memcpy((void *) request.data(), str.c_str(), str.size());
-		//std::cout << "Send: " << str << std::endl;
+		if (debug) std::cout << "Send request: " << str << std::endl;
 		if (blocking)
 			state = s->send(request);
 		else
@@ -514,12 +517,13 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
            std::cerr << "Error: no -> separator in connect command" << std::endl;
         }
         std::string source = name.substr(0, pos);
-        std::string target = name.substr(pos+1);
+        std::string target = name.substr(pos+2); // todo: 
         std::cout << "Connect from " << source << " to " << target << std::endl;
     	Connect(source, target);
     } else {
         std::cerr << "Error: Unknown command!" << std::endl;
     }
+    SendAck(cmd_socket, true);
     delete [] reply;
   }
 
