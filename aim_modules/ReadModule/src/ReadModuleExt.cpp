@@ -9,7 +9,7 @@
 using namespace rur;
 using namespace std;
 
-static int lifetime = 20;
+static int lifetime = 1000;
 
 /***********************************************************************************************************************
  * Implementation
@@ -29,11 +29,10 @@ bool ReadModuleExt::Tick() {
 	std::cout << '[' << getpid() << "] Tick " << lifetime << endl;
 	ReadModule::Tick();
 
-//	if (lifetime < 20) {
-		bool new_item;
-		int value = *readInput(new_item, false);
-		if (new_item) std::cout << "Got value " << value << std::endl;
-//	}
+	bool new_item;
+	int value = *readInput(new_item, false);
+	if (new_item) std::cout << "Got value " << value << std::endl;
+
 	sleep(1);
 	return true;
 }
