@@ -20,7 +20,7 @@ The current modules:
 
 ## For developers
 
-As explained at (https://www.kernel.org/pub/software/scm/git/docs/howto/using-merge-subtree.html)[kernel.org] the subtree merge is like this:
+As explained at [kernel.org](https://www.kernel.org/pub/software/scm/git/docs/howto/using-merge-subtree.html) the subtree merge is like this:
 
     git remote add -f zmqconnect git@github.com:mrquincle/zmqconnect.git
     git merge --strategy ours --no-commit zmqconnect/master
@@ -33,4 +33,12 @@ And later on the merges are done as:
     git pull --strategy subtree aimconnect master
 
 How to indicate when a module is ready to be included in the compilation process will be described soon.
+
+## Copyrights
+The copyrights (2013) belong to:
+
+- License: LGPL v.3
+- Author: Anne van Rossum
+- Almende B.V., http://www.almende.com and DO bots B.V., http://www.dobots.nl
+- Rotterdam, The Netherlands
 
