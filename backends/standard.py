@@ -41,7 +41,10 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     
     # Typedef list
     typedefList = []
-    
+
+    # Pragma list
+    pragmaList = [] 
+
     # The module's name
     classname = ''
     
@@ -60,6 +63,7 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         print "#include <string>"
         print "#include <vector>" # almost always needed
         print
+	
         self.writeNamespaceStart()
         for s in self.structList:
            self.writeStructDeclaration(s)
@@ -78,14 +82,11 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
  * we personally strongly object against this software being used by the military, in the
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
- *
- * Copyright (c) 2012 Anne van Rossum <anne@almende.com>
- *
- * @author  Anne C. van Rossum
- * @company Almende B.V.
- */
 '''
         print comment_text
+        for p in self.pragmaList:
+            print " * @" + p.text()
+        print " */"
 
     def writeNamespaceStart(self):
         print "namespace " + self.namespace + " {"
@@ -289,9 +290,12 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 
     # Use the already build abstract syntax tree and visit all nodes
     def visitAST(self, node):
-        # First visit all of then nodes
+        # First visit all of the nodes
         for n in node.declarations():
            n.accept(self)
+	# Visit all of the pragmas
+        for n in node.pragmas():
+           self.pragmaList.append(n)
         # And then write everything to the to-be-generated header file
         self.writeAll()
 

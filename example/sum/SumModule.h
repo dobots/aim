@@ -8,13 +8,8 @@
  * we personally strongly object against this software being used by the military, in the
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
- *
- * Copyright (c) 2012 Anne van Rossum <anne@almende.com>
- *
- * @author  Anne C. van Rossum
- * @company Almende B.V.
- */
 
+ */
 #include <string>
 #include <vector>
 
