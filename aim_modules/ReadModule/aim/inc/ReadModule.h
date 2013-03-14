@@ -97,6 +97,7 @@ public:
   ReadModule(): ns_socket(NULL), cmd_socket(NULL) {
     context = new zmq::context_t(1);
     debug = 0;
+    portInputValue = 0;
     portInput.sock = new zmq::socket_t(*context, ZMQ_REP);
     zmq_sockets.push_back(&portInput);
   }
@@ -182,7 +183,7 @@ protected:
    * is an additional "new_item" state boolean that indicates if the value is new if the function operates in
    * non-blocking mode.
    */
-  inline int *readInput(bool & new_item, bool blocking=true) {
+  inline int* readInput(bool & new_item, bool blocking=true) {
     // For now only int return values are supported
     int reply_size = -1;
     char *reply = GetReply(portInput.sock, portInput.ready, blocking, reply_size);
