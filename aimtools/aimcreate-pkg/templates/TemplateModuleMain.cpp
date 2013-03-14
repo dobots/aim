@@ -19,7 +19,7 @@
  * @company Almende B.V. (or your university, institute or company)
  * @case    Artificial Intelligence Module
  */
-#include <TemplateModule.h>
+#include <TemplateModuleExt.h>
 
 #include <stdlib.h>
 #include <iostream>
@@ -33,7 +33,7 @@ using namespace std;
  * have this file and the TemplateModule header and code in a separate "aim" directory.
  */
 int main(int argc, char *argv[])  {
-	TemplateModule *m = new TemplateModule();
+	TemplateModuleExt *m = new TemplateModuleExt();
 
 	if (argc < 2) {
 		std::cout << "Use an identifier as argument for this instance" << endl;

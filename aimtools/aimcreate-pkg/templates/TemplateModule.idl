@@ -30,14 +30,14 @@ typedef sequence<long> long_seq;
 // We want to be able to give our class a name
 interface TemplateModule {
 
-  // Input from sensor in the form of array
-  void Sensor(in long_seq input);
+  // Input from microphone in the form of an array
+  void Audio(in long_seq input);
 
-  // Length of default sensor input (needed by some middlewares)
-  void SensorArrayLength(in long sensor_l);
+  // Input from infrared sensor
+  void Infrared(in long sensor_l);
 
-  // Output is one value each time
-  void Result(out long output);
+  // A command to one of the wheels
+  void LeftWheel(out long output);
 
 };
 

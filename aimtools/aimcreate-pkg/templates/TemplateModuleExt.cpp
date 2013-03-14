@@ -1,6 +1,6 @@
 /**
- * @file TemplateModule.cpp
- * @brief ...
+ * @file TemplateModuleExt.cpp
+ * @brief TemplateModule extension
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common 
  * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
@@ -12,23 +12,25 @@
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
  *
- * Copyright © 2012 Anne van Rossum <anne@almende.com>
+ * Copyright © 2013 Your Name <your@email>
  *
- * @author  ...
- * @date    ...
- * @company Almende B.V.
- * @case    Artificial Intelligence Framework
+ * @author	Your Name
+ * @date	Current date
+ * @company	Your Company
+ * @project	Specific Software Project
  */
 
-#include <TemplateModule.h>
+#include <TemplateModuleExt.h>
 
 using namespace rur;
 
-void TemplateModule::Tick() {
+//! Replace with your own functionality
+void TemplateModuleExt::Tick() {
 
 }
 
-bool TemplateModule::Stop() {
+//! Replace with your own functionality
+bool TemplateModuleExt::Stop() {
 	return false;
 }
 
