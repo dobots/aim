@@ -54,6 +54,32 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     def __init__(self, st):
         self.st = st
 
+##########################################################################################
+# General functions
+##########################################################################################
+
+    def getPortValueName(self, node, param):
+	portname = "port" + node.identifier()
+        if param.paramType().kind() == 3:
+		portValueName = portname + "Value";
+        elif param.paramType().kind() == 21:
+		portValueName = portname + "Values";
+	else:
+		portValueName = portname + "Value";
+	return portValueName; 
+
+    def getPortValue(self, param):
+        if param.paramType().kind() == 3:
+		portValue = "int";
+        elif param.paramType().kind() == 21:
+                param.paramType().accept(self)
+                param_type = self.__result_type
+                self.getSeqType(param_type)
+                seq_type = self.__result_type                   
+		portValue = "std::vector<" + seq_type + ">";
+	else:
+		portValue = "Unknown";
+	return portValue; 
 
 ##########################################################################################
 # Write functions
@@ -569,26 +595,15 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             p.paramType().accept(self)
             param_type = self.__result_type
             portname = "port" + node.identifier()
-            if p.paramType().kind() == 3:
-                if p.is_in():
-                    self.st.out("// private storage for " + portname + "Value")
-            #        self.st.out("std::vector<" + param_type + "> " + portname + "Values;")
-                    self.st.out("int " + portname + "Value;")
-                param_type = "Bottle"
-            elif p.paramType().kind() == 21:
-                if p.is_in():
-                    self.getSeqType(param_type)
-                    seq_type = self.__result_type                   
-                    self.st.out("// private storage for " + portname + "Values;")
-                    self.st.out( "std::vector<" + seq_type + "> *" + portname + "Values;")
-                param_type = "Bottle"
+            if p.is_in():
+            	portValue = self.getPortValue(p)
+            	portValueName = self.getPortValueName(node,p)
+            	self.st.out("// private storage for " + portValueName)
+            	self.st.out(portValue + " " + portValueName + ";")
+            param_type = "Bottle"
 
             self.st.out("// the port " + portname + " itself") 
-#indir            self.st.out( "zmq::socket_t *" + portname + ";")
             self.st.out( "zmq_socket_ext " + portname + ";")
-
-#            self.st.out("// the REQ/REP sockets combined with non-blocking functionality requires the status of " + portname) 
-#            self.st.out( "bool " + portname + "Ready;")
 
     # In the constructor we allocate the port, most often we will need a new BufferedPort with a 
     # Bottle as parameter. In case of a sequence we need to allocate a corresponding vector
@@ -608,11 +623,13 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             
             if p.paramType().kind() == 3:
                 param_type = "Bottle"
-            if p.paramType().kind() == 21:
                 if p.is_in():
-                    self.getSeqType(param_type)
-                    seq_type = self.__result_type
-                    self.st.out(portname + "Values = new std::vector<" + seq_type + ">();")
+                    self.st.out(portname + "Value = 0;") 
+            if p.paramType().kind() == 21:
+                #if p.is_in():
+                #    self.getSeqType(param_type)
+                #    seq_type = self.__result_type
+                #    self.st.out(portname + "Values(NULL);")  # no allocation needed anymore
                 param_type = "Bottle"
 
             if p.is_in():
@@ -629,11 +646,11 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.__prefix = ""
             p.paramType().accept(self)
             param_type = self.__result_type
-            if p.paramType().kind() == 21:
-                if p.is_in():
-                    self.getSeqType(param_type)
-                    seq_type = self.__result_type
-                    self.st.out("delete port" + node.identifier() + "Values;")
+#            if p.paramType().kind() == 21:
+#                if p.is_in():
+#                    self.getSeqType(param_type)
+#                    seq_type = self.__result_type
+#                    self.st.out("delete port" + node.identifier() + "Values;")
             self.st.out("delete port" + node.identifier() + ".sock;" ) 
 
     # In the Init() routine we open the port and if necessary set the default values of the corresponding
@@ -715,13 +732,16 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out( " */" )
 
                   # function signature
-                  if p.paramType().kind() == 21: # sequence
-                     self.getSeqType(param_type)
-                     seq_type = self.__result_type
-                     self.st.out( "// Remark: caller is responsible for evoking vector.clear()" )
-                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
-                  else:
-                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" )
+                  portValue = self.getPortValue(p);
+                  portValueName = self.getPortValueName(m, p);
+                  self.st.out( "inline " + portValue + "* read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
+#                  if p.paramType().kind() == 21: # sequence
+#                     self.getSeqType(param_type)
+#                     seq_type = self.__result_type
+#                     self.st.out( "// Remark: caller is responsible for evoking vector.clear()" )
+#                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
+#                  else:
+#                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" )
 
                   # function content 
                   self.st.inc_indent()
@@ -730,16 +750,21 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out( "int reply_size = -1;")
                   self.st.out( "char *reply = GetReply(" + portname + ".sock, " + portname + ".ready, blocking, reply_size);")
                   self.st.out( "new_item = " + portname + ".ready;" )
-                  self.st.out( "if (reply == NULL) return &" + portname + "Value;")
+                  self.st.out( "if (reply == NULL) return &" + portValueName + ";")
                   self.st.out( "SendAck(" + portname + ".sock, " + portname + ".ready);")
                   self.st.out( "if (reply_size < 3) std::cerr << \"Error: Reply is not large enough to store an integer!\" << std::endl;")
                   self.st.out( "std::stringstream ss; ss.clear(); ss.str(\"\");")
                   self.st.out( "ss << std::string(reply);")
-                  self.st.out( "ss >> " + portname + "Value;")
+                  if p.paramType().kind() == 21:
+                      #self.st.out( "for (int i = 0; i < " + portValueName + ".size(); ++i) ss >> " + portValueName + "[i];")
+                       self.st.out( "assert(false);  // todo: cast char* array to vector of int")
+#                      self.st.out( "ss >> " + portValueName + ";")
+                  else:
+                      self.st.out( "ss >> " + portValueName + ";")
 #                  self.st.out( portname + "Value = (reply[0]) + (reply[1] << 8); // little-endianness")
 #                  self.st.out( " std::cout << \"Values\" << (reply[0]) << \" and \" << (reply[1]) << std::endl; " )
                   self.st.out( "delete [] reply;")
-                  self.st.out( "return &" + portname + "Value;")
+                  self.st.out( "return &" + portValueName + ";")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
