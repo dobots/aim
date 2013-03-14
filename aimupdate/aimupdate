@@ -16,8 +16,6 @@ then
 	echo 
 	echo $PROGRAM \"ModuleName\"
 	echo
-#	echo \* recipient_number - The recipients phone number. Without the country number
-#	echo \* \"message\" - Defines the message to send. The \"\" are mandatory
 	exit 0 
 fi 
 

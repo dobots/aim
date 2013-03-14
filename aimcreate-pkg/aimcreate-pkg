@@ -14,11 +14,16 @@ if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
 	echo 
-	echo $PROGRAM \"ModuleName\"
+	echo "$PROGRAM \"ModuleName\" "
+	echo "$PROGRAM \"ModuleName\" -b [STANDARD|YARP|ROS|ZEROMQ]"
 	echo
-#	echo \* recipient_number - The recipients phone number. Without the country number
-#	echo \* \"message\" - Defines the message to send. The \"\" are mandatory
 	exit 0 
+fi 
+
+backend=
+if [[ "$2" == "-b" ]]
+then
+	backend=$3
 fi 
 
 modulename="$1"
@@ -53,7 +58,9 @@ cd aim
 sed -i "s/TemplateModule/$modulename/g" build.sh
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
-sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
+#sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
+sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
+sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.h
 
 sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
 sed -i "s/TemplateModule/$modulename/g" Makefile.parent
@@ -72,14 +79,26 @@ else
 	mv TemplateModule.idl "idl/$modulename.idl"
 fi
 
-mkdir -p src
+if [ -n "$backend" ]; then
+	echo "We will use backend: $backend, feel free to use other ones later on!"
+	sed -i "s/set(BUILD_STANDARD on)/set(BUILD\_$backend on)/g" default.cmake
+fi
+
+# Move relevant files to the inc/ directory
+#mkdir -p src
 mkdir -p inc
 
-mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
-mv TemplateModule.cpp "src/${modulename}.cpp"
+mv TemplateModuleExt.h "inc/${modulename}Ext.h"
 
+# Move relevant files to the ../src/ directory
 mkdir -p ../src
 
-cp "src/${modulename}Main.cpp" "../src/${modulename}Main.cpp"
-cp "src/${modulename}.cpp" "../src/${modulename}.cpp"
+mv TemplateModuleMain.cpp "../src/${modulename}Main.cpp"
+#mv TemplateModule.cpp "../src/${modulename}.cpp"
+mv TemplateModuleExt.cpp "../src/${modulename}Ext.cpp"
+
+#mkdir -p ../src
+
+#cp "src/${modulename}Main.cpp" "../src/${modulename}Main.cpp"
+#cp "src/${modulename}.cpp" "../src/${modulename}.cpp"
 
