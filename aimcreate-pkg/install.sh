@@ -1,71 +1,77 @@
 #!/bin/bash
 
-# Installation target is expected as argument to this installation script
-RUR_TEMPLATES="$DESTDIR/$1"
+####################################################################################################
+# Configuration
+####################################################################################################
 
-mkdir -p ${RUR_TEMPLATES}
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
 
-# Check if we have sudo rights
-if [ `id -u` -eq 0 ]; then
-	echo "Copy templates to ${RUR_TEMPLATES}"
-else
-	echo "Sorry, super user rights needed (run with sudo)"
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+# First, check if we have sudo rights
+if [ ! `id --user` -eq 0 ]; then
+	echo "[#] Sorry, super user rights needed (run with sudo)"
 	exit 1
 fi
 
-# Configuration directory for RUR
-RUR_HOME=~/.rur
-USER_FILE=user.txt
+####################################################################################################
+# Load configuration details
+####################################################################################################
 
-mkdir -p ${RUR_HOME}
+# Create paths if not present
+mkdir --parents ${RUR_SHARE_PATH}
+mkdir --parents ${RUR_TEMPLATE_PATH}
+mkdir --parents ${RUR_CONFIG_PATH}
 
-if [ -a ${USER_FILE} ]; then
-	RUSER=`cat ${USER_FILE}`
-	if [ -e ${RUSER} ]; then
-		chown $RUSER:$RUSER ${RUR_HOME}
-	fi
-fi
-
-
-# File in which we store path towards backends
-BACKENDS_PATH_FILE="${RUR_HOME}/backends_path"
-
-# The different possible backends
-RUR_MK=templates/rur.mk
-cp templates/rur_header.mk $RUR_MK
-
-# Tentative backends directory
-BACKENDS_PATH="$DESTDIR/etc/aim/rur-builder/backends"
-
-# Retrieve backends directory from file if it exists
-if [ -e ${BACKENDS_PATH_FILE} ]; then
-	BACKENDS_PATH=`cat $BACKENDS_PATH_FILE`
-fi
-
-# Ask user for omniidl backends directory if not obtained yet
-if [ -e /usr/bin/zenity ]; then
-	BACKENDS_PATH=`zenity --entry --text "Please enter the omniidl backends path" --entry-text "$BACKENDS_PATH" --title "Enter omniidl backends path"`
-	echo "$BACKENDS_PATH" > "$BACKENDS_PATH_FILE" 
+# If RUR_CONFIG_FILE_BACKENDS exists, get configuration data from it
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
 else
-	echo "No zenity installed, you will need to set RUR_BACKENDS=... yourself in ${RUR_TEMPLATES}/local.mk"
+	echo "[#] Write backends path to configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
+	echo "RUR_BACKENDS_PATH=\"$RUR_BACKENDS_PATH\"" >> $RUR_CONFIG_FILE_BACKENDS
 fi
 
-echo "SET(BACKENDS_PATH $BACKENDS_PATH)" > "${BACKENDS_PATH_FILE}.cmake" 
-echo "RUR_BACKENDS=$BACKENDS_PATH" >> ${RUR_MK}
+echo "[#] Use backends path: ${RUR_BACKENDS_PATH}"
+
+echo "[#] Write backends path to cmake configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
+echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}.cmake" 
+
+####################################################################################################
+# Start
+####################################################################################################
 
 # Copy to system-wide directories
-cp templates/* ${RUR_TEMPLATES}
-mkdir -p ${RUR_TEMPLATES}/cmake
-cp templates/cmake/* ${RUR_TEMPLATES}/cmake
+cp --recursive templates/* ${RUR_TEMPLATE_PATH}
 
 # Remove files we do not need per project (and obsolete ones)
-rm -f ${RUR_TEMPLATES}/local.mk
-rm -f ${RUR_TEMPLATES}/rur.mk
-rm -f ${RUR_TEMPLATES}/rur_header.mk
+echo "[*] Remove temporary and old files from template folder"
+rm -f ${RUR_TEMPLATE_PATH}/local.mk
+rm -f ${RUR_TEMPLATE_PATH}/rur.mk
+rm -f ${RUR_TEMPLATE_PATH}/rur_header.mk
 
 # Copy aimcreate-pkg itself
-echo "Copy aimcreate-pkg to /usr/bin"
-install aimcreate-pkg $DESTDIR/usr/bin
+echo "[#] Copy aimcreate-pkg to ${RUR_BIN_PATH}"
+install aimcreate-pkg $DESTDIR/${RUR_BIN_PATH}
 
-cp -f ${RUR_MK} ${RUR_HOME}/rur.mk
+echo "[#] Files in template directory: ${RUR_TEMPLATE_PATH}"
+ls ${RUR_TEMPLATE_PATH}
+
+echo "[#] End of aimcreate-pkg installation"
 
