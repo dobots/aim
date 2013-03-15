@@ -4,29 +4,62 @@ PROGRAM="aimlist"
 
 VERSION="$PROGRAM 0.1"
 
+####################################################################################################
+# Default configuration
+####################################################################################################
 
-#echo $1
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Working paths
+RUR_DATA_PATH=$HOME/.rur/data
+RUR_REGISTRY_PATH=$RUR_DATA_PATH/registry
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Data(base) files
+AIM_REGISTRY=${RUR_DATA_PATH}/aim_registry.txt
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
 if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
 	echo 
-	echo $PROGRAM 
+	echo "$PROGRAM mode"
+	echo "  mode=0 means to list all CS* modules"
+	echo "  mode=1 means to list all non-Login modules"
 	echo
 	exit 0 
 elif [ $# -ne 1 ]
 then
-	echo "One and only one argument is expected!"
+	echo "[#] One and only one argument is expected!"
 	exit 1
 fi 
 
-
-# Configuration directory for RUR
-RUR_HOME=~/.rur
-mkdir -p ${RUR_HOME}
-
-AIM_REGISTRY=aim_registry.txt
-
-# echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
 
 MODULE_FULLNAME=
 FirstTwo=
@@ -50,13 +83,13 @@ do
           	index=$(($index + 1))
           fi
         else
-          echo "Only two modes (0 and 1) are expected, please check!"
+          echo "[#] Only two modes (0 and 1) are expected, please check!"
 	  exit 1
         fi
 
 #	echo $LINE
 #	echo $M_I_STRIPPED
-done < "${RUR_HOME}/${AIM_REGISTRY}"
+done < "${AIM_REGISTRY}"
 #echo $index
 #echo "success!!"
 

@@ -4,9 +4,50 @@ PROGRAM="aimconnect"
 
 VERSION="$PROGRAM 0.1"
 
-if [[ $# -ne 4 ]]
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Working paths
+RUR_DATA_PATH=$HOME/.rur/data
+RUR_REGISTRY_PATH=$RUR_DATA_PATH/registry
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Data(base) files
+AIM_REGISTRY=${RUR_DATA_PATH}/aim_registry.txt
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+if [[ $# -ne 5 ]]
 then
-	echo "We need two Module names and two ports for a connection! Run $0 -h for more info, currently it is $#"
+	echo "[#] We need five parameters. Run $0 -h for more info, currently you used $# parameters"
 	exit 1
 fi
 
@@ -14,23 +55,28 @@ if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
 	echo 
-	echo $PROGRAM \"Module1Name\" \"outputPort\" \"Module2Name\" \"inputPort\"
+	echo $PROGRAM \"middleware\" \"Module1Name\" \"outputPort\" \"Module2Name\" \"inputPort\"
+	echo "  with middleware: [yarp | zeromq ]"
 	echo
 	exit 0 
 fi 
+
+MIDDLEWARE=${1%/}
+CONNECT_UTILITY=
+if [[ $MIDDLEWARE == "yarp" ]]; then
+	CONNECT_UTILITY="yarp connect"
+elif [[ $MIDDLEWARE == "zeromq" ]]; then
+	CONNECT_UTILITY="zmqconnect"
+fi
+
+shift
 
 MODULE_NAME1=${1%/}
 MODULE_NAME2=${3%/}
 echo $MODULE_NAME1
 echo ${3}
 
-# Configuration directory for RUR
-RUR_HOME=~/.rur
-mkdir -p ${RUR_HOME}
-
-AIM_REGISTRY=aim_registry.txt
-
-echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+echo "[#] Search in ${RUR_HOME}/${AIM_REGISTRY}"
 SUCCESS1=false
 SUCCESS2=false
 
@@ -46,7 +92,7 @@ while read LINE; do
 		SUCCESS1=true
 		break
 	fi
-done < "${RUR_HOME}/${AIM_REGISTRY}"
+done < "${AIM_REGISTRY}"
 
 
 while read LINE; do
@@ -54,22 +100,22 @@ while read LINE; do
 	M_I_STRIPPED=${MODULE_I//[[:space:]]}
 #	echo $M_I_STRIPPED
 	if [[  ${3} == $M_I_STRIPPED* ]]; then
-		echo "$3 found. prepare to connect it"
+		echo "[#] $3 found. prepare to connect it"
 		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
 		SUCCESS2=true
 		break
 	fi
-done < "${RUR_HOME}/${AIM_REGISTRY}"
+done < "${AIM_REGISTRY}"
 
 
 if [ $SUCCESS1 == true ] && [ $SUCCESS2 == true ]; then
 	#echo "Kill previous connection"
 	#pkill -9 $MODULE_NAME
-        echo "Start connection, sir!!!"
-	echo "Connect $MODULE_NAME1 and $MODULE_NAME2"
+        echo "[#] Start connection, sir!!!"
+	echo "[#] Connect $MODULE_NAME1 and $MODULE_NAME2"
 	#yarp clean
         sleep 4
-	yarp connect /${MODULE_NAME1,,}/$2 /${MODULE_NAME2,,}/$4
+	$CONNECT_UTILITY /${MODULE_NAME1,,}/$2 /${MODULE_NAME2,,}/$4
 	
 else
 	echo "One of the modules is not found (${MODULE_NAME1}) or (${MODULE_NAME2})"
