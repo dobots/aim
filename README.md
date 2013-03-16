@@ -34,6 +34,15 @@ And later on the merges are done with:
 
 How to indicate when a module is ready to be included in the compilation process will be described soon.
 
+## Launchpad
+
+The code on Launchpad can be found at:
+
+* https://code.launchpad.net/aim
+* https://launchpad.net/~dobots/+archive/ppa
+* https://code.launchpad.net/~dobots/+recipe/aim-daily
+* http://bazaar.launchpad.net/~dobots/aim/master/files
+
 ## Copyrights
 The copyrights (2013) belong to:
 
