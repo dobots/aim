@@ -29,9 +29,8 @@ bool ReadModuleExt::Tick() {
 	std::cout << '[' << getpid() << "] Tick " << lifetime << endl;
 	ReadModule::Tick();
 
-	bool new_item;
-	int value = *readInput(new_item, false);
-	if (new_item) std::cout << "Got value " << value << std::endl;
+	int *value = readInput(false);
+	if (value != NULL) std::cout << "Got value " << *value << std::endl;
 
 	sleep(1);
 	return true;
