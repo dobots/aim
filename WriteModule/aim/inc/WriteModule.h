@@ -96,6 +96,7 @@ public:
     context = new zmq::context_t(1);
     debug = 0;
     portOutput.sock = new zmq::socket_t(*context, ZMQ_REQ);
+    portOutput.ready = true;
     zmq_sockets.push_back(&portOutput);
   }
   
@@ -173,19 +174,24 @@ protected:
    * The output function sends stuff over a zeromq REQ socket. It works as a server. It cannot be blocking because this
    * would make it impossible to receive message on other ports (under which the /pid/control port). It could have been
    * blocking if it is known if it is connected to a REP port (but the connected() function is apparently not meant for
-   * that). 
+   * that).
    */
   inline bool writeOutput(const int output) {
     // For now only int return values are supported
     std::stringstream ss; ss.clear(); ss.str("");
     ss << output; // very dirty, no endianness, etc, just use the stream operator itself
-    bool state = true;
-    SendRequest(portOutput.sock, state, true, ss.str());
-    if (state) {
+    bool state = portOutput.ready;
+    SendRequest(portOutput.sock, state, false, ss.str());
+    if (state) portOutput.ready = false;
+    if (!portOutput.ready) {
       bool ack_state = true;
       ReceiveAck(portOutput.sock, ack_state, true);
+      if (ack_state) {
+        portOutput.ready = true;
+        return true;
+      }
     }
-    return state;
+    return false;
   }
   
   /**
@@ -335,8 +341,8 @@ protected:
     std::cout << "Connect to socket " << sock << std::endl; 
     try {
         s->connect(sock.c_str());
-    } catch (zmq::error_t) {
-        std::cerr << "Error: Could not connect to " << target << "!" << std::endl;
+    } catch (zmq::error_t &e) {
+        std::cerr << "Error: Could not connect to " << target << ", because: " << e.what() << std::endl;
     }
   }
 

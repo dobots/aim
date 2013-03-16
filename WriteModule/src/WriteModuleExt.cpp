@@ -11,6 +11,8 @@ using namespace std;
 
 static int lifetime = 1000;
 
+#define SHOW_YOU_ALSO_CAN_CONNECT_DIRECTLY 0
+
 /***********************************************************************************************************************
  * Implementation
  **********************************************************************************************************************/
@@ -28,15 +30,16 @@ WriteModuleExt::~WriteModuleExt() {
 bool WriteModuleExt::Tick() {
 	std::cout << '[' << getpid() << "] Tick " << lifetime << endl;
 	WriteModule::Tick();
-#ifdef SHOW_YOU_CAN_CONNECT_DIRECTLY
+#if SHOW_YOU_ALSO_CAN_CONNECT_DIRECTLY == 1
 	if (lifetime == 1000) {
 		Connect("/writemodule0/output", "/readmodule0/input");
 	}
 #endif
 	if (!(lifetime % 7)) { // every 7 ticks send a value
 		int value = 666;
-		std::cout << "Send value " << value << std::endl;
-		writeOutput(value);
+		if (writeOutput(value)) {
+			std::cout << "Send value " << value << std::endl;
+		}
 	}
 	sleep(1);
 	return true;

@@ -99,6 +99,7 @@ public:
     debug = 0;
     portInputValue = 0;
     portInput.sock = new zmq::socket_t(*context, ZMQ_REP);
+    portInput.ready = true;
     zmq_sockets.push_back(&portInput);
   }
   
@@ -178,17 +179,15 @@ protected:
   // From either the Tick() routine itself, or Tick() in a derived class
   
   /**
-   * The "readinput" function receives stuff over a zeromq REP socket. It works as a client. It cannot be blocking
-   * because this would make it impossible to receive message on other ports (under which the /pid/control port). There
-   * is an additional "new_item" state boolean that indicates if the value is new if the function operates in
-   * non-blocking mode.
+   * The "readinput" function receives stuff over a zeromq REP socket. It works as a client. It is better not
+   * to run it in blocking mode, because this would make it impossible to receive message on other ports (under which 
+   * the /pid/control port). The function returns NULL if there is no new item available.
    */
-  inline int* readInput(bool & new_item, bool blocking=true) {
+  inline int* readInput(bool blocking=false) {
     // For now only int return values are supported
     int reply_size = -1;
     char *reply = GetReply(portInput.sock, portInput.ready, blocking, reply_size);
-    new_item = portInput.ready;
-    if (reply == NULL) return &portInputValue;
+    if (!portInput.ready || !reply) return NULL;
     SendAck(portInput.sock, portInput.ready);
     if (reply_size < 3) std::cerr << "Error: Reply is not large enough to store an integer!" << std::endl;
     std::stringstream ss; ss.clear(); ss.str("");
@@ -345,8 +344,8 @@ protected:
     std::cout << "Connect to socket " << sock << std::endl; 
     try {
         s->connect(sock.c_str());
-    } catch (zmq::error_t) {
-        std::cerr << "Error: Could not connect to " << target << "!" << std::endl;
+    } catch (zmq::error_t &e) {
+        std::cerr << "Error: Could not connect to " << target << ", because: " << e.what() << std::endl;
     }
   }
 
