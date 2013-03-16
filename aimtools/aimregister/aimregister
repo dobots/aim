@@ -4,16 +4,57 @@ PROGRAM="aimregister"
 
 VERSION="$PROGRAM 0.1"
 
-# Check if we have sudo rights
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Working paths
+RUR_DATA_PATH=$HOME/.rur/data
+RUR_REGISTRY_PATH=$RUR_DATA_PATH/registry
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Data(base) files
+AIM_REGISTRY=${RUR_DATA_PATH}/aim_registry.txt
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+# Check if we have sudo rights, we should NOT
 if [ `id -u` -eq 0 ]
 then
-	echo "Sorry, should not be run as super user"
+	echo "[#] Sorry, should NOT be run as super user"
 	exit 1
 fi
 
 if [[ "$1" == "" ]]
 then
-	echo "No args supplied! Run $0 -h for more info"
+	echo "[#] No args supplied! Run $0 -h for more info"
 	exit 1
 fi
 
@@ -26,63 +67,44 @@ then
 	exit 0 
 fi 
 
+mkdir -p $RUR_DATA_PATH
+mkdir -p $RUR_REGISTRY_PATH
+
 MODULE_NAME=${1%/}
 
-# Configuration directory for RUR
-RUR_HOME=~/.rur
-mkdir -p ${RUR_HOME}
-
-AIM_REGISTRY=aim_registry.txt
-
+echo "[#] Check ${MODULE_NAME} directory and default build location if there is a compiled binary"
 if [ -e "${MODULE_NAME}" ]; then
 	if [ -e "${MODULE_NAME}/build/${MODULE_NAME}" ]; then
-		echo Add "${MODULE_NAME}" to registry
+		echo "[#] Add \"${MODULE_NAME}\" to registry"
 	else
-		echo Cannot find "${MODULE_NAME}/build/${MODULE_NAME}"
-		echo Make sure naming is consistent and the binary built properly
+		echo "[#] Cannot find \"${MODULE_NAME}/build/${MODULE_NAME}\""
+		echo "[#] Make sure naming is consistent and the binary built properly"
 		exit 0
 	fi
 else
-	echo Cannot find "${MODULE_NAME}"
+	echo "[#] Cannot find \"${MODULE_NAME}\""
 	exit 0
 fi
 
 FULL_MODULE_NAME="$(readlink --canonicalize --no-newline $MODULE_NAME)"
+echo "[#] Full name to register: ${FULL_MODULE_NAME}"
 
-echo "$MODULE_NAME = $FULL_MODULE_NAME" >> "${RUR_HOME}/${AIM_REGISTRY}"
+echo "$MODULE_NAME = $FULL_MODULE_NAME" >> "${AIM_REGISTRY}"
 
 # Remove duplicate entries
-uniq "${RUR_HOME}/${AIM_REGISTRY}" | tac > reversed.txt
-awk '!x[$1]++' FS=\= reversed.txt | tac > "${RUR_HOME}/${AIM_REGISTRY}"
+echo "[#] Remove duplicate entries from registry"
+uniq "${AIM_REGISTRY}" | tac > reversed.txt
+awk '!x[$1]++' FS=\= reversed.txt | tac > "${AIM_REGISTRY}"
 rm reversed.txt
 
 # Create registry directory with port names for each module
-mkdir -p ${RUR_HOME}/registry
-
-# Source global file to get backends env. variable
-RURMK="${RUR_HOME}/rur.mk"
-if [ -e "${RURMK}" ]; then
-	. "${RURMK}"
-fi
-
-# Source default default.mk file to get backends env. variable
-DEFAULTMK="${MODULE_NAME}/default.mk"
-if [ -e "${DEFAULTMK}" ]; then
-	. "${DEFAULTMK}"
-fi
-
-# Source local.mk file to get backends env. variable
-LOCALMK="${MODULE_NAME}/local.mk"
-if [ -e "${LOCALMK}" ]; then
-	. "${LOCALMK}"
-fi
-
-if [[ "${RUR_BACKENDS}" == "" ]]; then
-	echo "No RUR_BACKENDS env variable set (in ${MODULE_NAME}/local.mk)"
+echo "[#] Use rur-builder with specific backend \"extract\" to extract the ports from the idl file"
+if [ ! -e "${RUR_BACKENDS_PATH}/extract.py" ]; then
+	echo "[#] Error: there is no extract backend in ${RUR_BACKENDS_PATH}. Did you install a recent version of the rur-builder?"
 	exit 0
 fi
-omniidl -p${RUR_BACKENDS} -bextract ${MODULE_NAME}/aim/idl/${MODULE_NAME}.idl > "ports.txt"
+omniidl -p${RUR_BACKENDS_PATH} -bextract ${MODULE_NAME}/aim/idl/${MODULE_NAME}.idl > "ports.txt"
 
-echo "Move port definition to registry"
-mv ports.txt ${RUR_HOME}/registry/${MODULE_NAME}.ports
+echo "[#] Write port definition to ${MODULE_NAME}.ports file in registry"
+mv ports.txt ${RUR_REGISTRY_PATH}/${MODULE_NAME}.ports
 

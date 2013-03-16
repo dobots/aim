@@ -4,6 +4,39 @@ PROGRAM="aimcreate-pkg"
 
 VERSION="$PROGRAM 0.1"
 
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
 if [[ "$1" == "" ]]
 then
 	echo "No args supplied! Run $0 -h for more info"
@@ -32,65 +65,76 @@ modulename="$1"
 mn_sanity_check=${modulename//[[:space:]]}
 if [[ "$mn_sanity_check" == "$1" ]]; then
 	if [[ "$1" == *Module ]]; then
-		echo "Thanks, $1 is a proper module name"
+		echo "[*] Thanks, $1 is a proper module name"
+		goon="y"
 	else
-		echo "Please, end the module with \"Module\"" 
-		read -p "We will keep it at a warning (to use your module with Threenodes.js and aimregister)" 
+		echo "[#] Please, end the module with \"Module\"" 
+		read -p "[#] Ending on *Module is necessary for aimregister, do you still want to go on [y/N]? " goon
 	fi
 else
-	echo "Please, do not use whitespaces" 
-	read -p "Subsequent errors or at your own risk (to use your module with Threenodes.js and aimregister)" 
+	echo "[#] Please, do not use whitespaces" 
+	read -p "[#] Using whitespaces likely leads to errors somewhere down the line, do you still want to go on [y/N]? " goon
+fi
+
+if [ "${goon}" != "y" ]; then
+	echo "[#] Sorry, type \"y\" next time if you want to uninstall (you typed ${goon})"
+	exit 0
 fi
 
 # Create the proper directory
+echo "[#] Create the directory $modulename"
 mkdir -p "$modulename"
 cd "$modulename"
 
-# Copy from template directory
-RUR_TEMPLATES=/var/lib/rur
-cp -r $RUR_TEMPLATES .
+mkdir -p aim
 
-# Have all AIM relevant stuff collected in one directory "aim"
-mv rur aim
+# Copy from template directory
+thispath=$(pwd)
+echo "[#] Copy from template directory $RUR_TEMPLATE_PATH to \"$thispath\"/aim"
+cp --recursive $RUR_TEMPLATE_PATH/* aim
 cd aim
 
 # Adapt scripts to $modulename
+echo "[#] Adapt template scripts to use $modulename"
 sed -i "s/TemplateModule/$modulename/g" build.sh
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
-#sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.h
-
 sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
 sed -i "s/TemplateModule/$modulename/g" Makefile.parent
 
+echo "[#] Move parent files to root directory of $modulename"
 mv CMakeLists.txt.parent ../CMakeLists.txt
 mv Makefile.parent ../Makefile
 
+echo "[#] Move scripts files to separate directory"
 mkdir -p scripts
 mv build.sh scripts
 mv run.sh scripts
 
+echo "[#] Move idl file to separate directory"
 mkdir -p idl
 if [ -a "idl/$modulename.idl" ]; then
-	echo "The idl file exists, will not be overwritten"	
+	echo "[#] The idl file exists already, we will not overwrite it in case it has been adapted"	
 else
 	mv TemplateModule.idl "idl/$modulename.idl"
 fi
 
 if [ -n "$backend" ]; then
-	echo "We will use backend: $backend, feel free to use other ones later on!"
+	echo "[#] We will use backend: $backend, feel free to use other ones later on!"
 	sed -i "s/set(BUILD_STANDARD on)/set(BUILD\_$backend on)/g" default.cmake
 fi
 
 # Move relevant files to the inc/ directory
+echo "[#] Move header files to inc/ directory"
 #mkdir -p src
 mkdir -p inc
 
 mv TemplateModuleExt.h "inc/${modulename}Ext.h"
 
 # Move relevant files to the ../src/ directory
+echo "[#] Move source files to src/ directory"
 mkdir -p ../src
 
 mv TemplateModuleMain.cpp "../src/${modulename}Main.cpp"
@@ -101,4 +145,5 @@ mv TemplateModuleExt.cpp "../src/${modulename}Ext.cpp"
 
 #cp "src/${modulename}Main.cpp" "../src/${modulename}Main.cpp"
 #cp "src/${modulename}.cpp" "../src/${modulename}.cpp"
+echo "[#] Done! Type make and you are good to go!"
 

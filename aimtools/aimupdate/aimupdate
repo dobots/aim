@@ -4,6 +4,39 @@ PROGRAM="aimupdate"
 
 VERSION="$PROGRAM 0.1"
 
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
 if [[ "$1" == "" ]]
 then
 	echo "No args supplied! Run $0 -h for more info"
@@ -36,52 +69,37 @@ else
 	exit 1
 fi
 
-# Copy from template directory
-RUR_TEMPLATES=/var/lib/rur
+####################################################################################################
+# Start
+####################################################################################################
 
 cd "$modulename"
 
-cp $RUR_TEMPLATES/build.sh aim/scripts
-cp $RUR_TEMPLATES/run.sh aim/scripts
-cp $RUR_TEMPLATES/default.sh .
+echo "[#] Update the scripts"
+cp $RUR_TEMPLATE_PATH/build.sh aim/scripts
+cp $RUR_TEMPLATE_PATH/run.sh aim/scripts
 
-# We do not update CMakeLists.txt because this is probably adjusted
-#cp $RUR_TEMPLATES/CMakeLists.txt $modulename
+echo "[#] Update build process files"
+cp $RUR_TEMPLATE_PATH/cmake/* aim/cmake
+cp $RUR_TEMPLATE_PATH/*.xml aim
+cp $RUR_TEMPLATE_PATH/*.cmake aim
+cp $RUR_TEMPLATE_PATH/CMakeLists.txt aim
 
-# Replace "template module name" by real name
-sed -i "s/TemplateModule/$modulename/g" aim/scripts/build.sh
-#sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
-sed -i "s/TemplateModule/$modulename/g" Makefile
-
-exit
-
-mv rur "$modulename"
-cd "$modulename"
-
-# Adapt scripts to $modulename
-sed -i "s/TemplateModule/$modulename/g" build.sh
-sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt
-sed -i "s/TemplateModule/$modulename/g" Makefile
-sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
-sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
-sed -i "s/TemplateModule/$modulename/g" TemplateModule.cpp
-
-mkdir -p scripts
-mv build.sh scripts
-mv run.sh scripts
-
-mkdir -p idl
-if [ -a "idl/$modulename.idl" ]; then
-	echo "The idl file exists, will not be overwritten"	
-else
-	mv TemplateModule.idl "idl/$modulename.idl"
+thispath=$(pwd)
+echo "[#] We do not update CMakeLists.txt because this might be adjusted by you"
+echo "[#]  to see do: diff $thispath/CMakeLists.txt $RUR_TEMPLATE_PATH/CMakeLists.parent.txt"
+read -p "[#] Do you want to see that now (y/N)? " lookatdiff
+if [ "${lookatdiff}" == "y" ]; then
+	cp $RUR_TEMPLATE_PATH/CMakeLists.txt.parent CMakeLists.txt.temp
+	sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.temp
+	diff --report-identical-files CMakeLists.txt.temp CMakeLists.txt
+	rm CMakeLists.txt.temp
 fi
 
-exit
+cp $RUR_TEMPLATE_PATH/Makefile.parent ./Makefile
 
-mkdir -p src
-mv TemplateModuleMain.cpp "src/${modulename}Main.cpp"
-mv TemplateModule.cpp "src/${modulename}.cpp"
-
-mkdir -p inc
+# Replace "template module name" by real name
+echo "[#] In copied files replace TemplateModule by $modulename"
+sed -i "s/TemplateModule/$modulename/g" aim/scripts/build.sh
+sed -i "s/TemplateModule/$modulename/g" Makefile
 
