@@ -564,8 +564,8 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
     std::cout << "Connect to socket " << sock << std::endl; 
     try {
         s->connect(sock.c_str());
-    } catch (zmq::error_t) {
-        std::cerr << "Error: Could not connect to " << target << "!" << std::endl;
+    } catch (zmq::error_t &e) {
+        std::cerr << "Error: Could not connect to " << target << ", because: " << e.what() << std::endl;
     }
   }
 
@@ -634,8 +634,10 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 
             if p.is_in():
               self.st.out( portname + ".sock = new zmq::socket_t(*context, ZMQ_REP);")
+              self.st.out( portname + ".ready = true;")
             if p.is_out():
               self.st.out( portname + ".sock = new zmq::socket_t(*context, ZMQ_REQ);")
+              self.st.out( portname + ".ready = true;")
 
             self.st.out( "zmq_sockets.push_back(&" + portname + ");")
 
@@ -725,32 +727,22 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 
                 if p.is_in():
                   self.st.out( "/**" )
-                  self.st.out( " * The \"read" + param_name + "\" function receives stuff over a zeromq REP socket. It works as a client. It cannot be blocking" )
-                  self.st.out( " * because this would make it impossible to receive message on other ports (under which the /pid/control port). There" )
-                  self.st.out( " * is an additional \"new_item\" state boolean that indicates if the value is new if the function operates in" )
-                  self.st.out( " * non-blocking mode." )
+                  self.st.out( " * The \"read" + param_name + "\" function receives stuff over a zeromq REP socket. It works as a client. It is better not" )
+                  self.st.out( " * to run it in blocking mode, because this would make it impossible to receive message on other ports (under which " )
+                  self.st.out( " * the /pid/control port). The function returns NULL if there is no new item available." )
                   self.st.out( " */" )
 
                   # function signature
                   portValue = self.getPortValue(p);
                   portValueName = self.getPortValueName(m, p);
-                  self.st.out( "inline " + portValue + "* read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
-#                  if p.paramType().kind() == 21: # sequence
-#                     self.getSeqType(param_type)
-#                     seq_type = self.__result_type
-#                     self.st.out( "// Remark: caller is responsible for evoking vector.clear()" )
-#                     self.st.out( "inline std::vector<" + seq_type + "> *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" ) 
-#                  else:
-#                     self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool & new_item, bool blocking=true) {" )
+                  self.st.out( "inline " + portValue + "* read" + m.identifier() + "(bool blocking=false) {" ) 
 
                   # function content 
                   self.st.inc_indent()
                   self.st.out( "// For now only int return values are supported" )
-#                  self.st.out("SendGeneralRequest(" + portname + ", " + portname + "Ready);")
                   self.st.out( "int reply_size = -1;")
                   self.st.out( "char *reply = GetReply(" + portname + ".sock, " + portname + ".ready, blocking, reply_size);")
-                  self.st.out( "new_item = " + portname + ".ready;" )
-                  self.st.out( "if (reply == NULL) return &" + portValueName + ";")
+                  self.st.out( "if (!" + portname + ".ready || !reply) return NULL;" )
                   self.st.out( "SendAck(" + portname + ".sock, " + portname + ".ready);")
                   self.st.out( "if (reply_size < 3) std::cerr << \"Error: Reply is not large enough to store an integer!\" << std::endl;")
                   self.st.out( "std::stringstream ss; ss.clear(); ss.str(\"\");")
@@ -774,7 +766,7 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out( " * The " + param_name + " function sends stuff over a zeromq REQ socket. It works as a server. It cannot be blocking because this" )
                   self.st.out( " * would make it impossible to receive message on other ports (under which the /pid/control port). It could have been" )
                   self.st.out( " * blocking if it is known if it is connected to a REP port (but the connected() function is apparently not meant for" )
-                  self.st.out( " * that). " )
+                  self.st.out( " * that)." )
                   self.st.out( " */" )
 
                   # function signature
@@ -792,13 +784,22 @@ class ZeroMQVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   self.st.out( "std::stringstream ss; ss.clear(); ss.str(\"\");")
                   self.st.out( "ss << " + param_name + "; // very dirty, no endianness, etc, just use the stream operator itself") 
 #                  self.st.out( "ss << (" + param_name + "& 0xFF) << (" + param_name + ">> 8); // little-endian") 
-                  self.st.out( "bool state = true;")
-                  self.st.out( "SendRequest(" + portname + ".sock, state, true, ss.str());")
-                  self.st.out( "if (state) {")
-                  self.st.out( "  bool ack_state = true;")
-                  self.st.out( "  ReceiveAck(" + portname + ".sock, ack_state, true);")
+                  self.st.out( "bool state = " + portname + ".ready;")
+                  self.st.out( "SendRequest(" + portname + ".sock, state, false, ss.str());")
+                  self.st.out( "if (state) " + portname + ".ready = false;")
+                  self.st.out( "if (!" + portname + ".ready) {")
+                  self.st.inc_indent()
+                  self.st.out( "bool ack_state = true;")
+                  self.st.out( "ReceiveAck(" + portname + ".sock, ack_state, true);")
+                  self.st.out( "if (ack_state) {")
+                  self.st.inc_indent()
+                  self.st.out(  portname + ".ready = true;")
+                  self.st.out( "return true;")
+                  self.st.dec_indent()
                   self.st.out( "}")
-                  self.st.out( "return state;")
+                  self.st.dec_indent()
+                  self.st.out( "}")
+                  self.st.out( "return false;")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
