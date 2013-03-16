@@ -6,7 +6,13 @@
 # This include file should define BACKEND
 include local.mk
 
-INSTALL_PATH:=$(DESTDIR)/etc/aim/rur-builder/backends
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$(RUR_SHARE_PATH)/templates
+RUR_BACKENDS_PATH=$(RUR_SHARE_PATH)/backends
+RUR_CONFIG_PATH=/etc/rur
+
+INSTALL_PATH:=$(DESTDIR)/$(RUR_BACKENDS_PATH)
 
 CURRENT_MODULE_PATH:=$(CURDIR)
 ROS_PACKAGE_PATH:=$(ROS_PACKAGE_PATH):$(CURRENT_MODULE_PATH)
