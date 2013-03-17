@@ -29,39 +29,56 @@
       <div id="main" role="main">
         <div class="download-bar">
         <div class="inner">
-          <a href="https://github.com/mrquincle/aim-bzr/tarball/master" class="download-button tar"><span>Download</span></a>
+<!--          <a href="https://github.com/mrquincle/aim-bzr/tarball/master" class="download-button tar"><span>Download</span></a>
           <a href="https://github.com/mrquincle/aim-bzr/zipball/master" class="download-button zip"><span>Download</span></a>
+-->
           <a href="https://github.com/mrquincle/aim-bzr" class="code">View AIM on GitHub</a>
         </div>
         <span class="blc"></span><span class="trc"></span>
         </div>
         <article class="markdown-body">
-          <h3>Welcome to GitHub Pages.</h3>
+          <h3>Welcome to AIM</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>
+AIM stands for Artificial Intelligence Modules, but is much more than that. AIM is inspired by three recent movements in practical computer science. First, in the robotics community there is a need for a wide range of functionalities, from computer vision, navigation and mapping, to sensor fusion, and machine learning, which lead to several frameworks that allow people to collaborate: <a href="http://eris.liralab.it/yarp">YARP</a> (Yet Another Robot Platform), <a href="http://www.ros.org">ROS</a> (Robot Operating System), <a href="http://www.urbiforge.org">URBI</a> (Universal Real-time Behavior Interface) to name a few. Second, there are market infrastructures to distributed your applications: <a href="https://play.google.com">Google play</a>, <a href="http://www.apple.com/iphone/from-the-app-store/">Apple app store</a>, and let's hope also an online presence later of the excellent package managers like apt-get in the form of the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad package archives</a> and the <a href="https://build.opensuse.org/">openSUSE build service</a>. Third, there are frameworks to allow you to implement or reveal functionality in the cloud, from <a href="http://www.zeromq.org/">ZeroMQ</a>, a distributed transport layer used in Twitter <a href="http://storm-project.net/">Storm</a>, to <a href="http://mahout.apache.org/">Mahout</a>, scalable Map/Reduce based machine learning libraries. </p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<h3>Goal</h3>
+<p>
+The goal of AIM is threefold:
+<ul>
+<li>A <b>middleware-agnostic</b> modular approach to writing code: the "rur-builder". 
+<li>A <b>distributed market place</b>: the "aimserver".
+<li>Software that is inherently <b>scalable and runs on servers</b> as smoothly as one robots or smartphones.
+</ul>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+</p>
 
-<h3>Designer Templates</h3>
+<h3>Components</h3>
+<p>
+The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/mallet/soft/architecture/genom3">Genom3</a>. It does not create some additional library that has to be linked to all middlewares from YARP, ROS, to URBI, instead it uses a code generator, that generates dedicated interface files. However, different from Genom3 the code is not "enriched" with meta-information. The meta-information is by virtue of a specific IDL file, that describes the interface of a module in a general sense. This means that code completion still works: there are no tcl-statements through the code that makes indexing difficult.</p>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>
+The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
+</p>
 
-<h3>Rather Drive Stick?</h3>
+<p>
+The <b>aimserver</b> (forthcoming) is a REST server that allows people to find AI modules across a wide range of repositories. Moreover, it provides functionality to compile the code found, run it, stop it, and connect modules together. Towards that purpose there is a range of tools to create, register, copy, and connect AI modules: "aimtools".
+</p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<h3>How to get it?</h3>
+<p>
+You can get the code from <a href="https://github.com/mrquincle/aim-bzr">github.com</a>, but the easiest way to get the code is via <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad</a>:
 
-<h3>Authors and Contributors</h3>
+<pre><code>$sudo add-apt-repository ppa:dobots/ppa # press ENTER if asked for confirmation
+$sudo apt-get update
+$sudo apt-get install aim
+$dpkg -L aim</code></pre>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+</p>
 
-<h3>Support or Contact</h3>
+<h3>Support</h3>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>You would like to know more? Check out the company providing all this open-source software <a href="http://www.dobots.nl">Distributed Organisms B.V.</a>, a spinoff of the Dutch research institute <a href="http://www.almende.com">Almende</a>. You can also checkout the repositories of individual authors <a href="https://github.com/vliedel" class="user-mention">Bart van Vliet</a>, <a href="https://github.com/eggerdo" class="user-mention">Dominik Egger</a> and <a href="https://github.com/mrquincle" class="user-mention">Anne van Rossum</a>.</p>
         </article>
       </div>
     </div>
