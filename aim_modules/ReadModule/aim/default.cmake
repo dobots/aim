@@ -14,7 +14,7 @@
 # 
 
 # Default backend to be used, it can also be YARP or ROS
-set(BUILD_ZEROMQ on)
+set(BUILD_ROS on)
 
 #RUR_BACKENDS is impossible to set here, because it depends on your system configuration
 # it should end with something like rur-builder/backends.
