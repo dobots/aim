@@ -253,15 +253,18 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.inc_indent()
         for m in self.portList:
             self.writePortDestruction(m)
-        self.st.out("delete cliParam;" ) 
+    	for s in self.structList:
+    		name = s.scopedName()[-1]
+    		if name == 'Param':
+    			self.st.out("delete cliParam;" ) 
         self.st.dec_indent()
         self.st.out( "}" )   
 
     def writeTick(self):
-        self.st.out( "// This is the function you will need to implement." )
-        self.st.out( "void Tick(); ")
+        self.st.out( "// This is the function you will need to override in a subclass implement." )
+        self.st.out( "void Tick() {} ")
         self.st.out("")
-        self.st.out( "bool Stop(); ")
+        self.st.out( "bool Stop() { return false; } ")
         self.st.out("")
         
     def writeInit(self):

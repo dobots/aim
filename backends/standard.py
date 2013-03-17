@@ -218,9 +218,9 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "~" + self.classname + "() { }" )
         
     def writeInit(self):
-        self.st.out( "void Tick();" )
+        self.st.out( "void Tick() {} " )
         self.st.out( "" )
-        self.st.out( "bool Stop();" )	
+        self.st.out( "bool Stop() { return false; }" )	
         self.st.out( "" )
         self.st.out( "void Init(std::string & name) { }" )
     
@@ -234,7 +234,7 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 portname = "port" + m.identifier()
 
                 if p.is_in():
-                  self.st.out( "inline " + param_type + " *read" + m.identifier() + "() {" ) 
+                  self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking_dummy=false) {" ) 
                   self.st.inc_indent()
                   self.st.out( "return &dummy" + m.identifier() + ";")
                   self.st.dec_indent()
