@@ -26,7 +26,7 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 # The directory with all the FindXXX modules
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/aim/cmake/")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/aim/cmake/" "${CMAKE_SOURCE_DIR}/cmake/")
 
 MESSAGE("Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
 
@@ -88,6 +88,14 @@ ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
   MESSAGE("ROS build, useful for ROS middleware")
+  MESSAGE("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
+#  SET (PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/aim")
+#  MESSAGE("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
+#  SET (ROS_PACKAGE_PATH "${ROS_PACKAGE_PATH}:${PROJECT_SOURCE_DIR}")
+  MESSAGE("ROS_PACKAGE_PATH = $ENV{ROS_PACKAGE_PATH}")
+  IF (NOT DEFINED ENV{ROS_ROOT})
+    MESSAGE(FATAL_ERROR "The $ROS_ROOT environmental variable needs to be defined beforehand. Did you source /opt/ros/groovy/setup.bash?")
+  ENDIF()
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   rosbuild_init()
 ENDIF (BUILD_ROS)
