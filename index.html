@@ -40,7 +40,7 @@
           <h3>Welcome to AIM</h3>
 
 <p>
-AIM stands for Artificial Intelligence Modules, but is much more than that. AIM is inspired by three recent movements in practical computer science. First, in the robotics community there is a need for a wide range of functionalities, from computer vision, navigation and mapping, to sensor fusion, and machine learning, which lead to several frameworks that allow people to collaborate: <a href="http://eris.liralab.it/yarp">YARP</a> (Yet Another Robot Platform), <a href="http://www.ros.org">ROS</a> (Robot Operating System), <a href="http://www.urbiforge.org">URBI</a> (Universal Real-time Behavior Interface) to name a few. Second, there are market infrastructures to distributed your applications: <a href="https://play.google.com">Google play</a>, <a href="http://www.apple.com/iphone/from-the-app-store/">Apple app store</a>, and let's hope also an online presence later of the excellent package managers like apt-get in the form of the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad package archives</a> and the <a href="https://build.opensuse.org/">openSUSE build service</a>. Third, there are frameworks to allow you to implement or reveal functionality in the cloud, from <a href="http://www.zeromq.org/">ZeroMQ</a>, a distributed transport layer used in Twitter <a href="http://storm-project.net/">Storm</a>, to <a href="http://mahout.apache.org/">Mahout</a>, scalable Map/Reduce based machine learning libraries. </p>
+AIM stands for Artificial Intelligence Modules, but is much more than that. AIM is inspired by three recent movements in practical computer science. First, in the robotics community there is a need for a wide range of functionalities, from computer vision, navigation and mapping, to sensor fusion, and machine learning, which lead to several frameworks that allow people to collaborate: <a href="http://eris.liralab.it/yarp">YARP</a> (Yet Another Robot Platform), <a href="http://www.ros.org">ROS</a> (Robot Operating System), <a href="http://www.urbiforge.org">URBI</a> (Universal Real-time Behavior Interface) to name a few. Second, there are market infrastructures to distribute your applications: <a href="https://play.google.com">Google play</a>, <a href="http://www.apple.com/iphone/from-the-app-store/">Apple app store</a>, and let's hope also an online presence later of the excellent package managers like apt-get in the form of the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad package archives</a> and the <a href="https://build.opensuse.org/">openSUSE build service</a>. Third, there are frameworks to allow you to implement or reveal functionality in the cloud, from <a href="http://www.zeromq.org/">ZeroMQ</a>, a distributed transport layer used in Twitter <a href="http://storm-project.net/">Storm</a>, to <a href="http://mahout.apache.org/">Mahout</a>, scalable Map/Reduce based machine learning libraries. </p>
 
 <h3>Goal</h3>
 <p>
@@ -63,6 +63,43 @@ The current rur-builder provides functionality for different backends. Currently
 
 <p>
 The <b>aimserver</b> (forthcoming) is a REST server that allows people to find AI modules across a wide range of repositories. Moreover, it provides functionality to compile the code found, run it, stop it, and connect modules together. Towards that purpose there is a range of tools to create, register, copy, and connect AI modules: "aimtools".
+</p>
+
+<h3>Example</h3>
+<p>
+At <a href="https://github.com/mrquincle/aim_modules">AIM modules</a> you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The <a href="https://raw.github.com/mrquincle/aim_modules/master/ReadModule/aim/idl/ReadModule.idl">IDL file</a> of the ReadModule does actually have only a few lines:
+
+<pre><code>#pragma copyright LGPLv3
+
+// Recommended namespace "rur"
+module rur {
+
+// We want to be able to give our class a name
+interface ReadModule {
+
+  // Input from sensor as individual values
+  void Input(in long input);
+
+};
+</code></pre>
+
+The important part here is the function defined with an additional keyword, namely "in". This is transformed in a function description of which the following one shows the YARP-specific one:
+
+<pre><code>inline int *readInput(bool blocking=true) {
+  Bottle *b = portInput->read(blocking);
+  if (b != NULL) { 
+    portInputValue = b->get(0).asInt();
+    return &portInputValue;
+  }
+  return NULL;
+}
+</code></pre>
+
+As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The #pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header.  The "module" keyword translates into a namespace.
+</p>
+
+<p>
+To actually run the code you 
 </p>
 
 <h3>How to get it?</h3>
@@ -93,7 +130,9 @@ dpkg -L aim</code></pre></p>
   </div>
   <div class="current-section">
     <a href="#top">Scroll to top</a>
+<!--
     <a href="https://github.com/mrquincle/aim-bzr/tarball/master" class="tar">tar</a><a href="https://github.com/mrquincle/aim-bzr/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+-->
     <p class="name"></p>
   </div>
 
