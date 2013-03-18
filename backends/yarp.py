@@ -464,9 +464,9 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                   if p.paramType().kind() == 21: # sequence
                       self.getSeqType(param_type)
                       seq_type = self.__result_type
-                      self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " &" + param_name + ") {" )
+                      self.st.out( "inline bool write" + m.identifier() + "(const " + param_type + " &" + param_name + ") {" )
                   else:
-                      self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " " + param_name + ") {" )
+                      self.st.out( "inline bool write" + m.identifier() + "(const " + param_type + " " + param_name + ") {" )
                   
                   # function content
                   self.st.inc_indent()
@@ -490,7 +490,9 @@ class YarpVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                      self.st.out("}")
                   else:
                      self.st.out( param_type + "& " + param_name + "Prepare = " + portname + "->prepare();")
-                  self.st.out( portname + "->write(true);")
+                  self.st.out( "bool forceStrict = true; // wait till previous sends are complete")
+                  self.st.out( portname + "->write(forceStrict);")
+                  self.st.out( "return true;")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
