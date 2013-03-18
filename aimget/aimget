@@ -1,0 +1,85 @@
+#!/bin/bash
+
+PROGRAM="aimupdate"
+
+VERSION="$PROGRAM 0.1"
+
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+if [[ "$1" == "" ]]
+then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo "$VERSION - Usage"
+	echo 
+	echo "$PROGRAM \"repository name\" \"repository url\""
+	echo "  for example: $PROGRAM computervision https://github.com/mrquincle/aim_modules"
+	echo "  the repository name will be used to be able to maintain multiple repositories"
+	echo
+	exit 0 
+fi 
+
+if [[ $# -ne 2 ]]
+then
+	echo "[#] We need two parameters. Run $0 -h for more info, currently you used $# parameters"
+	exit 1
+fi
+
+####################################################################################################
+# Start
+####################################################################################################
+
+REPOS_NAME=$1
+REPOS_URL=$2
+
+: ${AIM_WORKSPACE:? "[#] Set AIM_WORKSPACE as environmental variable before you use this tool"}
+
+[ ! -d $AIM_WORKSPACE ] && echo "[#] Workspace path \"$AIM_WORKSPACE\" not found" && exit 0
+	
+echo "[#] We will use $AIM_WORKSPACE for a workspace"
+
+cd $AIM_WORKSPACE
+
+if [[ $REPOS_URL =~ .*github.* ]]; then
+	echo "[#] This is a github repository"
+	echo "[#] git clone $REPOS_URL $REPOS_NAME"
+	[ -d $REPOS_NAME ] && echo "[#] Directory \"$REPOS_NAME\" already exists" && exit 0
+	git clone $REPOS_URL $REPOS_NAME
+fi
+
+

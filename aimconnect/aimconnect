@@ -45,22 +45,21 @@ fi
 # Checks
 ####################################################################################################
 
-if [[ $# -ne 7 ]]
-then
-	echo "[#] We need seven parameters. Run $0 -h for more info, currently you used $# parameters"
-	exit 1
-fi
-
 if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
 	echo 
 	echo $PROGRAM \"middleware\" \"module1 name\" \"module1 index\" \"module 1 port\" \"module 2 name\" \"module 2 index\" \"module 2 port\"
-#	echo $PROGRAM \"middleware\" \"port0\" \"port1\"
 	echo "  with middleware: [yarp | zeromq ]"
 	echo
 	exit 0 
 fi 
+
+if [[ $# -ne 7 ]]
+then
+	echo "[#] We need seven parameters. Run $0 -h for more info, currently you used $# parameters"
+	exit 1
+fi
 
 MIDDLEWARE=${1%/}
 CONNECT_UTILITY=
