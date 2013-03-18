@@ -182,16 +182,17 @@ We are now going to make our changes to the code at three places. Open $AIM_MODU
 }</code></pre></p>
 
 <p>
-Adjust $AIM_MODULES_PATH/MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add a private field to the class:
+Adjust $AIM_MODULES_PATH/MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
 </p>
 
 <p><pre><code>class MovingAverageModuleExt: public MovingAverageModule {
 public:
-  MovingAverageModuleExt(): message_counter(0) { }
+  MovingAverageModuleExt(): message_counter(0), prev_average(0) { }
   void Tick();
   bool Stop();
 private:
   long int message_counter;
+  double prev_average;
 };
 </code></pre></p>
 
@@ -206,7 +207,7 @@ Adapt $AIM_MODULES_PATH/MovingAverageModule/src/MovingAverageModuleExt.cpp subse
   if (value) {
     int i = ++message_counter;
     double average = (*value + prev_average*(i-1)) / i;
-    writeAverage(average);
+	    writeAverage(average);
     prev_average = average;
   }
   sleep(1);
