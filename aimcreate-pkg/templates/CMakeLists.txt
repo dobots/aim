@@ -28,11 +28,11 @@ ENDIF(WIN32)
 # The directory with all the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/aim/cmake/")
 
-MESSAGE("Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
+MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
 
 # The macro below forces the build directory to be different from source directory:
 INCLUDE( MacroEnsureOutOfSourceBuild )
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "Requires an out of source build." ) 
+MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "[*] Requires an out of source build." ) 
 
 # Build options
 OPTION(BUILD_YARP      "Build module with YARP" OFF)
@@ -43,8 +43,14 @@ OPTION(BUILD_STANDARD  "Default build option" ON)
 # Check first if on command line CMAKE has set one of the options
 IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ))
   # If not, load the option from file
-  INCLUDE(default.cmake)
-  INCLUDE(local.cmake OPTIONAL)
+  MESSAGE("[*] Check ${CMAKE_SOURCE_DIR}/aim/local.cmake")
+  IF (EXISTS "${CMAKE_SOURCE_DIR}/aim/local.cmake")
+    MESSAGE("[*] Use user-defined local configuration file")
+    INCLUDE(local.cmake)
+  ELSE()
+    MESSAGE("[*] Use default configuration file")
+    INCLUDE(default.cmake)
+  ENDIF()
 ENDIF()
 
 # Check again if one of the options has turned on from one of the .cmake files
@@ -72,34 +78,34 @@ IF (BUILD_STANDARD)
 ENDIF ()
 
 # Generate header files
-MESSAGE("Run cd ${CMAKE_SOURCE_DIR}/aim/scripts && ./build.sh ${MIDDLEWARE} ${BACKENDS_PATH}")
-EXEC_PROGRAM("cd ${CMAKE_SOURCE_DIR}/aim/scripts && ./build.sh ${MIDDLEWARE} ${BACKENDS_PATH}")
+MESSAGE("[*] Run the build.sh script with arguments: \"${MIDDLEWARE}\" and \"${BACKENDS_PATH}\"")
+EXECUTE_PROCESS(COMMAND ./build.sh ${MIDDLEWARE} ${BACKENDS_PATH} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/aim/scripts)
 
 # Write the (backend) configuration
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/aim/config.h.cmake ${CMAKE_SOURCE_DIR}/aim/inc/Config.h )
 
 # Find all cmake packages
 IF (BUILD_YARP)
-  MESSAGE("YARP build, useful for YARP middleware")
+  MESSAGE("[*] YARP build, useful for YARP middleware")
   FIND_PACKAGE(YARP REQUIRED)
   INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS} PARENT_SCOPE)
   SET(LIBS ${LIBS} ${YARP_LIBRARIES})
 ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
-  MESSAGE("ROS build, useful for ROS middleware")
+  MESSAGE("[*] ROS build, useful for ROS middleware")
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   rosbuild_init()
 ENDIF (BUILD_ROS)
 
 IF (BUILD_ZEROMQ)
-  MESSAGE("ZeroMQ build, useful for ZeroMQ message queues")
+  MESSAGE("[*] ZeroMQ build, useful for ZeroMQ message queues")
   FIND_PACKAGE(ZMQ REQUIRED)
-  INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS} PARENT_SCOPE)
+  INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
   SET(LIBS ${LIBS} ${ZMQ_LIBRARIES})
 
   FIND_PACKAGE(JsonSpirit REQUIRED)
-  INCLUDE_DIRECTORIES(${JSON_SPIRIT_INCLUDE_DIRS} PARENT_SCOPE)
+  INCLUDE_DIRECTORIES(${JSON_SPIRIT_INCLUDE_DIRS})
   SET(LIBS ${LIBS} ${JSON_SPIRIT_LIBRARIES})
 
   # Currently tacitly assuming rt is always there...
@@ -115,7 +121,7 @@ SET(LIBS ${LIBS} PARENT_SCOPE)
 
 # Warning for user when standard build
 IF (BUILD_STANDARD)
-  MESSAGE("[!] Standard build, not usable in middleware yet")
+  MESSAGE("[*] Standard build, not usable in middleware yet")
 ENDIF (BUILD_STANDARD)
 
 # Search for functional source code
