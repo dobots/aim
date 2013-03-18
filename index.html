@@ -81,9 +81,7 @@ interface ReadModule {
   // Input from sensor as individual values
   void Input(in long input);
 
-};
-</code></pre>
-</p>
+};</code></pre></p>
 
 <p>
 The important part here is the function "void Input" defined with an additional keyword: "in". This is transformed in a function description of which the following one shows the YARP-specific one:
@@ -95,12 +93,13 @@ The important part here is the function "void Input" defined with an additional 
     return &portInputValue;
   }
   return NULL;
-}
-</code></pre></p>
+}</code></pre></p>
 
 <p>
 As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The #pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header.  The "module" keyword translates into a namespace.
 </p>
+
+<h4>Example with YARP</h4>
 
 <p>
 Now, the running of the code of these modules actually depends on the middleware of course. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. Let us assume you downloaded the AI modules to $AIM_MODULES_PATH. Then to run the modules with YARP middleware, you will need to:
@@ -108,10 +107,10 @@ Now, the running of the code of these modules actually depends on the middleware
 
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
 cd $AIM_MODULES_PATH/ReadModule 
-echo "set(BUILD_YARP on)" >> aim/local.cmake
+echo "set(BUILD_YARP on)" > aim/local.cmake
 make
 cd $AIM_MODULES_PATH/WriteModule 
-echo "set(BUILD_YARP on)" >> aim/local.cmake
+echo "set(BUILD_YARP on)" > aim/local.cmake
 make
 cd $AIM_MODULES_PATH
 aimregister ReadModule
@@ -128,6 +127,133 @@ aimconnect yarp WriteModule 0 output ReadModule 0 input
 
 <p>
 This will use the YARP middleware to set up a TCP connection between the WriteModule and the ReadModule to send over a value. The "connect" utility needs to know which middleware is used, on the moment it will require a server to be run on the machine, but this requirement can be lifted for a distributed environment, as long as the specific "connect" implementations of the middleware knows how to find the registered ports.
+</p>
+
+<h4>Example with ZeroMQ</h4>
+
+<p>
+Running the code with ZeroMQ instead of YARP is along similar lines. To run the same WriteModule and ReadModule with ZeroMQ, you will need to:
+</p>
+
+<p><pre><code>sudo apt-get install libzmq-dev
+cd $AIM_MODULES_PATH/ReadModule 
+echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
+make
+cd $AIM_MODULES_PATH/WriteModule 
+echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
+make
+cd $AIM_MODULES_PATH
+aimregister ReadModule  # if not done before
+aimregister WriteModule # if not done before
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+zmqserver
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun ReadModule 0 
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun WriteModule 0
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimconnect zmq WriteModule 0 output ReadModule 0 input
+</code></pre></p>
+
+<p>
+Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zmq" instead of "yarp".
+</p>
+
+<h3>Create your own module</h3>
+
+<p>
+So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port.
+</p>
+
+<p><pre><code>cd $AIM_MODULES_PATH
+aimcreate-pkg MovingAverageModule
+cd $AIM_MODULES_PATH/MovingAverageModule
+# Now we compile our module, the default module already compiles!
+make</code></pre></p>
+
+<p>
+We are now going to make our changes to the code at three places. Open $AIM_MODULES_PATH/MovingAverageModule/aim/idl/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
+</p>
+
+<p><pre><code>interface MovingAverageModule {
+  void Input(in long input);
+  
+  void Average(out long output);
+}</code></pre></p>
+
+<p>
+Adjust $AIM_MODULES_PATH/MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add a private field to the class:
+</p>
+
+<p><pre><code>class MovingAverageModuleExt: public MovingAverageModule {
+public:
+  MovingAverageModuleExt(): message_counter(0) { }
+  void Tick();
+  bool Stop();
+private:
+  long int message_counter;
+};
+</code></pre></p>
+
+<p>
+Adapt $AIM_MODULES_PATH/MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
+</p>
+
+<p>
+<pre><code>void MovingAverageModuleExt::Tick() {
+  MovingAverageModule::Tick();
+  int *value = readInput();
+  if (value) {
+    int i = ++message_counter;
+    std::cout << "Messages received: " << i << std::endl;
+    double average = (*value + prev_average*(i-1)) / i;
+    std::cout << \
+      "Calculate (" << *value << '+' << prev_average << '*' << \
+      (i-1) << ")/" << i << "=" << average << std::endl;
+    writeAverage(average);
+    prev_average = average;
+  }
+  sleep(1);
+}</code></pre>
+</p>
+
+<p>
+You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/blob/master/MovingAverageModule/src/MovingAverageModuleExt.cpp">MovingAverageModuleExt.cpp</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
+</p>
+
+<p><pre><code>cd $AIM_MODULES_PATH/MovingAverageModule 
+echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
+make
+cd $AIM_MODULES_PATH
+aimregister MovingAverageModule
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+zmqserver
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun ReadModule 0 
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun WriteModule 0
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun MovingAverageModule 0
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimconnect zeromq MovingAverageModule 0 average ReadModule 0 input
+aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
+</code></pre></p>
+
+<p>
+The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages received: 4" and "Calculate (666+666*3)/4=666". Do not forget to upload your code now to your own github repository!
+</p>
+
+<p><pre><code>cd $AIM_MODULES_PATH/MovingAverageModule 
+rm aim/local.cmake
+make clean
+cd $AIM_MODULES_PATH
+git add MovingAverageModule
+git commit -m "A moving average module for the AIM repository"
+git push
+</code></pre></p>
+
+<p>
+As you can see we cleaned up beforehand and we removed the "aim/local.cmake" file that indicates your own preference for a middleware. If a certain module has a specific preferred middleware you can indicate this in the "aim/default.cmake" file.
 </p>
 
 <h3>How to get it?</h3>
