@@ -4,77 +4,106 @@ PROGRAM="aimstop"
 
 VERSION="$PROGRAM 0.1"
 
-if [[ $# -ne 2 ]]
-then
-	echo "Not enough args supplied! Run $0 -h for more info"
-	exit 1
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Working paths
+RUR_DATA_PATH=$HOME/.rur/data
+RUR_REGISTRY_PATH=$RUR_DATA_PATH/registry
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+# Data(base) files
+AIM_REGISTRY=${RUR_DATA_PATH}/aim_registry.txt
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
 fi
+
+####################################################################################################
+# Checks
+####################################################################################################
 
 if [[ "$1" == "-h" ]]
 then
-	echo $VERSION \- Usage
+	echo "$VERSION - Usage"
 	echo 
-	echo $PROGRAM \"ModuleName\" \"ModuleId\"
+	echo "$PROGRAM \"middleware\" \"module name\" \"module id\""
 	echo
 	exit 0 
 fi 
 
-MODULE_NAME=${1%/}
-ModuleId=${2%/}
+if [[ $# -ne 3 ]]
+then
+	echo "[#] We need three parameters. Run $0 -h for more info, currently you used $# parameters"
+	exit 1
+fi
 
-# Configuration directory for RUR
-RUR_HOME=~/.rur
-mkdir -p ${RUR_HOME}
+MIDDLEWARE=${1%}
+MODULE_NAME=${2%/}
+ModuleId=${3%/}
 
-AIM_REGISTRY=aim_registry.txt
-
-echo "Search in ${RUR_HOME}/${AIM_REGISTRY}"
+echo "[#] Search in ${RUR_HOME}/${AIM_REGISTRY}"
 SUCCESS=false
 MODULE_FULLNAME=
 while read LINE; do
-	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
+	MODULE_I=$(echo "$LINE" | cut -d'=' -f 1)
 	M_I_STRIPPED=${MODULE_I//[[:space:]]}
-#	echo $M_I_STRIPPED
-	if [[ "$M_I_STRIPPED" == "$1" ]]; then
-#		echo "$MODULE_NAME found. Run it"
-		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
+	if [[ "$M_I_STRIPPED" == "$MODULE_NAME" ]]; then
+		MODULE_FULLNAME=$(echo "$LINE" | cut -d'=' -f 2)
 		SUCCESS=true
 		break
 	fi
-done < "${RUR_HOME}/${AIM_REGISTRY}"
+done < "${AIM_REGISTRY}"
 
 index=0
 Registered_port={}
-while read LINE; 
-do
-        port=`echo "$LINE" | cut -d' ' -f 2`
+while read LINE; do
+        port=$(echo "$LINE" | cut -d' ' -f 2)
 	Registered_port[$index]=$port
 	index=$(($index + 1))
         #echo $port
-done < "${RUR_HOME}/registry/$1.ports"
+done < "${RUR_REGISTRY_PATH}/$MODULE_NAME.ports"
 
 
+if [[ ! $SUCCESS == true ]]; then
+	echo "[#] No such module found ($MODULE_NAME)"
+	exit 1
+fi	
 
-
-
-
-if [[ $SUCCESS == true ]]; then
-	# echo "Kill previous one"
-	# pkill -9 $MODULE_NAME
-	#echo "Stop $MODULE_NAME $ModuleId"
-
-
-        
-        # for port1 in $Registered_port
-        for (( i=0; i< $index; i++ ))
-        do
-          echo ${Registered_port[$i]}
-          yarp terminate /${1,,}$2/${Registered_port[$i]}
-        done
+if [[ $MIDDLEWARE == "yarp" ]]; then
+	# for port1 in $Registered_port
+	for (( i=0; i< $index; i++ ))
+	do
+		echo ${Registered_port[$i]}
+		yarp terminate /${MODULE_NAME,,}$ModuleId/${Registered_port[$i]}
+	done
 	yarp clean
-	
-else
-	echo "No such module found ($MODULE_NAME)"
+	exit 0
 fi
 
+echo "[#] Stop $MODULE_NAME $ModuleId in a rigorous manner"
+pkill -9 $MODULE_NAME
 exit 0
+

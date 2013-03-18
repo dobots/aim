@@ -97,4 +97,6 @@ else
 	echo "[#] No such module found ($MODULE_NAME)"
 fi
 
+echo "[#] Exit of ($MODULE_NAME)"
 exit 0
+
