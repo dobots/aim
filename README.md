@@ -1,6 +1,6 @@
 # AIM
 
-AIM main repository with subtree merging instead of submodules to support bazaar import. It currently contains:
+For a proper introduction see the [AIM website](http://mrquincle.github.com/aim-bzr/). This AIM repository currently contains:
 
 * rur-builder to generate header files for a range of middlewares
 * aimtools, a suite of tools to create, register, copy, and connect modules
