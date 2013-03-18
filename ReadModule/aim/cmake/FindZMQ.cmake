@@ -13,23 +13,19 @@
 #  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 #
 
-include(LibFindMacros)
-
-#if (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
+if (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
   # in cache already
-#  set(ZMQ_FOUND TRUE)
-#else (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
+  set(ZMQ_FOUND TRUE)
+else (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
 
   find_path(ZMQ_INCLUDE_DIR
     NAMES
       zmq.h
     PATHS
-      ${ZMQ_PKGCONF_INCLUDE_DIRS}
-      /usr
-      /usr/local
-      /sw
-   PATH_SUFFIXES
-      include
+      /usr/include
+      /usr/local/include
+      /opt/local/include
+      /sw/include
   )
 
   find_library(ZMQ_LIBRARY
@@ -47,16 +43,17 @@ include(LibFindMacros)
   )
 
   if (ZMQ_LIBRARY)
-    set(ZMQ_LIBRARIES ${ZMQ_LIBRARIES} ${ZMQ_LIBRARY})
+    set(ZMQ_LIBRARIES
+        ${ZMQ_LIBRARIES}
+        ${ZMQ_LIBRARY}
+    )
   endif (ZMQ_LIBRARY)
 
-  #include(FindPackageHandleStandardArgs)
-  #find_package_handle_standard_args(ZMQ DEFAULT_MSG ZMQ_LIBRARIES ZMQ_INCLUDE_DIRS)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(ZMQ DEFAULT_MSG ZMQ_LIBRARIES ZMQ_INCLUDE_DIRS)
 
   # show the ZMQ_INCLUDE_DIRS and ZMQ_LIBRARIES variables only in the advanced view
-  # mark_as_advanced(ZMQ_INCLUDE_DIRS ZMQ_LIBRARIES)
+  mark_as_advanced(ZMQ_INCLUDE_DIRS ZMQ_LIBRARIES)
 
-#endif (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
-
-libfind_process(ZMQ)
+endif (ZMQ_LIBRARIES AND ZMQ_INCLUDE_DIRS)
 

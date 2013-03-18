@@ -27,7 +27,7 @@ WriteModuleExt::~WriteModuleExt() {
 /**
  * The write module
  */
-bool WriteModuleExt::Tick() {
+void WriteModuleExt::Tick() {
 	std::cout << '[' << getpid() << "] Tick " << lifetime << endl;
 	WriteModule::Tick();
 #if SHOW_YOU_ALSO_CAN_CONNECT_DIRECTLY == 1
@@ -42,7 +42,6 @@ bool WriteModuleExt::Tick() {
 		}
 	}
 	sleep(1);
-	return true;
 }
 
 bool WriteModuleExt::Stop() {

@@ -42,16 +42,14 @@ FIND_PATH(YARP_INCLUDE_DIR NAMES yarp/os/Bottle.h
       /opt/local # DarwinPorts
       /opt/csw # Blastwave
       /opt
-      /usr/freeware
+      /usr/freeware/include
    PATH_SUFFIXES
       include
 )
 
 # Finally find the directory for the library/libraries itself
 # See: http://www.cmake.org/cmake/help/cmake2.6docs.html#command:find_path
-FIND_LIBRARY(YARP_LIB_OS
-   NAMES 
-      YARP_OS 
+FIND_LIBRARY(YARP_LIB_OS NAMES YARP_OS 
    PATHS
       ${YARP_PKGCONF_LIBRARY_DIRS}
       /usr/local
