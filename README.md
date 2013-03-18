@@ -6,6 +6,7 @@ For a proper introduction see the [AIM website](http://mrquincle.github.com/aim-
 * [aimtools](https://github.com/mrquincle/aimtools), a suite of tools to create, register, copy, and connect modules
 * [zmqserver](https://github.com/mrquincle/zmqserver), a nameserver for ZeroMQ connections
 * [zmqconnect](https://github.com/mrquincle/zmqconnect), a exogenous coordination method to connect two modules with each other
+* [aimserver](https://github.com/mrquincle/aimserver), a REST interface for the aimtools
 * [aim_modules](https://github.com/mrquincle/aim_modules), a repository of reusable AI modules
 
 ## For users
