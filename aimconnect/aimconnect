@@ -45,9 +45,9 @@ fi
 # Checks
 ####################################################################################################
 
-if [[ $# -ne 3 ]]
+if [[ $# -ne 7 ]]
 then
-	echo "[#] We need three parameters. Run $0 -h for more info, currently you used $# parameters"
+	echo "[#] We need seven parameters. Run $0 -h for more info, currently you used $# parameters"
 	exit 1
 fi
 
@@ -55,8 +55,8 @@ if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
 	echo 
-#	echo $PROGRAM \"middleware\" \"Module1Name\" \"outputPort\" \"Module2Name\" \"inputPort\"
-	echo $PROGRAM \"middleware\" \"port0\" \"port1\"
+	echo $PROGRAM \"middleware\" \"module1 name\" \"module1 index\" \"module 1 port\" \"module 2 name\" \"module 2 index\" \"module 2 port\"
+#	echo $PROGRAM \"middleware\" \"port0\" \"port1\"
 	echo "  with middleware: [yarp | zeromq ]"
 	echo
 	exit 0 
@@ -70,54 +70,69 @@ elif [[ $MIDDLEWARE == "zeromq" ]]; then
 	CONNECT_UTILITY="zmqconnect"
 fi
 
-#shift
+# Shift all arguments
+shift
 
-PORT_NAME1=${2%/}
-PORT_NAME2=${3%/}
+MODULE_NAME1=${1%/}
+MODULE_ID1=${2%}
+PORT_NAME1=${3%}
 
-$CONNECT_UTILITY ${PORT_NAME1,,} ${PORT_NAME2,,}
+MODULE_NAME2=${4%/}
+MODULE_ID2=${5%}
+PORT_NAME2=${6%}
 
-#MODULE_NAME1=${1%/}
-#MODULE_NAME2=${3%/}
-#echo $MODULE_NAME1
-#echo ${3}
-
-#echo "[#] Search in ${RUR_HOME}/${AIM_REGISTRY}"
-#SUCCESS1=false
-#SUCCESS2=false
-
-#MODULE_FULLNAME=
-#while read LINE; do
-#	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
-#	M_I_STRIPPED=${MODULE_I//[[:space:]]}
-#	if [[  ${1} == ${M_I_STRIPPED}*  ]]; then
-#		echo "$1 found. prepare to connect it"
-#		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
-#		SUCCESS1=true
-#		break
-#	fi
-#done < "${AIM_REGISTRY}"
-
-
-#while read LINE; do
-#	MODULE_I=`echo "$LINE" | cut -d'=' -f 1`
-#	M_I_STRIPPED=${MODULE_I//[[:space:]]}
-#	if [[  ${3} == $M_I_STRIPPED* ]]; then
-#		echo "[#] $3 found. prepare to connect it"
-#		MODULE_FULLNAME=`echo "$LINE" | cut -d'=' -f 2`
-#		SUCCESS2=true
-#		break
-#	fi
-#done < "${AIM_REGISTRY}"
+if [[ $MIDDLEWARE == "yarp" ]]; then
+	echo "[#] Check if yarp server is actually running"
+	SERVER=$(ps aux | grep "yarp" | grep "server")
+	if [[ -z "$SERVER" ]]; then
+		echo "[#] Cannot find the server, start the yarp server first!"
+		exit 0
+	fi
+elif [[ $MIDDLEWARE == "zeromq" ]]; then
+	echo "[#] Check if zmq server is actually running"
+	SERVER=$(ps aux | grep "zmq" | grep "server")
+	if [[ -z "$SERVER" ]]; then
+		echo "[#] Cannot find the server, start the zmq server first!"
+		exit 0
+	fi
+fi
 
 
-#if [ $SUCCESS1 == true ] && [ $SUCCESS2 == true ]; then
-#        echo "[#] Start connection, sir!!!"
-#	echo "[#] Connect $MODULE_NAME1 and $MODULE_NAME2"
-#        sleep 4
-#	$CONNECT_UTILITY /${MODULE_NAME1,,}/$2 /${MODULE_NAME2,,}/$4
-#else
-#	echo "One of the modules is not found (${MODULE_NAME1}) or (${MODULE_NAME2})"
-#fi
+echo "[#] Search in ${RUR_HOME}/${AIM_REGISTRY}"
+SUCCESS1=false
+SUCCESS2=false
+
+MODULE_FULLNAME=
+while read LINE; do
+	MODULE_I=$(echo "$LINE" | cut -d'=' -f 1)
+	M_I_STRIPPED=${MODULE_I//[[:space:]]}
+	if [[  ${MODULE_NAME1} == ${M_I_STRIPPED}*  ]]; then
+		echo "[#] $MODULE_NAME1 found. prepare to connect it"
+		MODULE_FULLNAME=$(echo "$LINE" | cut -d'=' -f 2)
+		SUCCESS1=true
+		break
+	fi
+done < "${AIM_REGISTRY}"
+
+while read LINE; do
+	MODULE_I=$(echo "$LINE" | cut -d'=' -f 1)
+	M_I_STRIPPED=${MODULE_I//[[:space:]]}
+	if [[  ${MODULE_NAME2} == $M_I_STRIPPED* ]]; then
+		echo "[#] $MODULE_NAME2 found. prepare to connect it"
+		MODULE_FULLNAME=$(echo "$LINE" | cut -d'=' -f 2)
+		SUCCESS2=true
+		break
+	fi
+done < "${AIM_REGISTRY}"
+
+
+if [ $SUCCESS1 == true ] && [ $SUCCESS2 == true ]; then
+	echo "[#] Connect $MODULE_NAME1 and $MODULE_NAME2"
+	echo "[#] Exact command: /${MODULE_NAME1,,}$MODULE_ID1/$PORT_NAME1 /${MODULE_NAME2,,}$MODULE_ID2/$PORT_NAME2"
+#        sleep 1
+	$CONNECT_UTILITY /${MODULE_NAME1,,}$MODULE_ID1/$PORT_NAME1 /${MODULE_NAME2,,}$MODULE_ID2/$PORT_NAME2
+else
+	echo "One of the modules is not found (${MODULE_NAME1}) or (${MODULE_NAME2})"
+fi
 
 exit 0
