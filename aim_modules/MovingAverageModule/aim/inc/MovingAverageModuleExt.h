@@ -1,6 +1,6 @@
 /**
- * @file WriteModule.cpp
- * @brief ...
+ * @file MovingAverageModuleExt.cpp
+ * @brief MovingAverageModule extension
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common 
  * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
@@ -20,11 +20,23 @@
  * @case    Artificial Intelligence Framework
  */
 
-#include <WriteModule.h>
+#include <MovingAverageModule.h>
 
-using namespace rur;
+namespace rur {
 
-bool WriteModule::Stop() {
-	return false;
+class MovingAverageModuleExt: public MovingAverageModule {
+public:
+	MovingAverageModuleExt(): message_counter(0), prev_average(0) { }
+
+	// The tick function will be called from the MovingAverageModuleMain file
+	void Tick();
+
+	// As soon as Stop() returns "true", the MovingAverageModuleMain will stop the module
+	bool Stop();
+private:
+	long int message_counter;
+	double prev_average;
+};
+
 }
 

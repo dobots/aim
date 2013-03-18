@@ -10,7 +10,7 @@ public:
 
 	~WriteModuleExt();
 
-	bool Tick();
+	void Tick();
 
 	bool Stop();
 
