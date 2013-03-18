@@ -22,6 +22,9 @@
 
 #include <MovingAverageModuleExt.h>
 
+#include <iostream>
+#include <unistd.h>
+
 using namespace rur;
 
 static int lifetime = 1000;
@@ -31,13 +34,11 @@ void MovingAverageModuleExt::Tick() {
 	MovingAverageModule::Tick();
 	int *value = readInput();
 	if (value) {
-		message_counter++;
-		std::cout << "Messages received: " << message_counter << std::endl;
-		double average = (*value + prev_average*(message_counter-1)) \
-			/ message_counter;
+		int i = ++message_counter;
+		std::cout << "Messages received: " << i << std::endl;
+		double average = (*value + prev_average*(i-1)) / i;
 		std::cout << "Calculate (" << *value << "+" << prev_average << "*" \
-			<< message_counter-1 << ") /" << message_counter << "=" \
-			<< average << std::endl;
+			<< (i-1) << ") /" << i << "=" << average << std::endl;
 		writeAverage(average);
 		prev_average = average;
 	}
