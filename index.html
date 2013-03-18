@@ -67,8 +67,9 @@ The <b>aimserver</b> (forthcoming) is a REST server that allows people to find A
 
 <h3>Example</h3>
 <p>
-At <a href="https://github.com/mrquincle/aim_modules">AIM modules</a> you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The <a href="https://raw.github.com/mrquincle/aim_modules/master/ReadModule/aim/idl/ReadModule.idl">IDL file</a> of the ReadModule does actually have only a few lines:
+At <a href="https://github.com/mrquincle/aim_modules">AIM modules</a> you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The <a href="https://raw.github.com/mrquincle/aim_modules/master/ReadModule/aim/idl/ReadModule.idl">IDL file</a> of the ReadModule does actually have only a few lines:</p>
 
+<p>
 <pre><code>#pragma copyright LGPLv3
 
 // Recommended namespace "rur"
@@ -82,10 +83,12 @@ interface ReadModule {
 
 };
 </code></pre>
+</p>
 
-The important part here is the function defined with an additional keyword, namely "in". This is transformed in a function description of which the following one shows the YARP-specific one:
-
-<pre><code>inline int *readInput(bool blocking=true) {
+<p>
+The important part here is the function "void Input" defined with an additional keyword: "in". This is transformed in a function description of which the following one shows the YARP-specific one:
+</p>
+<p><pre><code>inline int *readInput(bool blocking=true) {
   Bottle *b = portInput->read(blocking);
   if (b != NULL) { 
     portInputValue = b->get(0).asInt();
@@ -93,13 +96,38 @@ The important part here is the function defined with an additional keyword, name
   }
   return NULL;
 }
-</code></pre>
+</code></pre></p>
 
+<p>
 As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The #pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header.  The "module" keyword translates into a namespace.
 </p>
 
 <p>
-To actually run the code you 
+Now, the running of the code of these modules actually depends on the middleware of course. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. Let us assume you downloaded the AI modules to $AIM_MODULES_PATH. Then to run the modules with YARP middleware, you will need to:
+</p>
+
+<p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
+cd $AIM_MODULES_PATH/ReadModule 
+echo "set(BUILD_YARP on)" >> aim/local.cmake
+make
+cd $AIM_MODULES_PATH/WriteModule 
+echo "set(BUILD_YARP on)" >> aim/local.cmake
+make
+cd $AIM_MODULES_PATH
+aimregister ReadModule
+aimregister WriteModule
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+yarp server
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun ReadModule 0 
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimrun WriteModule 0
+# go to a separate shell (Ctrl+Shift T in gnome-terminal)
+aimconnect yarp WriteModule 0 output ReadModule 0 input
+</code></pre></p>
+
+<p>
+This will use the YARP middleware to set up a TCP connection between the WriteModule and the ReadModule to send over a value. The "connect" utility needs to know which middleware is used, on the moment it will require a server to be run on the machine, but this requirement can be lifted for a distributed environment, as long as the specific "connect" implementations of the middleware knows how to find the registered ports.
 </p>
 
 <h3>How to get it?</h3>
