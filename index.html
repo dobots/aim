@@ -205,11 +205,7 @@ Adapt $AIM_MODULES_PATH/MovingAverageModule/src/MovingAverageModuleExt.cpp subse
   int *value = readInput();
   if (value) {
     int i = ++message_counter;
-    std::cout << "Messages received: " << i << std::endl;
     double average = (*value + prev_average*(i-1)) / i;
-    std::cout << \
-      "Calculate (" << *value << '+' << prev_average << '*' << \
-      (i-1) << ")/" << i << "=" << average << std::endl;
     writeAverage(average);
     prev_average = average;
   }
