@@ -91,9 +91,10 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         print "// middleware specific headers"
         print "#include <ros/ros.h>"
         print "#include \"std_msgs/String.h\""
+        print "#include \"std_msgs/Int16.h\""
         print
-        print "// namespaces and typedefs"
-        print "using namespace ros;"
+#        print "// namespaces and typedefs"
+#        print "using namespace ros;"
         print
 
     def writeNamespaceStart(self):
@@ -180,7 +181,8 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "class " + self.classname + " {" )
         self.st.out( "private:" )
         self.st.inc_indent()
-        self.st.out( "NodeHandle n;")
+        self.st.out( "ros::NodeHandle n;")
+        self.st.out( "std::string module_id;")
         self.st.dec_indent()
         
     def writeClassEnd(self):
@@ -190,7 +192,6 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "// The constructor needs to be called, also when you derive from this class" )
         self.st.out( self.classname + "() {" )
         self.st.inc_indent()
-#        self.st.out( "Network yarp;" )
         
         for m in self.portList:
             self.writePortAllocation(m)
@@ -202,14 +203,15 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         
     def writeInit(self):
         self.st.out( "// This is the function you will need to implement." )
-        self.st.out( "void Tick(); ")
+        self.st.out( "void Tick() {}")
         self.st.out("")
         self.st.out( "// After construction you will need to call this function first" )
 #        self.st.out( "// it opens the YARP ports" )
-        self.st.out( "void Init() {" )
+        self.st.out( "void Init(std::string module_id) {" )
         self.st.inc_indent()
 #        for p in self.portList:
 #            self.writePortInit(p)
+        self.st.out("this->module_id = module_id;")
         self.st.out("int argc = 1;")
         self.st.out("char** argv = NULL;")
         self.st.out("ros::init(argc, argv, \"" + self.classname.lower() + "\");" )
@@ -226,14 +228,14 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 portname = "port" + m.identifier()
 
                 if p.is_in():
-                  self.st.out( "inline " + param_type + " *read" + m.identifier() + "(int index = 0) {" )
+                  self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking) {" )
                   self.st.inc_indent()
                   if p.paramType().kind() == 3:
 #                     self.st.out( "Bottle *b = " + portname + "[index]->read();")
 #                     self.st.out( portname + "Values[index] = b->get(0).asInt();")
-                     self.st.out( "return &" + portname + "Values[index];") 
+                     self.st.out( "return &" + portname + "Values;") 
                   else:
-                     self.st.out( "return " + portname + "[index]->read();")
+                     self.st.out( "return " + portname + ".read();")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
@@ -247,10 +249,10 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                       self.st.out("")
                   
                 if p.is_out():
-                  self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " " + param_name + ", int index = 0) {" )
+                  self.st.out( "inline bool write" + m.identifier() + "(const " + param_type + " " + param_name + ") {" )
                   self.st.inc_indent()
                   if p.paramType().kind() == 3:
-                      self.st.out( "std_msgs::Int16 msg = output;" )
+                      self.st.out( "std_msgs::Int16 msg; msg.data = output;" )
 #                      self.st.out( "std::stringstream ss;" )
 #                      self.st.out( "ss << output;" )
 #                      self.st.out( "msg.data = ss.str();" )
@@ -259,7 +261,8 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 #                     self.st.out( param_name + "Prepare.addInt(" + param_name + ");")
 #                  else:
 #                     self.st.out( param_type + "& " + param_name + "Prepare = " + portname + "[index]->prepare();")
-                  self.st.out( portname + "[index]->publish(msg);")
+                  self.st.out( portname + ".publish(msg);")
+                  self.st.out( "return true;")
                   self.st.dec_indent()
                   self.st.out("}")
                   self.st.out("")
@@ -278,12 +281,17 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             # in the middleware
             if p.paramType().kind() == 3:
                 if p.is_in():
-                   self.st.out( "std::vector< " + param_type + "> " + portname + "Values;")
+                   #self.st.out( "std::vector< " + param_type + "> " + portname + "Values;")
+                   self.st.out( portname + "Values;")
                 param_type = "std_msgs::Int16"
             if p.is_in():
-                self.st.out( "std::vector< Subscriber <" + param_type + ">* > " + portname + ";")
+                self.st.out( "ros::Subscriber " + portname + ";")
+                #self.st.out( "std::vector< ros::Subscriber > " + portname + ";")
+                #self.st.out( "std::vector< ros::Subscriber <" + param_type + ">* > " + portname + ";")
             else:
-                self.st.out( "std::vector< Publisher <" + param_type + ">* > " + portname + ";") 
+                self.st.out( "ros::Publisher " + portname + ";") 
+                #self.st.out( "std::vector< ros::Publisher > " + portname + ";") 
+                #self.st.out( "std::vector< ros::Publisher <" + param_type + ">* > " + portname + ";") 
 
     def writePortAllocation(self, node):
         self.st.out("")
@@ -298,7 +306,7 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             p.paramType().accept(self)
             param_type = self.__result_type
             
-            self.st.out("for (int i = 0; i < " + iterator + "; ++i) {")
+            self.st.out("{")
             self.st.inc_indent()
             if p.paramType().kind() == 3:
                 param_type = "std_msgs::Int16"
@@ -306,11 +314,14 @@ class RosVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                    self.st.out( "port" + node.identifier() + "Values.push_back(-1);")
             channel = '/' + node.identifier().lower()
             if p.is_in():
-                self.st.out( "string portName = \"" + channel + "\" + string(i);")
-                self.st.out( "port" + node.identifier() + ".push_back(n.subscribe (portName.c_str(), 1000, boost::bind(&" + self.classname + "::" + node.identifier() + "Callback, this, _1, i) ) );")
+                self.st.out( "std::string portName = \"" + channel + "\" + module_id;")
+                self.st.out( "port" + node.identifier() + " = n.subscribe (portName.c_str(), 1000, boost::bind(&" + self.classname + "::" + node.identifier() + "Callback, this, _1, i) );")
+                #self.st.out( "port" + node.identifier() + ".push_back(n.subscribe (portName.c_str(), 1000, boost::bind(&" + self.classname + "::" + node.identifier() + "Callback, this, _1, i) ) );")
             else:
-                self.st.out( "string portName = \"" + channel + "\" + string(i);")
-                self.st.out( "port" + node.identifier() + ".push_back(n.advertise <" + param_type + ">(portName.c_str(), 1000) );")
+                self.st.out( "std::string portName = \"" + channel + "\" + module_id;")
+                self.st.out( "port" + node.identifier() + " = n.advertise <" + param_type + ">(portName.c_str(), 1000);")
+                #self.st.out( "port" + node.identifier() + ".push_back(n.advertise <" + param_type + ">(portName.c_str(), 1000) );")
+                #self.st.out( "port" + node.identifier() + ".push_back(n.advertise(portName.c_str(), 1000) );")
             self.st.dec_indent() 
             self.st.out("}")
 
