@@ -7,14 +7,13 @@
 # This file should be commited to the repository. It makes it possible to set module
 # specific environmental variables. Do not change this file if you check out a project
 # Instead copy this file:
-#   cp default.mk local.mk
-# Then change that file and NOT commit "local.mk" to the repository. It should be only
-# used locally. At any times the "default.mk" file will be overwriting by the global 
-# configuration file "~/.rur/rur.mk" and which is overwitten again by "local.mk".
+#   cp default.cmake local.cmake
+# Then change THAT file and NOT commit "local.cmake" to the repository. It should ONLY
+# be used locally. At any times the "default.cmake" file will be overwritten by the
+# global configuration file "~/.rur/rur.mk" and which is overwitten again by 
+# "local.cmake".
 # 
+# Default backend to be used, it can be:
+#   BUILD_STANDARD, BUILD_YARP, BUILD_ROS, or BUILD_ZEROMQ
+set(BUILD_STANDARD on)
 
-# Default backend to be used, it can also be YARP or ROS
-set(BUILD_ZEROMQ on)
-
-#RUR_BACKENDS is impossible to set here, because it depends on your system configuration
-# it should end with something like rur-builder/backends.
