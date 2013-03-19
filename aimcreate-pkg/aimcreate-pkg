@@ -111,6 +111,8 @@ sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.h
 sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
 sed -i "s/TemplateModule/$modulename/g" Makefile.parent
+sed -i "s/TemplateModule/$modulename/g" package.xml
+sed -i "s/TemplateModule/$modulename/g" manifest.xml
 
 echo "[#] Move parent files to root directory of $modulename"
 mv CMakeLists.txt.parent ../CMakeLists.txt

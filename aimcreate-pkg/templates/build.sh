@@ -3,7 +3,7 @@
 # Check if we have at least the backend as argument
 if [[ "$1" == "" ]]
 then
-	echo "No args supplied! Use backend as argument"
+	echo "[#] Error. No args supplied! Use backend as argument"
 	exit 1
 fi
 
@@ -14,15 +14,15 @@ default_script=../default.sh
 local_script=../local.sh
 
 if [ -a $default_script ]; then
-	echo "Source default script for environmental variables"
+	echo "[#] Source default script for environmental variables"
 	. ../default.sh
 fi
 if [ -a $local_script ]; then
-	echo "Source local script for environmental variables"
+	echo "[#] Source local script for environmental variables"
 	. ../local.sh
 fi
 
-echo "We will use backend \"$backend\""
+echo "[#] We will use backend \"$backend\""
 
 IDL_FILE="../idl/TemplateModule.idl"
 RESULT="../inc/TemplateModule.h"
@@ -30,7 +30,7 @@ RESULT_TEMP="../inc/TemplateModule.h.temp"
 
 OMNIIDL=`which omniidl`
 if [[ $OMNIIDL == "" ]]; then
-	echo "[!] There is no omniidl installed!"
+	echo "[#] Error. There is no omniidl installed!"
 	rm -f $RESULT.invalid
 	if [ -a $RESULT ]; then
 		mv -f $RESULT $RESULT.invalid
