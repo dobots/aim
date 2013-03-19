@@ -38,25 +38,24 @@ PROJECT(${PROJECT_NAME})
 # The directory with all the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-FIND_PACKAGE(ZMQ REQUIRED)
-INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
-SET(LIBS ${LIBS} ${ZMQ_LIBRARIES})
-
-FIND_PACKAGE(JsonSpirit REQUIRED)
-INCLUDE_DIRECTORIES(${JSON_SPIRIT_INCLUDE_DIRS})
-SET(LIBS ${LIBS} ${JSON_SPIRIT_LIBRARIES})
-
-#FIND_PACKAGE(Librt REQUIRED)
-SET(LIBS ${LIBS} rt)
+# First set empty
+SET(PARENT_INCLUDE_DIRS "")
 
 # Include aim stuff
 ADD_SUBDIRECTORY(aim)
 
+# Get include directories
+FOREACH(INCLDIR ${PARENT_INCLUDE_DIRS})
+  MESSAGE("[*] Add ${INCLDIR}")
+  INCLUDE_DIRECTORIES(${INCLDIR})
+ENDFOREACH()
+
+# Manually add some CXX flag
 SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
-MESSAGE("[*] Libraries included: ${LIBS}")
+MESSAGE("[*] Linked libraries: ${LIBS}")
 
 # Source directory
 SET(SOURCE_DIR "src")
@@ -78,6 +77,11 @@ ENDFOREACH(HEADER_FILE ${FOLDER_HEADER})
 
 # For references to header files
 INCLUDE_DIRECTORIES(aim/inc)
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "INCLUDE_DIRECTORY='${dir}'")
+endforeach()
 
 SET(PROJECT_HEADER ../aim/inc/${PROJECT_NAME}.h)
 IF (NOT EXISTS ${PROJECT_HEADER})

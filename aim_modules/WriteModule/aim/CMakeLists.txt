@@ -93,9 +93,25 @@ IF (BUILD_YARP)
 ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
+  MESSAGE("[*] The project source dir: ${PROJECT_SOURCE_DIR}")
+  IF ("$ENV{ROS_ROOT}" STREQUAL "") 
+    MESSAGE(FATAL_ERROR "[*] Requires env. variable $ROS_ROOT. Run for example: \"source /opt/ros/groovy/setup.bash\".")
+  ENDIF()
   MESSAGE("[*] ROS build, useful for ROS middleware")
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+  # http://www.ros.org/wiki/rosbuild/CMakeLists#rosbuild_init
   rosbuild_init()
+  
+  SET(INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS})
+  SET(INCLUDE_DIRS "$ENV{ROS_ROOT}/../../include")
+
+  SET(LIBS ${LIBS} ${${PROJECT_NAME}_LIBRARIES})
+  MESSAGE("[*] Libraries according to rosbuild_init: ${${PROJECT_NAME}_LIBRARIES}")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp.so")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/librosconsole.so")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp_serialization.so")
+
+  SET(PARENT_INCLUDE_DIRS ${INCLUDE_DIRS} PARENT_SCOPE)
 ENDIF (BUILD_ROS)
 
 IF (BUILD_ZEROMQ)

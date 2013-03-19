@@ -1,5 +1,6 @@
 <package>
-  <description brief="example">
+  <name>WriteModule</name>
+  <description brief="WriteModule">
 
      Example file for ROS builder
 
