@@ -77,11 +77,16 @@ IF (BUILD_STANDARD)
   SET(MIDDLEWARE "standard")
 ENDIF ()
 
-# Generate header files
-MESSAGE("[*] Run the build.sh script with arguments: \"${MIDDLEWARE}\" and \"${BACKENDS_PATH}\"")
-EXECUTE_PROCESS(COMMAND ./build.sh ${MIDDLEWARE} ${BACKENDS_PATH} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/aim/scripts)
+# Set files to be used or generated
+SET(IDL_FILE "aim/idl/${PROJECT_NAME}.idl")
+SET(HEADER_FILE "aim/inc/${PROJECT_NAME}.h")
+
+# Actually generate the header files
+MESSAGE("[*] Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}\", \"${BACKENDS_PATH}\", \"${HEADER_FILE}\"")
+EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE} ${BACKENDS_PATH} ${HEADER_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 
 # Write the (backend) configuration
+MESSAGE("[*] Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/aim/config.h.cmake ${CMAKE_SOURCE_DIR}/aim/inc/Config.h )
 
 # Find all cmake packages

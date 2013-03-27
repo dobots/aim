@@ -104,7 +104,6 @@ cd aim
 
 # Adapt scripts to $modulename
 echo "[#] Adapt template scripts to use $modulename"
-sed -i "s/TemplateModule/$modulename/g" build.sh
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
@@ -117,11 +116,6 @@ sed -i "s/TemplateModule/$modulename/g" manifest.xml
 echo "[#] Move parent files to root directory of $modulename"
 mv CMakeLists.txt.parent ../CMakeLists.txt
 mv Makefile.parent ../Makefile
-
-echo "[#] Move scripts files to separate directory"
-mkdir -p scripts
-mv build.sh scripts
-mv run.sh scripts
 
 echo "[#] Move idl file to separate directory"
 mkdir -p idl
