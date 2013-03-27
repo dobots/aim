@@ -31,28 +31,15 @@
 from omniidl import idlast, idltype, idlutil, idlvisitor, output
 import sys, string
 
-class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
+sys.path.append('./helper')
+from helper import rur
 
-    # The user is able to define its own data structures to be used on the channels 
-    structList = []
-    
-    # Every method corresponds to a port/channel
-    portList = []
-    
-    # Typedef list
-    typedefList = []
+class StandardVisitor (rur.RurModule):
 
-    # Pragma list
-    pragmaList = [] 
-
-    # The module's name
-    classname = ''
-    
-    # The namespace
-    namespace = ''
+    __result_type = ''
 
     def __init__(self, st):
-        self.st = st
+         self.st = st
 
 ##########################################################################################
 # Write functions
@@ -71,22 +58,6 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.writeInterface()
         self.writeNamespaceEnd()
 
-    def writeFileComment(self):
-        comment_text = '''/**
- * This file is created at Almende B.V. It is open-source software and part of the Common 
- * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
- * thread pools and TCP/IP components to control architectures and learning algorithms. 
- * This software is published under the GNU Lesser General Public license (LGPL).
- *
- * It is not possible to add usage restrictions to an open-source license. Nevertheless,
- * we personally strongly object against this software being used by the military, in the
- * bio-industry, for animal experimentation, or anything that violates the Universal
- * Declaration of Human Rights.
-'''
-        print comment_text
-        for p in self.pragmaList:
-            print " * @" + p.text()
-        print " */"
 
     def writeNamespaceStart(self):
         print "namespace " + self.namespace + " {"
@@ -225,42 +196,31 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         self.st.out( "void Init(std::string & name) { }" )
     
     def writePorts(self):
-        for m in self.portList:
-            for p in m.parameters():
-                param_name = p.identifier()
-                self.__prefix = ""
-                p.paramType().accept(self)
-                param_type = self.__result_type
-                portname = "port" + m.identifier()
+        for p in self.portList:
+            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
 
-                if p.is_in():
-                  self.st.out( "inline " + param_type + " *read" + m.identifier() + "(bool blocking_dummy=false) {" ) 
-                  self.st.inc_indent()
-                  self.st.out( "return &dummy" + m.identifier() + ";")
-                  self.st.dec_indent()
-                  self.st.out("}")
+            if port_direction == rur.Direction.IN:
+                  self.st.out( "// Read from this function and assume it means something")
+                  self.writePortFunctionSignature(p)
+                  self.st.out( "return &dummy" + port_name + ";")
+                  self.writeFunctionEnd()
                   self.st.out("")
                   
-                if p.is_out():
-                  self.st.out( "inline void write" + m.identifier() + "(const " + param_type + " " + param_name + ") {" )
-                  self.st.out("}")
-                  self.st.out("")
+            if port_direction == rur.Direction.OUT: 
+                  self.st.out( "// Write to this function and assume it ends up at some receiving module")
+                  self.writePortFunctionSignature(p)
+                  self.st.out( "return true;")
+                  self.writeFunctionEnd()
                 
     def writePortsAsArray(self):
         names = [];
-        for m in self.portList:
-            for p in m.parameters():
-                param_name = p.identifier()
-                self.__prefix = ""
-                p.paramType().accept(self)
-                param_type = self.__result_type
-                portname = "port" + m.identifier()
-
-                if p.is_in():
-                  names.append("\"read" + m.identifier() + "\"") 
+        for p in self.portList:
+            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
+            if port_direction == rur.Direction.IN:
+                  names.append("\"read" + port_name + "\"") 
                   
-                if p.is_out():
-                  names.append( "\"write" + m.identifier() + "\"") 
+            if port_direction == rur.Direction.OUT: 
+                  names.append( "\"write" + port_name + "\"") 
 
 	self.st.out("static const int channel_count = " + str(len(names)) + ";")
         self.st.out("const char* const channel[" + str(len(names)) + "] = {" + ', '.join(names) + "};")
@@ -284,107 +244,11 @@ class StandardVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                 param_type = self.__result_type
                 self.st.out( "dummy" + node.identifier() + " = " + param_type + "(0);")  
   
-##########################################################################################
-# Visitor functions
-##########################################################################################
-
-    # Use the already build abstract syntax tree and visit all nodes
-    def visitAST(self, node):
-        # First visit all of the nodes
-        for n in node.declarations():
-           n.accept(self)
-	# Visit all of the pragmas
-        for n in node.pragmas():
-           self.pragmaList.append(n)
-        # And then write everything to the to-be-generated header file
-        self.writeAll()
-
-    # The module entity is "misused" as a namespace declaration
-    def visitModule(self, node):
-        self.namespace = idlutil.ccolonName(node.scopedName())
-        for n in node.definitions():
-            n.accept(self)
-
-    # We will just add the structs to a list, to be handled later
-    def visitStruct(self, node):
-        self.structList.append(node)
-
-    # Visit the interface and add to portList
-    def visitInterface(self, node):
-    	#self.st.out("Visit interface")
-        self.classname = node.identifier()
-        for c in node.callables():
-            self.portList.append(c)
-
-    def visitTypedef(self, node):
-        self.typedefList.append(node)
-
-	# The mapping from IDL types to C/C++ types, see e.g. that "long" becomes "int"
-    ttsMap = {
-        idltype.tk_void:       "void",
-        idltype.tk_short:      "short",
-        idltype.tk_long:       "int",
-        idltype.tk_ushort:     "unsigned short",
-        idltype.tk_ulong:      "unsigned long",
-        idltype.tk_float:      "float",
-        idltype.tk_double:     "double",
-        idltype.tk_boolean:    "boolean",
-        idltype.tk_char:       "char",
-        idltype.tk_octet:      "octet",
-        idltype.tk_any:        "any",
-        idltype.tk_TypeCode:   "CORBA::TypeCode",
-        idltype.tk_Principal:  "CORBA::Principal",
-        idltype.tk_longlong:   "long long",
-        idltype.tk_ulonglong:  "unsigned long long",
-        idltype.tk_longdouble: "long double",
-        idltype.tk_wchar:      "wchar"
-        }
-
-    def visitBaseType(self, type):
-        self.__result_type = self.ttsMap[type.kind()]
-
-    def visitStringType(self, type):
-        if type.bound() == 0:
-            self.__result_type = "std::string"
-        else:
-            self.__result_type = "string<" + str(type.bound()) + ">"
-
-    def visitWStringType(self, type):
-        if type.bound() == 0:
-            self.__result_type = "wstring"
-        else:
-            self.__result_type = "wstring<" + str(type.bound()) + ">"
-
-    def visitSequenceType(self, type):
-        type.seqType().accept(self)
-        if type.bound() == 0:
-            self.__result_type = self.__result_type + "*"
-            #self.__result_type = self.__result_type + "[]"
-        else:
-            self.__result_type = self.__result_type + "[" +\
-                                 str(type.bound()) + "];"
-
-    def visitSequenceTypeToVector(self, type):
-        type.seqType().accept(self)
-        self.__result_type = "std::vector<" + self.__result_type + ">"
-
-    def visitRawSequenceType(self, type):
-        type.seqType().accept(self)
-        self.__result_type = self.__result_type
-
-    def visitFixedType(self, type):
-        if type.digits() > 0:
-            self.__result_type = "fixed<" + str(type.digits()) + "," +\
-                                 str(type.scale()) + ">"
-        else:
-            self.__result_type = "fixed"
-
-    def visitDeclaredType(self, type):
-        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
-
-
-
+# Initialize this parser
 def run(tree, args):
-    st = output.Stream(sys.stdout, 2)
-    dv = StandardVisitor(st)
-    tree.accept(dv)
+	st = output.Stream(sys.stdout, 2)
+	dv = StandardVisitor(st)
+	tree.accept(dv)
+	# And then write everything to the to-be-generated header file
+        dv.writeAll()
+
