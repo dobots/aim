@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGRAM="aimupdate"
+PROGRAM="aimget"
 
 VERSION="$PROGRAM 0.1"
 
@@ -51,6 +51,8 @@ then
 	echo "  for example: $PROGRAM computervision https://github.com/mrquincle/aim_modules"
 	echo "  the repository name will be used to be able to maintain multiple repositories"
 	echo
+	echo "Set AIM_WORKSPACE as environmental variable before you use this tool"
+	echo "  for example: export AIM_WORKSPACE=$HOME/myworkspace/aim"
 	exit 0 
 fi 
 
