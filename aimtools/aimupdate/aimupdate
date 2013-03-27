@@ -75,10 +75,6 @@ fi
 
 cd "$modulename"
 
-echo "[#] Update the scripts"
-cp $RUR_TEMPLATE_PATH/build.sh aim/scripts
-cp $RUR_TEMPLATE_PATH/run.sh aim/scripts
-
 echo "[#] Update build process files"
 cp $RUR_TEMPLATE_PATH/cmake/* aim/cmake
 cp $RUR_TEMPLATE_PATH/*.xml aim
@@ -100,6 +96,5 @@ cp $RUR_TEMPLATE_PATH/Makefile.parent ./Makefile
 
 # Replace "template module name" by real name
 echo "[#] In copied files replace TemplateModule by $modulename"
-sed -i "s/TemplateModule/$modulename/g" aim/scripts/build.sh
 sed -i "s/TemplateModule/$modulename/g" Makefile
 
