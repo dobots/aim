@@ -9,10 +9,6 @@
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
  *
- * Copyright (c) 2012 Anne van Rossum <anne@almende.com>
- *
- * @author  Anne C. van Rossum
- * @company Almende B.V.
  */
 
 #include <string>
@@ -49,26 +45,29 @@ public:
   
   ~BeliefModule() { }
   
-  void Tick();
+  void Tick() {} 
   
-  bool Stop();
+  bool Stop() { return false; }
   
   void Init(std::string & name) { }
   
   // Function to get Param struct (to subsequently set CLI parameters)
   inline Param *GetParam() { return cliParam; };
   
-  inline long_seq *readSensor() {
+  // Read from this function and assume it means something
+  inline long_seq *readSensor(bool blocking_dummy=false) {
     return &dummySensor;
   }
   
-  inline int *readSensorArrayLength() {
+  // Read from this function and assume it means something
+  inline int *readSensorArrayLength(bool blocking_dummy=false) {
     return &dummySensorArrayLength;
   }
   
-  inline void writeResult(const int output) {
+  // Write to this function and assume it ends up at some receiving module
+  inline bool writeResult(const int output) {
+    return true;
   }
-  
 };
 }
 

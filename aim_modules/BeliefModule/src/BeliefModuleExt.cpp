@@ -1,5 +1,5 @@
 /**
- * @file BeliefModule.cpp
+ * @file BeliefModuleExt.cpp
  * @brief ...
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common 
@@ -20,7 +20,7 @@
  * @case    Artificial Intelligence Framework
  */
 
-#include <BeliefModule.h>
+#include <BeliefModuleExt.h>
 
 #include <graph.hpp>
 #include <tree.hpp>
@@ -336,7 +336,7 @@ void sprinkler_test() {
 /**
  * All belief propagation steps will be done in one tick.
  */
-void BeliefModule::Tick() {
+void BeliefModuleExt::Tick() {
 	graph_type g;
 
 	// create and load vertices with values from an image
@@ -450,7 +450,7 @@ void BeliefModule::Tick() {
 /**
  * Make the modules stop after one step by returning true directly.
  */
-bool BeliefModule::Stop() {
+bool BeliefModuleExt::Stop() {
 	return true;
 }
 

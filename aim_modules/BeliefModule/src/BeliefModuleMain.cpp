@@ -19,7 +19,7 @@
  * @company Almende B.V. (or your university, institute or company)
  * @case    Artificial Intelligence Module
  */
-#include <BeliefModule.h>
+#include <BeliefModuleExt.h>
 
 #include <stdlib.h>
 #include <iostream>
@@ -33,7 +33,7 @@ using namespace std;
  * have this file and the BeliefModule header and code in a separate "aim" directory.
  */
 int main(int argc, char *argv[])  {
-	BeliefModule *m = new BeliefModule();
+	BeliefModuleExt *m = new BeliefModuleExt();
 
 	if (argc < 2) {
 		std::cout << "Use an identifier as argument for this instance" << endl;
