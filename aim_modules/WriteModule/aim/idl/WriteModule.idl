@@ -6,14 +6,12 @@
  * of the function variables are not used. For now, if the function variable 
  * ends with a number, like "void Sensor(in long input2);" there will be two
  * portnames created.
- *
- * Author: Anne C. van Rossum
- * Copyright: 
- * Date: 
- * License: 
  */
 
-#pragma copyright LGPLv3
+#pragma author Anne C. van Rossum
+#pragma copyright Distributed Organisms B.V.
+#pragma date Mar. 27, 2013
+#pragma license LGPLv3
 
 // Recommended namespace "rur"
 module rur {
