@@ -1,5 +1,0 @@
-# Backend to be used
-#BACKEND=YARP
-#BACKEND=ROS
-BACKEND=STANDARD
-

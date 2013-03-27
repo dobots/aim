@@ -30,7 +30,11 @@ Obviously, these tools are similar to the ones used in the ROS environment. Inst
 
 ## Installation
 
-The rur-builder itself does not need to be installed. It exists out of Python scripts. However, to find the rur-builder from the diverse set of AIM modules, see the installation instructions at the ![the aim tools](https://github.com/mrquincle/aimtools "aimtools").
+The rur-builder itself can be installed by:
+
+    sudo make install
+
+It does not need to be build, because it exists out of bash and Python scripts. To actually use the rur-builder it is highly recommend to install the AIM tools, follow for that the installation instructions at the ![the aim tools](https://github.com/mrquincle/aimtools "aimtools") repository.
 
 ## Example
 An example that shows the first automatically generated structures, instances, and functions of a so-called ARTMAP module to be used in YARP middleware:

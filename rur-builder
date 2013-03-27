@@ -1,0 +1,61 @@
+#!/bin/bash
+
+program="rur-builder"
+
+version="$program 0.1"
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+if [[ "$1" == "" ]]; then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]; then
+	echo $version \- Usage
+	echo 
+	echo "$program \"idl file\" \"backend\" \"backend path\" \"output file\" "
+	echo
+	exit 0 
+fi 
+
+
+if [[ $# -ne 4 ]]; then
+	echo "[#] We need four parameters. Run $0 -h for more info, currently you used $# parameters"
+	exit 1
+fi
+
+idl_file=$1
+backend=$2
+backend_path=$3
+output_file=$4
+
+output_file_tmp=${output_file}.temp
+output_file_invalid=${output_file}.invalid
+
+OMNIIDL=$(which omniidl)
+if [[ $OMNIIDL == "" ]]; then
+	echo "[#] Error. There is no omniidl installed!"
+	rm -f ${output_file_invalid}
+	if [ -a ${output_file}  ]; then
+		mv -f ${output_file} ${output_file_invalid}
+	fi
+	exit 2
+fi
+
+echo "[#] We will use backend \"$backend\""
+
+# Run the omniidl backend
+omniidl -p${backend_path} -b${backend} "${idl_file}" > ${output_file_tmp}
+
+# Copy it to normal header file only if they are different
+if [ -a ${output_file}  ]; then
+	if ! diff -q ${output_file_tmp} ${output_file} > /dev/null ; then
+		mv -f ${output_file_tmp} ${output_file}
+	else
+		rm ${output_file_tmp}
+	fi
+fi
+

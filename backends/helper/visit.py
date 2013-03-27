@@ -114,7 +114,8 @@ class Visit (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.__result_type = "fixed"
 
     def visitDeclaredType(self, type):
-        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
+        self.__result_type = type.decl().scopedName()[-1]
+#        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
 
 ##########################################################################################
 # Helper functions
