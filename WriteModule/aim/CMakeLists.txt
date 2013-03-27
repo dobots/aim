@@ -86,6 +86,7 @@ MESSAGE("[*] Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE
 EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE} ${BACKENDS_PATH} ${HEADER_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 
 # Write the (backend) configuration
+MESSAGE("[*] Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/aim/config.h.cmake ${CMAKE_SOURCE_DIR}/aim/inc/Config.h )
 
 # Find all cmake packages
@@ -105,16 +106,17 @@ IF (BUILD_ROS)
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   # http://www.ros.org/wiki/rosbuild/CMakeLists#rosbuild_init
   rosbuild_init()
-  
+
   SET(INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS})
   SET(INCLUDE_DIRS "$ENV{ROS_ROOT}/../../include")
 
   SET(LIBS ${LIBS} ${${PROJECT_NAME}_LIBRARIES})
   MESSAGE("[*] Libraries according to rosbuild_init: ${${PROJECT_NAME}_LIBRARIES}")
+  MESSAGE("[*] Warning. Because these seem to be empty we will hardcode references to the libraries!")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/librosconsole.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp_serialization.so")
-
+ 
   SET(PARENT_INCLUDE_DIRS ${INCLUDE_DIRS} PARENT_SCOPE)
 ENDIF (BUILD_ROS)
 
