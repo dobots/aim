@@ -36,8 +36,6 @@ from helper import rur
 
 class StandardVisitor (rur.RurModule):
 
-    __result_type = ''
-
     def __init__(self, st):
          self.st = st
 
@@ -73,11 +71,10 @@ class StandardVisitor (rur.RurModule):
             for d in t.declarators():
                 a = t.aliasType()
                 if isinstance(a,idltype.Sequence):
-                    self.visitSequenceTypeToVector(a)  
-                    seq_type = self.__result_type
+                    seq_type = self.seqToVec(a)
                     self.st.out("typedef " + seq_type + " " + d.identifier() + ";")
                 self.st.out("")
-                      
+
 
     def writeInterface(self):
         self.writeClassStart()
@@ -131,8 +128,9 @@ class StandardVisitor (rur.RurModule):
             if m.constrType():
                 m.memberType().decl().accept(self)
 
-            m.memberType().accept(self)
-            type = self.__result_type
+            type = self.getType(m.memberType())
+#            m.memberType().accept(self)
+#            type = self.__result_type
             for d in m.declarators():
                 membername = d.identifier()
                 self.st.out(type + " " + membername + ";")
@@ -227,22 +225,14 @@ class StandardVisitor (rur.RurModule):
 
     def writeDummyAllocation(self, node):
         self.st.out("")
-        for p in node.parameters():
-            if p.is_in():
-                param_name = p.identifier()
-                self.__prefix = ""
-                p.paramType().accept(self)
-                param_type = self.__result_type
-                self.st.out( param_type + " dummy" + node.identifier() + ";")  
+        port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(node)
+        if port_direction == rur.Direction.IN:
+             self.st.out( param_type + " dummy" + port_name + ";")  
 
     def writeDummyInitiation(self, node):
-        for p in node.parameters():
-            if p.is_in():
-                param_name = p.identifier()
-                self.__prefix = ""
-                p.paramType().accept(self)
-                param_type = self.__result_type
-                self.st.out( "dummy" + node.identifier() + " = " + param_type + "(0);")  
+        port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(node)
+        if port_direction == rur.Direction.IN:
+             self.st.out( "dummy" + port_name + " = " + param_type + "(0);")  
   
 # Initialize this parser
 def run(tree, args):

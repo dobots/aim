@@ -51,11 +51,13 @@ echo "[#] We will use backend \"$backend\""
 omniidl -p${backend_path} -b${backend} "${idl_file}" > ${output_file_tmp}
 
 # Copy it to normal header file only if they are different
-if [ -a ${output_file}  ]; then
+if [ -a ${output_file_tmp}  ]; then
 	if ! diff -q ${output_file_tmp} ${output_file} > /dev/null ; then
 		mv -f ${output_file_tmp} ${output_file}
 	else
 		rm ${output_file_tmp}
 	fi
+else
+	echo "[#] Error. Something went wrong with generating the file with the rur-builder"
 fi
 
