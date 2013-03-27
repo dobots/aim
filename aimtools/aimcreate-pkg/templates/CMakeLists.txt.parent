@@ -35,8 +35,26 @@ SET(PROJECT_NAME "TemplateModule")
 # Start a project
 PROJECT(${PROJECT_NAME})
 
-# The directory with all the FindXXX modules
+# The directory with some of the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
+
+##########################################################################################
+# Section to include your own FindX cmake files and options
+##########################################################################################
+
+## Commented example for the EIGEN library. Replace this with what your module needs, 
+## for example Boost libraries, OpenCV, inference libraries, etc.
+#
+# OPTION(BUILD_EIGEN OFF "Build module with Eigen support")
+# CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/inc/config.h)
+# IF (BUILD_EIGEN) 
+# 	MESSAGE("[*] Eigen support, this will enable all (sparse) matrix related code")
+# 	FIND_PACKAGE(Eigen3 REQUIRED)
+# 	INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+# ENDIF()
+
+##########################################################################################
 
 # First set empty
 SET(PARENT_INCLUDE_DIRS "")
