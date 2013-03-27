@@ -129,8 +129,6 @@ class StandardVisitor (rur.RurModule):
                 m.memberType().decl().accept(self)
 
             type = self.getType(m.memberType())
-#            m.memberType().accept(self)
-#            type = self.__result_type
             for d in m.declarators():
                 membername = d.identifier()
                 self.st.out(type + " " + membername + ";")
