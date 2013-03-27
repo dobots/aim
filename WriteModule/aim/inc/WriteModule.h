@@ -1,63 +1,49 @@
-// general C/C++ headers
-#include <vector>
-#include <iostream>
+/**
+ * This file is created at Almende B.V. It is open-source software and part of the Common 
+ * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
+ * thread pools and TCP/IP components to control architectures and learning algorithms. 
+ * This software is published under the GNU Lesser General Public license (LGPL).
+ *
+ * It is not possible to add usage restrictions to an open-source license. Nevertheless,
+ * we personally strongly object against this software being used by the military, in the
+ * bio-industry, for animal experimentation, or anything that violates the Universal
+ * Declaration of Human Rights.
+ *
+ * @author Anne C. van Rossum
+ * @copyright Distributed Organisms B.V.
+ * @date Mar. 27, 2013
+ * @license LGPLv3
+ */
+
 #include <string>
+#include <vector>
 
-// middleware specific headers
-#include <ros/ros.h>
-#include "std_msgs/String.h"
-#include "std_msgs/Int16.h"
-
-
-// recommended namespace: "Rur"
-// add "using namespace Rur;" to your .cpp file
 namespace rur {
 
-// The generated class. Do not modify or add class members
-// Either derive from this class and implement Tick() or
-// use a separate helper class to store state information.
-// All information for the operation of the module should 
-// be obtained over the defined ports
 class WriteModule {
 private:
-  ros::NodeHandle n;
-  std::string module_id;
   
-  ros::Publisher portOutput;
+
+protected:
+  static const int channel_count = 1;
+  const char* const channel[1] = {"writeOutput"};
 
 public:
-  // The constructor needs to be called, also when you derive from this class
   WriteModule() {
-    
-    {
-      std::string portName = "/output" + module_id;
-      portOutput = n.advertise <std_msgs::Int16>(portName.c_str(), 1000);
-    }
   }
   
   ~WriteModule() { }
   
-  // This is the function you will need to implement.
-  void Tick() {}
+  void Tick() {} 
   
-  // After construction you will need to call this function first
-  void Init(std::string module_id) {
-    this->module_id = module_id;
-    int argc = 1;
-    char** argv = NULL;
-    ros::init(argc, argv, "writemodule");
-  }
+  bool Stop() { return false; }
   
-protected:
-  // All subsequent functions should be called from "within" this module
-  // From either the Tick() routine itself, or Tick() in a derived class
+  void Init(std::string & name) { }
   
+  // Write to this function and assume it ends up at some receiving module
   inline bool writeOutput(const int output) {
-    std_msgs::Int16 msg; msg.data = output;
-    portOutput.publish(msg);
     return true;
   }
-  
 };
 }
 
