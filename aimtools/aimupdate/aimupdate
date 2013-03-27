@@ -83,7 +83,7 @@ cp $RUR_TEMPLATE_PATH/CMakeLists.txt aim
 
 thispath=$(pwd)
 echo "[#] We do not update CMakeLists.txt because this might be adjusted by you"
-echo "[#]  to see do: diff $thispath/CMakeLists.txt $RUR_TEMPLATE_PATH/CMakeLists.parent.txt"
+echo "[#]  to see do: diff $thispath/CMakeLists.txt $RUR_TEMPLATE_PATH/CMakeLists.txt.parent"
 read -p "[#] Do you want to see that now (y/N)? " lookatdiff
 if [ "${lookatdiff}" == "y" ]; then
 	cp $RUR_TEMPLATE_PATH/CMakeLists.txt.parent CMakeLists.txt.temp
