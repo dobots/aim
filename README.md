@@ -73,6 +73,22 @@ As you can see the "Input" function in the YourModule.idl file has become someth
 
 Note: this example illustrates that a filestream is created and closed each "Tick()". To remedy this you should not add anything to the header file because that file should be automatically be regenerated as soon as you change the idl description of the module. Hence, the recommended method is to subclass YourModule to add state information to it. And you have subsequently to adjust the YourModuleMain.cpp file to call this subclass. If you have already an existing important class, this is also an easy way to integrate this middleware-agnostic layer. Just add also YourModule as a parent to that class.
 
+## Workflow
+
+The sequence of commands that you will need to execute is along the following lines:
+
+* aimget -h # to see what this command is about, you'll learn you'll need an AIM_WORKSPACE environmental variable
+* mkdir -p $HOME/myworkspace/aim
+* export AIM_WORKSPACE=$HOME/myworkspace/aim
+* aimget "mrquincle" https://github.com/mrquincle/aim_modules 
+* cd $AIM_WORKSPACE/mrquincle
+* cd WriteModule && make # make force=1 will make all modules
+* cd ..
+* aimregister WriteModule
+* aimrun WriteModule 0 
+
+Now you have gone full throttle through all the steps to get modules to in the end running them, to read more on the aim tools, and how to connect the modules, see the [AIM](http://mrquincle.github.com/aim-bzr/) website.
+
 ## Where can I read more?
 * [Wikipedia (YARP)](http://en.wikipedia.org/wiki/YARP)
 
