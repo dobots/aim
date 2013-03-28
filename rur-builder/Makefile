@@ -1,10 +1,7 @@
 #!/bin/make
 
 # Author: Anne C. van Rossum
-# Date: Aug. 04, 2011
-
-# This include file should define BACKEND
-include local.mk
+# Date: Mar. 27, 2013
 
 RUR_BIN_PATH=/usr/bin
 RUR_SHARE_PATH=/usr/share/rur
@@ -12,27 +9,28 @@ RUR_TEMPLATE_PATH=$(RUR_SHARE_PATH)/templates
 RUR_BACKENDS_PATH=$(RUR_SHARE_PATH)/backends
 RUR_CONFIG_PATH=/etc/rur
 
-INSTALL_PATH:=$(DESTDIR)/$(RUR_BACKENDS_PATH)
-
-CURRENT_MODULE_PATH:=$(CURDIR)
-ROS_PACKAGE_PATH:=$(ROS_PACKAGE_PATH):$(CURRENT_MODULE_PATH)
-
-ROS_FLAG=-DBUILD_ROS:bool=off
-YARP_FLAG=-DBUILD_YARP:bool=off
-FLAGS=$(ROS_FLAG) $(YARP_FLAG) -DBUILD_$(BACKEND):bool=on
+BACKENDS_INSTALL_PATH:=$(DESTDIR)/$(RUR_BACKENDS_PATH)
 
 all:
-	@cd scripts && ./example_sum.sh; if [ $$? -eq 2 ]; then echo "Error: Cannot make because no proper header file generated!"; exit 2; fi
-#	@echo "Ros package path: $(ROS_PACKAGE_PATH)"
-	@mkdir -p build
-	@echo "Run cmake with the flags: $(FLAGS)"
-	@cd build && cmake $(CMAKE_FLAGS) .. $(FLAGS)
-	@cd build && make
+	@echo "[#] Just python and bash scripts. Nothing needs to be compiled"
 
 install:
-	@echo "The installation will be in the path: $(INSTALL_PATH)"
-	@mkdir -p $(INSTALL_PATH)
-	@install backends/*.py $(INSTALL_PATH)
+	@echo "[#] The installation will be in the path: $(BACKENDS_INSTALL_PATH)"
+	@mkdir -p $(BACKENDS_INSTALL_PATH)/helper
+	@cp backends/*.py $(BACKENDS_INSTALL_PATH)
+	@cp backends/helper/*.py $(BACKENDS_INSTALL_PATH)/helper
+	@install rur-builder ${RUR_BIN_PATH}
 
 clean:
-	cd build && make clean
+	@echo "[#] Just python and bash scripts. Just removing the .pyc files"
+	@rm backends/*.pyc
+	@rm backends/helper/*.pyc
+	
+uninstall:
+	@echo "[#] Removing files from path: $(BACKENDS_INSTALL_PATH)"
+	@rm $(BACKENDS_INSTALL_PATH)/helper/*.py
+	@rm $(BACKENDS_INSTALL_PATH)/*.py
+	@rmdir $(BACKENDS_INSTALL_PATH)/helper
+	@rmdir $(BACKENDS_INSTALL_PATH)
+	@install ${RUR_BIN_PATH}/rur-builder 
+

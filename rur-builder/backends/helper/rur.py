@@ -42,7 +42,7 @@ class RurModule( visit.Visit) :
 		port = "port" + port_name
 		port_param = params[0]
 		port_param_name = port_param.identifier()
-		port_param_type = self.getType(port_param)
+		port_param_type = self.getParamType(port_param)
 		if port_param.is_in():
 			port_direction = Direction.IN
 		elif port_param.is_out():

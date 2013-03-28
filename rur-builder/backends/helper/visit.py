@@ -98,10 +98,6 @@ class Visit (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.__result_type = self.__result_type + "[" +\
                                  str(type.bound()) + "];"
 
-    def visitSequenceTypeToVector(self, type):
-        type.seqType().accept(self)
-        self.__result_type = "std::vector<" + self.__result_type + ">"
-
     def visitRawSequenceType(self, type):
         type.seqType().accept(self)
         self.__result_type = self.__result_type
@@ -114,15 +110,31 @@ class Visit (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
             self.__result_type = "fixed"
 
     def visitDeclaredType(self, type):
-        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
+        self.__result_type = type.decl().scopedName()[-1]
+#        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
 
 ##########################################################################################
 # Helper functions
 ##########################################################################################
 
-    def getType(self, param):
+    def seqToVec(self, type):
+        type.seqType().accept(self)
+        result_type = "std::vector<" + self.__result_type + ">"
+        return result_type
+
+    def getParamType(self, param):
         self.__prefix = ""
         param.paramType().accept(self)
         param_type = self.__result_type
-        return param_type;
+        return param_type
+
+    def getMemberType(self, member):
+        member.memberType().accept(self)
+        member_type = self.__result_type
+        return member_type
+
+    def getType(self, type):
+        type.accept(self)
+        result = self.__result_type
+        return result
 

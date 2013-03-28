@@ -31,7 +31,10 @@
 from omniidl import idlast, idltype, idlutil, idlvisitor, output
 import sys, string
 
-class ExtractVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
+sys.path.append('./helper')
+from helper import rur
+
+class ExtractVisitor (rur.RurModule):
 
     # The user is able to define its own data structures to be used on the channels 
     structList = []
@@ -47,7 +50,6 @@ class ExtractVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
      
     def __init__(self, st):
         self.st = st
-
 
 ##########################################################################################
 # Write functions
@@ -104,94 +106,14 @@ class ExtractVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
                     self.st.out("param " + type + " " + membername)
 
 
-
-
     def extractNr(self, str):
         nr = filter(lambda x: x.isdigit(), str)
         self.__result_type = nr 
         
-##########################################################################################
-# Visitor functions
-##########################################################################################
-
-    # Use the already build abstract syntax tree and visit all nodes
-    def visitAST(self, node):
-        # First visit all of then nodes
-        for n in node.declarations():
-           n.accept(self)
-        # And then write everything to the to-be-generated header file
-        self.writeAll()
-
-    # The module entity is "misused" as a namespace declaration
-    def visitModule(self, node):
-        self.namespace = idlutil.ccolonName(node.scopedName())
-        for n in node.definitions():
-            n.accept(self)
- 
-    # We will just add the structs to a list, to be handled later
-    def visitStruct(self, node):
-        self.structList.append(node)
-        
-    def visitInterface(self, node):
-        self.classname = node.identifier()
-        for c in node.callables():
-            self.portList.append(c)
-              
-    ttsMap = {
-        idltype.tk_void:       "void",
-        idltype.tk_short:      "short",
-        idltype.tk_long:       "int",
-        idltype.tk_ushort:     "unsigned short",
-        idltype.tk_ulong:      "unsigned long",
-        idltype.tk_float:      "float",
-        idltype.tk_double:     "double",
-        idltype.tk_boolean:    "boolean",
-        idltype.tk_char:       "char",
-        idltype.tk_octet:      "octet",
-        idltype.tk_any:        "any",
-        idltype.tk_TypeCode:   "CORBA::TypeCode",
-        idltype.tk_Principal:  "CORBA::Principal",
-        idltype.tk_longlong:   "long long",
-        idltype.tk_ulonglong:  "unsigned long long",
-        idltype.tk_longdouble: "long double",
-        idltype.tk_wchar:      "wchar"
-        }
-
-    def visitBaseType(self, type):
-        self.__result_type = self.ttsMap[type.kind()]
-
-    def visitStringType(self, type):
-        if type.bound() == 0:
-            self.__result_type = "std::string"
-        else:
-            self.__result_type = "std::string<" + str(type.bound()) + ">"
-
-    def visitWStringType(self, type):
-        if type.bound() == 0:
-            self.__result_type = "wstring"
-        else:
-            self.__result_type = "wstring<" + str(type.bound()) + ">"
-
-    def visitSequenceType(self, type):
-        type.seqType().accept(self)
-        if type.bound() == 0:
-            self.__result_type = self.__result_type + "*"
-        else:
-            self.__result_type = self.__result_type + "[" +\
-                                 str(type.bound()) + "];"
-
-    def visitFixedType(self, type):
-        if type.digits() > 0:
-            self.__result_type = "fixed<" + str(type.digits()) + "," +\
-                                 str(type.scale()) + ">"
-        else:
-            self.__result_type = "fixed"
-
-    def visitDeclaredType(self, type):
-        self.__result_type = self.__prefix + type.decl().scopedName()[-1]
-
 
 def run(tree, args):
     st = output.Stream(sys.stdout, 2)
     dv = ExtractVisitor(st)
     tree.accept(dv)
+    dv.writeAll()
+
