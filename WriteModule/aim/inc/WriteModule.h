@@ -26,10 +26,11 @@ private:
 
 protected:
   static const int channel_count = 1;
-  const char* const channel[1] = {"writeOutput"};
+  const char* channel[1];
 
 public:
   WriteModule() {
+    const char* const channel[1] = {"writeOutput"};
   }
   
   ~WriteModule() { }
