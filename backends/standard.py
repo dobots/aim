@@ -174,6 +174,18 @@ class StandardVisitor (rur.RurModule):
     def writeConstructor(self):
         self.st.out( self.classname + "() {" )
         self.st.inc_indent()
+        names = [];
+        for p in self.portList:
+            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
+            if port_direction == rur.Direction.IN:
+                  names.append("\"read" + port_name + "\"") 
+                  
+            if port_direction == rur.Direction.OUT: 
+                  names.append( "\"write" + port_name + "\"") 
+
+        # bug: http://stackoverflow.com/questions/9900242/error-with-constexprgcc-error-a-brace-enclosed-initializer-is-not-allowed-h
+        self.st.out("const char* const channel[" + str(len(names)) + "] = {" + ', '.join(names) + "};")
+        
         for p in self.portList:
             self.writeDummyInitiation(p)
         for s in self.structList:
@@ -219,7 +231,9 @@ class StandardVisitor (rur.RurModule):
                   names.append( "\"write" + port_name + "\"") 
 
 	self.st.out("static const int channel_count = " + str(len(names)) + ";")
-        self.st.out("const char* const channel[" + str(len(names)) + "] = {" + ', '.join(names) + "};")
+        # bug: http://stackoverflow.com/questions/9900242/error-with-constexprgcc-error-a-brace-enclosed-initializer-is-not-allowed-h
+        # self.st.out("const char* const channel[" + str(len(names)) + "] = {" + ', '.join(names) + "};")
+        self.st.out("const char* channel[" + str(len(names)) + "];")
 
     def writeDummyAllocation(self, node):
         self.st.out("")
