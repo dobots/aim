@@ -44,6 +44,7 @@ IF (NOT (BUILD_YARP OR BUILD_ROS))
   INCLUDE(local.cmake OPTIONAL)
 ENDIF ()
 
+INCLUDE(/etc/rur/backends_path.cmake)
 INCLUDE(~/.rur/backends_path.cmake OPTIONAL)
 
 IF (BUILD_YARP OR BUILD_ROS)
