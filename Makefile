@@ -6,8 +6,8 @@
 # License: LGPL v.3
 # Company: Distributed Organisms B.V.
 
-SUBDIRS=aimlist aimcreate-pkg aimupdate aimcopy aimrun aimconnect aimlogin \
-	aimregister aimstop
+SUBDIRS=aimconnect aimcopy aimcreate-pkg aimcross aimget aimlist aimlogin aimports \
+	aimregister aimrun aimselect aimstop aimupdate
 
 subdirs: $(SUBDIRS)
 
