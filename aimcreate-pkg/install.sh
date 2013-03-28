@@ -51,7 +51,7 @@ fi
 echo "[#] Use backends path: ${RUR_BACKENDS_PATH}"
 
 echo "[#] Write backends path to cmake configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
-echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}.cmake" 
+echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
 
 ####################################################################################################
 # Start
