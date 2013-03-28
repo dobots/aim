@@ -41,7 +41,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 # Include aim stuff
 ADD_SUBDIRECTORY(aim)
 
-SET(CMAKE_CXX_FLAGS -std=c++11)
+#SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")

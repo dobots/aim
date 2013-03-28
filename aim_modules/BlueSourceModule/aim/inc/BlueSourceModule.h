@@ -115,10 +115,10 @@ public:
     delete cliParam;
   }
   
-  // This is the function you will need to implement.
-  void Tick(); 
+  // This is the function you will need to override in a subclass implement.
+  void Tick() {} 
   
-  bool Stop(); 
+  bool Stop() { return false; } 
   
   
   // After construction you will need to call this function first
@@ -206,81 +206,103 @@ protected:
   // All subsequent functions should be called from "within" this module
   // From either the Tick() routine itself, or Tick() in a derived class
   
-  inline void writeMicrophone(const int microphone) {
+  inline bool writeMicrophone(const int microphone) {
     Bottle &microphonePrepare = portMicrophone->prepare();
     microphonePrepare.clear();
     microphonePrepare.addInt(microphone);
-    portMicrophone->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portMicrophone->write(forceStrict);
+    return true;
   }
   
-  inline void writeBattery(const int battery) {
+  inline bool writeBattery(const int battery) {
     Bottle &batteryPrepare = portBattery->prepare();
     batteryPrepare.clear();
     batteryPrepare.addInt(battery);
-    portBattery->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portBattery->write(forceStrict);
+    return true;
   }
   
-  inline void writeLight(const int light) {
+  inline bool writeLight(const int light) {
     Bottle &lightPrepare = portLight->prepare();
     lightPrepare.clear();
     lightPrepare.addInt(light);
-    portLight->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portLight->write(forceStrict);
+    return true;
   }
   
-  inline void writeInfrared(const int infrared) {
+  inline bool writeInfrared(const int infrared) {
     Bottle &infraredPrepare = portInfrared->prepare();
     infraredPrepare.clear();
     infraredPrepare.addInt(infrared);
-    portInfrared->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portInfrared->write(forceStrict);
+    return true;
   }
   
-  inline void writeMotorCurrent1(const int motorcurrent1) {
+  inline bool writeMotorCurrent1(const int motorcurrent1) {
     Bottle &motorcurrent1Prepare = portMotorCurrent1->prepare();
     motorcurrent1Prepare.clear();
     motorcurrent1Prepare.addInt(motorcurrent1);
-    portMotorCurrent1->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portMotorCurrent1->write(forceStrict);
+    return true;
   }
   
-  inline void writeMotorCurrent2(const int motorcurrent2) {
+  inline bool writeMotorCurrent2(const int motorcurrent2) {
     Bottle &motorcurrent2Prepare = portMotorCurrent2->prepare();
     motorcurrent2Prepare.clear();
     motorcurrent2Prepare.addInt(motorcurrent2);
-    portMotorCurrent2->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portMotorCurrent2->write(forceStrict);
+    return true;
   }
   
-  inline void writeWheel1(const int wheel1) {
+  inline bool writeWheel1(const int wheel1) {
     Bottle &wheel1Prepare = portWheel1->prepare();
     wheel1Prepare.clear();
     wheel1Prepare.addInt(wheel1);
-    portWheel1->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portWheel1->write(forceStrict);
+    return true;
   }
   
-  inline void writeWheel2(const int wheel2) {
+  inline bool writeWheel2(const int wheel2) {
     Bottle &wheel2Prepare = portWheel2->prepare();
     wheel2Prepare.clear();
     wheel2Prepare.addInt(wheel2);
-    portWheel2->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portWheel2->write(forceStrict);
+    return true;
   }
   
-  inline void writeLed1(const int led1) {
+  inline bool writeLed1(const int led1) {
     Bottle &led1Prepare = portLed1->prepare();
     led1Prepare.clear();
     led1Prepare.addInt(led1);
-    portLed1->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portLed1->write(forceStrict);
+    return true;
   }
   
-  inline void writeLed2(const int led2) {
+  inline bool writeLed2(const int led2) {
     Bottle &led2Prepare = portLed2->prepare();
     led2Prepare.clear();
     led2Prepare.addInt(led2);
-    portLed2->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portLed2->write(forceStrict);
+    return true;
   }
   
-  inline void writeLed3(const int led3) {
+  inline bool writeLed3(const int led3) {
     Bottle &led3Prepare = portLed3->prepare();
     led3Prepare.clear();
     led3Prepare.addInt(led3);
-    portLed3->write(true);
+    bool forceStrict = true; // wait till previous sends are complete
+    portLed3->write(forceStrict);
+    return true;
   }
   
 };

@@ -36,24 +36,45 @@ SET(PROJECT_NAME "KeypointModule")
 # Start a project
 PROJECT(${PROJECT_NAME})
 
-# The directory with all the FindXXX modules
+# The directory with some of the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
 
-#FIND_PACKAGE(Librt REQUIRED)
-# libz is required for opencv_core
-SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d opencv_calib3d)
+##########################################################################################
+# Section to include your own FindX cmake files and options
+##########################################################################################
 
-# Include OpenCV for this project
-ADD_SUBDIRECTORY(opencv)
+## Commented example for the EIGEN library. Replace this with what your module needs, 
+## for example Boost libraries, OpenCV, inference libraries, etc.
+#
+# OPTION(BUILD_EIGEN OFF "Build module with Eigen support")
+# CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/inc/config.h)
+# IF (BUILD_EIGEN) 
+# 	MESSAGE("[*] Eigen support, this will enable all (sparse) matrix related code")
+# 	FIND_PACKAGE(Eigen3 REQUIRED)
+# 	INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+# ENDIF()
+
+##########################################################################################
+
+# First set empty
+SET(PARENT_INCLUDE_DIRS "")
 
 # Include aim stuff
 ADD_SUBDIRECTORY(aim)
 
-#set( CMAKE_CXX_FLAGS "-fPIC -Wno-psabi -fsigned-char " )
+# Get include directories
+FOREACH(INCLDIR ${PARENT_INCLUDE_DIRS})
+  MESSAGE("[*] Add ${INCLDIR}")
+  INCLUDE_DIRECTORIES(${INCLDIR})
+ENDFOREACH()
+
+# Manually add some CXX flag (disabled by default because most cross-compilers choke on it)
+# SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
-MESSAGE("[*] Libraries included: ${LIBS}")
+MESSAGE("[*] Linked libraries: ${LIBS}")
 
 # Source directory
 SET(SOURCE_DIR "src")
@@ -75,6 +96,11 @@ ENDFOREACH(HEADER_FILE ${FOLDER_HEADER})
 
 # For references to header files
 INCLUDE_DIRECTORIES(aim/inc)
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "INCLUDE_DIRECTORY='${dir}'")
+endforeach()
 
 # The OpenCV headers are stored per module now (before system-wide install) 
 INCLUDE_DIRECTORIES(opencv/modules/core/include)
