@@ -19,11 +19,15 @@ RUR_CONFIG_PATH=/etc/rur
 RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
 RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
 
+RUR_CONFIG_COLOR=/etc/rur/color.sh
+
 # Prepend with destination dir if DESTDIR is present
 RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
 RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
 RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
 RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+source $RUR_CONFIG_COLOR
 
 ####################################################################################################
 # User configuration
@@ -69,19 +73,19 @@ middleware=$2
 mn_sanity_check=${modulename//[[:space:]]}
 
 if [[ ! -a $modulename ]]; then
-	echo "[#] This directory does not exist"
+	msg_error "The directory $modulename does not exist"
 	exit 1
 fi
 
 if [[ "$mn_sanity_check" == "$1" ]]; then
 	if [[ "$1" == *Module ]]; then
-		echo "[#] Change $modulename to use middleware $middleware"
+		msg_info "Configure $modulename to use middleware $middleware"
 	else
-		echo "[#] Not a proper module (should end the module with \"Module\")"
+		msg_warning "Not a proper module (should end the module with \"Module\")"
 		exit 1
 	fi
 else
-	echo "[#] Not a proper module (has whitespaces)"
+	msg_warning "Not a proper module (has whitespaces)"
 	exit 1
 fi
 
@@ -89,17 +93,18 @@ fi
 # Start
 ####################################################################################################
 
-BUILD_CMD=BUILD_STANDARD
-if [[ $MIDDLEWARE == "yarp" ]]; then
-	BUILD_CMD="BUILD_YARP "
-elif [[ $MIDDLEWARE == "zeromq" ]]; then
-	BUILD_CMD="BUILD_ZEROMQ"
-elif [[ $MIDDLEWARE == "ros" ]]; then
-	BUILD_CMD="BUILD_ROS"
+build_cmd=BUILD_STANDARD
+if [[ $middleware == "yarp" ]]; then
+	build_cmd="BUILD_YARP"
+elif [[ $middleware == "zeromq" ]]; then
+	build_cmd="BUILD_ZEROMQ"
+elif [[ $middleware == "ros" ]]; then
+	build_cmd="BUILD_ROS"
 fi
 
 cd $modulename
 
-echo "set($BUILD_CMD on)" > aim/local.cmake
+msg_info "Set \"set($build_cmd on)\" as cmake configure option in aim/local.cmake"
+echo "set($build_cmd on)" > aim/local.cmake
 
 cd ..
