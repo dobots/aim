@@ -23,12 +23,12 @@ struct Param {
 
 typedef std::vector<int> long_seq;
 
-class KeypointModule {
+class FindRobotModule {
 private:
   
-  long_seq dummySensor;
+  long_seq dummyAudio;
   
-  int dummySensorArrayLength;
+  int dummyInfrared;
   
   Param *cliParam;
 
@@ -37,14 +37,14 @@ protected:
   const char* channel[3];
 
 public:
-  KeypointModule() {
-    const char* const channel[3] = {"readSensor", "readSensorArrayLength", "writeResult"};
-    dummySensor = long_seq(0);
-    dummySensorArrayLength = int(0);
+  FindRobotModule() {
+    const char* const channel[3] = {"readAudio", "readInfrared", "writeLeftWheel"};
+    dummyAudio = long_seq(0);
+    dummyInfrared = int(0);
     cliParam = new Param();
   }
   
-  ~KeypointModule() { }
+  ~FindRobotModule() { }
   
   void Tick() {} 
   
@@ -56,17 +56,17 @@ public:
   inline Param *GetParam() { return cliParam; };
   
   // Read from this function and assume it means something
-  inline long_seq *readSensor(bool blocking_dummy=false) {
-    return &dummySensor;
+  inline long_seq *readAudio(bool blocking_dummy=false) {
+    return &dummyAudio;
   }
   
   // Read from this function and assume it means something
-  inline int *readSensorArrayLength(bool blocking_dummy=false) {
-    return &dummySensorArrayLength;
+  inline int *readInfrared(bool blocking_dummy=false) {
+    return &dummyInfrared;
   }
   
   // Write to this function and assume it ends up at some receiving module
-  inline bool writeResult(const int output) {
+  inline bool writeLeftWheel(const int output) {
     return true;
   }
 };

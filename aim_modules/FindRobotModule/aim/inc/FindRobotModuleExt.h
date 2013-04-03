@@ -1,6 +1,6 @@
 /**
- * @file KeypointModule.cpp
- * @brief ...
+ * @file FindRobotModuleExt.cpp
+ * @brief FindRobotModule extension
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common 
  * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
@@ -20,15 +20,30 @@
  * @case    Artificial Intelligence Framework
  */
 
-#include <KeypointModule.h>
+#include <FindRobotModule.h>
 
-using namespace rur;
+#include <CRawImage.h>
+#include <CCamera.h>
 
-void KeypointModule::Tick() {
+namespace rur {
 
-}
+class FindRobotModuleExt: public FindRobotModule {
+public:
+	// The tick function will be called from the FindRobotModuleMain file
+	void Tick();
 
-bool KeypointModule::Stop() {
-	return false;
+	// As soon as Stop() returns "true", the FindRobotModuleMain will stop the module
+	bool Stop();
+protected:
+
+	CCamera* cam;
+
+	//! Image
+	CRawImage* image0;
+
+private:
+	bool stop_flag;
+};
+
 }
 

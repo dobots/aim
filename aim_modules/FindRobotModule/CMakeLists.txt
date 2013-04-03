@@ -27,11 +27,10 @@ ENDIF(WIN32)
 
 IF(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
-	cmake_policy(SET CMP0014 NEW)
 ENDIF(COMMAND cmake_policy)
 
 # Set name of project
-SET(PROJECT_NAME "KeypointModule")
+SET(PROJECT_NAME "FindRobotModule")
 
 # Start a project
 PROJECT(${PROJECT_NAME})
@@ -55,17 +54,14 @@ MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
 # 	INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 # ENDIF()
 
-# The OpenCV headers are stored per module now (before system-wide install) 
-# Include OpenCV for this project
-ADD_SUBDIRECTORY(opencv)
 
-INCLUDE_DIRECTORIES(opencv/modules/core/include)
-INCLUDE_DIRECTORIES(opencv/modules/flann/include)
-INCLUDE_DIRECTORIES(opencv/modules/imgproc/include)
-INCLUDE_DIRECTORIES(opencv/modules/features2d/include)
-INCLUDE_DIRECTORIES(opencv/modules/calib3d/include)
+MESSAGE("[*] Compile camera module and place in ${PROJECT_BINARY_DIR}")
+add_subdirectory(camera ${PROJECT_BINARY_DIR}/camera)
+set(CAMERA_STATIC_LIB camera)
+include_directories(${CMAKE_SOURCE_DIR}/camera/include)
 
-SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d opencv_calib3d)
+# We need the implementation of sem_wait and sem_post
+set(LIBS -pthread)
 
 ##########################################################################################
 
@@ -97,8 +93,8 @@ FILE(GLOB FOLDER_SOURCE ${SOURCE_DIR}/*.cpp ${SOURCE_DIR}/*.cc ${SOURCE_DIR}/*.c
 FILE(GLOB FOLDER_HEADER ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hh ${INCLUDE_DIR}/*.hpp)
 
 # For Visual Studio group the files
-SOURCE_GROUP("Source files" FILES ${FOLDER_SOURCE})
-SOURCE_GROUP("Header files" FILES ${FOLDER_HEADER})
+SOURCE_GROUP("Source files" FILES ${FOLDER_SOURCE} ${CAMERA_SOURCE})
+SOURCE_GROUP("Header files" FILES ${FOLDER_HEADER} ${CAMERA_HEADERS})
 
 # Automatically add include directories if needed.
 FOREACH(HEADER_FILE ${FOLDER_HEADER})
@@ -122,16 +118,14 @@ IF (NOT EXISTS ${PROJECT_HEADER})
   "  \"sudo apt-get install omniidl\"?")
 ENDIF() 
 
-MESSAGE("[*] Header files included:\n\t ${AIM_FILES} ${FOLDER_HEADER}")
-
-MESSAGE("[*] Source files to be compiled:\n\t ${FOLDER_SOURCE}")
+MESSAGE("[*] Files included: ${AIM_FILES} ${FOLDER_HEADER}")
 
 # Set up our main executable.
 IF(FOLDER_SOURCE STREQUAL "")
   MESSAGE(FATAL_ERROR "No source code files found. Please add something")
 ELSE ()
-  ADD_EXECUTABLE(${PROJECT_NAME} ${FOLDER_SOURCE} ${FOLDER_HEADER} ${AIM_FILES})
-  TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
-  INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
+	ADD_EXECUTABLE(${PROJECT_NAME} ${FOLDER_SOURCE} ${FOLDER_HEADER} ${AIM_FILES})
+	TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS} ${CAMERA_STATIC_LIB})
+	INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
 ENDIF ()
 
