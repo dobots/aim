@@ -4,6 +4,7 @@
 # Date: Mar. 27, 2013
 
 RUR_BIN_PATH=/usr/bin
+RUR_INCLUDE_PATH=/usr/include
 RUR_SHARE_PATH=/usr/share/rur
 RUR_TEMPLATE_PATH=$(RUR_SHARE_PATH)/templates
 RUR_BACKENDS_PATH=$(RUR_SHARE_PATH)/backends
@@ -19,7 +20,8 @@ install:
 	@mkdir -p $(BACKENDS_INSTALL_PATH)/helper
 	@cp backends/*.py $(BACKENDS_INSTALL_PATH)
 	@cp backends/helper/*.py $(BACKENDS_INSTALL_PATH)/helper
-	@install rur-builder ${RUR_BIN_PATH}
+	@install rur-builder $(DESTDIR)/${RUR_BIN_PATH}
+	@cp third/zmq.hpp $(DESTDIR)/${RUR_INCLUDE_PATH}
 
 clean:
 	@echo "[#] Just python and bash scripts. Just removing the .pyc files"
@@ -32,5 +34,6 @@ uninstall:
 	@rm $(BACKENDS_INSTALL_PATH)/*.py
 	@rmdir $(BACKENDS_INSTALL_PATH)/helper
 	@rmdir $(BACKENDS_INSTALL_PATH)
-	@install ${RUR_BIN_PATH}/rur-builder 
+	@install $(DESTDIR)/${RUR_BIN_PATH}/rur-builder 
+	@rm $(DESTDIR)/${RUR_INCLUDE_PATH}/zmq.hpp
 
