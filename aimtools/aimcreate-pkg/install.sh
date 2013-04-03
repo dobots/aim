@@ -11,15 +11,15 @@ RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
 RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
 RUR_CONFIG_PATH=/etc/rur
 
-# Configuration files
-RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
-RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
-
 # Prepend with destination dir if DESTDIR is present
 RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
 RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
 RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
 RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+# Configuration files (the .conf file is convenient for bash scripts, the .cmake one for cmake)
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
 
 ####################################################################################################
 # Checks
@@ -44,14 +44,14 @@ mkdir --parents ${RUR_CONFIG_PATH}
 if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
 	source $RUR_CONFIG_FILE_BACKENDS
 else
-	echo "[#] Write backends path to configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
+	echo "[#] Write backends path to configuration file: ${RUR_CONFIG_FILE_BACKENDS}"
 	echo "RUR_BACKENDS_PATH=\"$RUR_BACKENDS_PATH\"" >> $RUR_CONFIG_FILE_BACKENDS
 fi
 
 echo "[#] Use backends path: ${RUR_BACKENDS_PATH}"
 
 echo "[#] Write backends path to cmake configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
-echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}.cmake" 
+echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
 
 ####################################################################################################
 # Start

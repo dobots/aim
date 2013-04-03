@@ -1,0 +1,110 @@
+#!/bin/bash
+
+PROGRAM="aimselect"
+
+VERSION="$PROGRAM 0.1"
+
+####################################################################################################
+# Default configuration
+####################################################################################################
+
+# Installation paths
+RUR_BIN_PATH=/usr/bin
+RUR_SHARE_PATH=/usr/share/rur
+RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
+RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
+RUR_CONFIG_PATH=/etc/rur
+
+# Configuration files
+RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
+RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+
+RUR_CONFIG_COLOR=/etc/rur/color.sh
+
+# Prepend with destination dir if DESTDIR is present
+RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
+RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
+RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
+RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+source $RUR_CONFIG_COLOR
+
+####################################################################################################
+# User configuration
+####################################################################################################
+
+if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
+	source $RUR_CONFIG_FILE_BACKENDS
+fi
+
+####################################################################################################
+# Checks
+####################################################################################################
+
+if [[ "$1" == "" ]]
+then
+	echo "No args supplied! Run $0 -h for more info"
+	exit 1
+fi
+
+if [[ "$1" == "-h" ]]
+then
+	echo "$VERSION - Usage"
+	echo 
+	echo "$PROGRAM \"module name\" \"middleware\""
+	exit 0 
+fi 
+
+if [[ $# -ne 2 ]]
+then
+	echo "[#] We need one parameters. Run $0 -h for more info, currently you used $# parameters"
+	exit 1
+fi
+
+
+####################################################################################################
+# Specific checks
+####################################################################################################
+
+modulename=$1
+middleware=$2
+
+# Check if there are no whitespaces
+mn_sanity_check=${modulename//[[:space:]]}
+
+if [[ ! -a $modulename ]]; then
+	msg_error "The directory $modulename does not exist"
+	exit 1
+fi
+
+if [[ "$mn_sanity_check" == "$1" ]]; then
+	if [[ "$1" == *Module ]]; then
+		msg_info "Configure $modulename to use middleware $middleware"
+	else
+		msg_warning "Not a proper module (should end the module with \"Module\")"
+		exit 1
+	fi
+else
+	msg_warning "Not a proper module (has whitespaces)"
+	exit 1
+fi
+
+####################################################################################################
+# Start
+####################################################################################################
+
+build_cmd=BUILD_STANDARD
+if [[ $middleware == "yarp" ]]; then
+	build_cmd="BUILD_YARP"
+elif [[ $middleware == "zeromq" ]]; then
+	build_cmd="BUILD_ZEROMQ"
+elif [[ $middleware == "ros" ]]; then
+	build_cmd="BUILD_ROS"
+fi
+
+cd $modulename
+
+msg_info "Set \"set($build_cmd on)\" as cmake configure option in aim/local.cmake"
+echo "set($build_cmd on)" > aim/local.cmake
+
+cd ..
