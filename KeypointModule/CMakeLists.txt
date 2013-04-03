@@ -55,6 +55,18 @@ MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
 # 	INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 # ENDIF()
 
+# The OpenCV headers are stored per module now (before system-wide install) 
+# Include OpenCV for this project
+ADD_SUBDIRECTORY(opencv)
+
+INCLUDE_DIRECTORIES(opencv/modules/core/include)
+INCLUDE_DIRECTORIES(opencv/modules/flann/include)
+INCLUDE_DIRECTORIES(opencv/modules/imgproc/include)
+INCLUDE_DIRECTORIES(opencv/modules/features2d/include)
+INCLUDE_DIRECTORIES(opencv/modules/calib3d/include)
+
+SET(LIBS ${LIBS} opencv_core opencv_imgproc opencv_flann opencv_features2d opencv_calib3d)
+
 ##########################################################################################
 
 # First set empty
@@ -101,13 +113,6 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 foreach(dir ${dirs})
   message(STATUS "INCLUDE_DIRECTORY='${dir}'")
 endforeach()
-
-# The OpenCV headers are stored per module now (before system-wide install) 
-INCLUDE_DIRECTORIES(opencv/modules/core/include)
-INCLUDE_DIRECTORIES(opencv/modules/flann/include)
-INCLUDE_DIRECTORIES(opencv/modules/imgproc/include)
-INCLUDE_DIRECTORIES(opencv/modules/features2d/include)
-INCLUDE_DIRECTORIES(opencv/modules/calib3d/include)
 
 SET(PROJECT_HEADER ../aim/inc/${PROJECT_NAME}.h)
 IF (NOT EXISTS ${PROJECT_HEADER})
