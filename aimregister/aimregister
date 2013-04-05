@@ -32,6 +32,8 @@ RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
 RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
 RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
 
+# The build folder per project
+BUILD_FOLDER=build_standard
 
 ####################################################################################################
 # User configuration
@@ -74,10 +76,10 @@ MODULE_NAME=${1%/}
 
 echo "[#] Check ${MODULE_NAME} directory and default build location if there is a compiled binary"
 if [ -e "${MODULE_NAME}" ]; then
-	if [ -e "${MODULE_NAME}/build/${MODULE_NAME}" ]; then
+	if [ -e "${MODULE_NAME}/${BUILD_FOLDER}/${MODULE_NAME}" ]; then
 		echo "[#] Add \"${MODULE_NAME}\" to registry"
 	else
-		echo "[#] Cannot find \"${MODULE_NAME}/build/${MODULE_NAME}\""
+		echo "[#] Cannot find \"${MODULE_NAME}/${BUILD_FOLDER}/${MODULE_NAME}\""
 		echo "[#] Make sure naming is consistent and the binary built properly"
 		exit 0
 	fi
