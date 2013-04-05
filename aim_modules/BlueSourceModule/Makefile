@@ -1,13 +1,15 @@
 #!/bin/make
 
 # Author: Anne C. van Rossum
-# Date: Jul. 20, 2012
+# Date: Apr. 5, 2013
+
+build_folder=build_standard
 
 all: 
-	@mkdir -p build
-	cd build && cmake $(CMAKE_FLAGS) ..
-	cd build && make
+	@mkdir -p $(build_folder)
+	cd $(build_folder) && cmake $(CMAKE_FLAGS) ..
+	cd $(build_folder) && make
 
 clean:
-	cd build && make clean
-	rm -f build/CMakeCache.txt
+	cd $(build_folder) && make clean
+	rm -f $(build_folder)/CMakeCache.txt

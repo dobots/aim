@@ -37,6 +37,8 @@ void FindRobotModuleExt::Tick() {
 	cam = new CCamera(&imageSem);
 	cam->init(devName,640,480);
 	cam->renewImage(image0);
+	image0->saveBmp("test.bmp");
+	stop_flag = true;
 	//image0->makeMonochrome(image0gray);
 
 }
