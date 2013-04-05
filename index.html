@@ -46,9 +46,9 @@ AIM stands for Artificial Intelligence Modules, but is much more than that. AIM 
 <p>
 The goal of AIM is threefold:
 <ul>
-<li>A <b>middleware-agnostic</b> modular approach to writing code: the "rur-builder". 
-<li>A <b>distributed market place</b>: the "aimserver".
-<li>Software that is inherently <b>scalable and runs on servers</b> as smoothly as on robots or smartphones.
+<li>A <b>middleware-agnostic</b> modular approach to writing code: the <b>rur-builder</b>.</li>
+<li>Tools to easily <b>create, publish, and cross-compile modules</b> that run as smoothly on robots as on servers: the <b>aimtools</b>.</li>
+<li>A <b>distributed market place</b>, an app store for web developers: the <b>aimserver</b>.</li>
 </ul>
 
 </p>
@@ -59,6 +59,21 @@ The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/m
 
 <p>
 The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
+</p>
+
+<p>
+The <b>aimtools</b> is a suite of tools in the same spirit as some of the tools in ROS, such as roscreate-pkg:
+<ul>
+<li><b>aimget</b>: add a github repository to your AIM workspace</li>
+<li><b>aimcreate-pkg</b>: create a new AI module</li>
+<li><b>aimregister</b>: register the module locally</li>
+<li><b>aimselect</b>: select a specific middleware to compile for</li>
+<li><b>aimmake</b>: compile the module</li>
+<li><b>aimcross</b>: cross-compile the module (currently supported: blackfin; upcoming: raspberry)</li>
+<li><b>aimrun</b>: run a previously registered module</li>
+<li><b>aimconnect</b>: connect two ports on running modules</li>
+<li><b>aimstop</b>: register the module locally</li>
+</ul>
 </p>
 
 <p>
@@ -100,6 +115,37 @@ The important part here is the function "void Input" defined with an additional 
 As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The #pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header.  The "module" keyword translates into a namespace.
 </p>
 
+<h4>Get the rur-builder and the aimtools</h4>
+<p>A default repository is available with modules mainly filled from <a href="http://almende.github.com/nets/">NETS</a> comprising computer vision, machine learning, prediction modules. Let us assume here we have a generic Linux version. In case of Ubuntu you can better use the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a>! With other Linux versions you can manually get the software by:
+</p>
+
+<p><pre><code>mkdir $HOME/aim
+cd $HOME/aim
+git clone https://github.com/mrquincle/rur-builder
+cd rur-builder
+make
+sudo make install
+cd $HOME/aim
+git clone https://github.com/mrquincle/aimtools
+cd aimtools
+make
+sudo make install
+</code></pre></p>
+
+<p>Do this for all subprojects in <a href="https://github.com/mrquincle/aim-bzr">aim-bzr</a> that you want to use.</p> You should now have rur-builder, aimcreate-pkg, etc. installed on your system. Check that typing "rur-builder -h" results in a nice help message for example. Please, notice that you will manually have to install required dependencies (because you did not use the PPA), such as <b>sudo apt-get install omniidl</b> and the several middlewares (such as zeromq, yarp, and ros). 
+</p>
+
+<h4>Get some modules</h4>
+
+<p>To download the module repository we use aimget:</p>
+<pre><code>mkdir -p $HOME/workspace/aim
+echo "export AIM_WORKSPACE=$HOME/workspace/aim >> $HOME/.bashrc"
+source $HOME/.bashrc
+aimget dobots ttps://github.com/mrquincle/aim_modules
+cd $AIM_WORKSPACE</code></pre></p>
+
+<p>Choose your workspace where you want of course, but this is how you will get started. Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
+
 <h4>Example with YARP</h4>
 
 <p>
@@ -107,14 +153,12 @@ Now, the running of the code of these modules actually depends on the middleware
 </p>
 
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
-cd $AIM_MODULES_PATH/ReadModule 
-echo "set(BUILD_YARP on)" > aim/local.cmake
-make
-cd $AIM_MODULES_PATH/WriteModule 
-echo "set(BUILD_YARP on)" > aim/local.cmake
-make
 cd $AIM_MODULES_PATH
+aimselect ReadModule yarp
+aimmake ReadModule
 aimregister ReadModule
+aimselect WriteModule yarp
+aimmake WriteModule
 aimregister WriteModule
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 yarp server
@@ -138,14 +182,12 @@ Running the code with ZeroMQ instead of YARP is along similar lines. To run the 
 
 <p><pre><code>sudo apt-get install libzmq-dev
 sudo apt-get install libjson-spirit-dev
-cd $AIM_MODULES_PATH/ReadModule 
-echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
-make
-cd $AIM_MODULES_PATH/WriteModule 
-echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
-make
 cd $AIM_MODULES_PATH
+aimselect ReadModule zeromq
+aimmake ReadModule
 aimregister ReadModule  # if not done before
+aimselect WriteModule zeromq
+aimmake WriteModule
 aimregister WriteModule # if not done before
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 zmqserver
