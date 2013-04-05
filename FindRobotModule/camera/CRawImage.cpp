@@ -199,7 +199,7 @@ void CRawImage::saveBmp(const char* inName)
 //	std::cout << __func__ << ": save" << std::endl;
 	FILE* file = fopen(inName, "wb");
 //	std::cout << __func__ << ": save2" << std::endl;
-	swap();
+	//swap();
 	fwrite(header,54,1,file);
 	if (bpp == 1) {
 		unsigned char *temp_palette = (unsigned char*)calloc(PALETTE_SIZE, sizeof(unsigned char));
@@ -212,7 +212,7 @@ void CRawImage::saveBmp(const char* inName)
 		if (temp_palette != NULL) free(temp_palette);
 	}
 	fwrite(data,size,1,file);
-	swap();
+	//swap();
 	fclose(file);
 	std::cout << __func__ << ": saved \"" << inName << "\"" << std::endl;
 }

@@ -19,6 +19,7 @@
 #endif
 
 #define DEBUG
+
 #define DEFAULT_FMT VIDEO_PALETTE_UYVY
 #define DEFAULT_LEN 16
 #define DEFAULT_RATE 60

@@ -26,21 +26,40 @@
 #include <sstream>
 #include <iostream>
 
+#include <sstream>
+
 using namespace rur;
+
+void FindRobotModuleExt::Init(std::string & name) {
+	FindRobotModule::Init(name);
+	sem_init(&imageSem,0,1);
+
+	std::string devStrName = "/dev/video0";
+	const char *devName = devStrName.c_str();
+	std::cout << "We will use " << std::string(devName) << " as argument" << std::endl;
+	std::cout << " make sure you have called modprobe ... etc. before" << std::endl;
+	image0 = new CRawImage(640,480,3);
+	cam = new CCamera(&imageSem);
+	cam->init(devName,640,480);
+
+	counter = 0;
+}
 
 //! Replace with your own functionality
 void FindRobotModuleExt::Tick() {
-	std::cout << "We will use /dev/video0 as argument, make sure you have called modprobe ... etc. before" << std::endl;
-	const char *devName = std::string("/dev/video0").c_str();
-	image0 = new CRawImage(640,480,3);
-	sem_t imageSem;
-	cam = new CCamera(&imageSem);
-	cam->init(devName,640,480);
+	FindRobotModule::Tick();
+	std::cout << "Renew image object with data from camera" << std::endl;
 	cam->renewImage(image0);
-	image0->saveBmp("test.bmp");
-	stop_flag = true;
+	std::ostringstream ss; ss << "test" << counter << ".bmp";
+	std::string bmp_file = ss.str();
+	std::cout << "Save image as " << bmp_file << std::endl;
+	image0->saveBmp(bmp_file.c_str());
 	//image0->makeMonochrome(image0gray);
+	usleep(100000); // 0.1 second
+	counter++;
 
+	if (counter == 2)
+		stop_flag = true;
 }
 
 //! Immediately returns true to stop the module
