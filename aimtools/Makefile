@@ -6,7 +6,8 @@
 # License: LGPL v.3
 # Company: Distributed Organisms B.V.
 
-SUBDIRS=aimconnect aimcopy aimcreate-pkg aimcross aimget aimlist aimlogin aimports \
+# Compile everything, but start with "helper"
+SUBDIRS=helper aimconnect aimcopy aimcreate-pkg aimcross aimget aimlist aimlogin aimports \
 	aimregister aimrun aimselect aimstop aimupdate
 
 subdirs: $(SUBDIRS)

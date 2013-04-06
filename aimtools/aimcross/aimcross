@@ -5,37 +5,35 @@ PROGRAM="aimcross"
 VERSION="$PROGRAM 0.1"
 
 ####################################################################################################
-# Default configuration
+# Configuration
 ####################################################################################################
 
-# Installation paths
-RUR_BIN_PATH=/usr/bin
-RUR_SHARE_PATH=/usr/share/rur
-RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
-RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
-RUR_CONFIG_PATH=/etc/rur
+# Installation paths, the bin path is to store the application itself, the share path to store 
+# additional details such as helper python files, icons, translations. The config path to store 
+# configuration details, such as starting at booting.
+AIM_BIN_PATH=/usr/bin
+AIM_SHARE_PATH=/usr/share/aim
+AIM_CONFIG_PATH=/etc/aim
+AIM_CROSSCOMPILECONF_PATH=$AIM_SHARE_PATH/crosscompileconf
 
-# Configuration files
-RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
-RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
+# Update paths by prepending it with DESTDIR so installation via the Ubuntu PPA works properly. This
+# causes a duplicate "//" when $DESTDIR is empty, which is no problem at all, just does not look so
+# nice.
+AIM_BIN_PATH="$DESTDIR/$AIM_BIN_PATH"
+AIM_SHARE_PATH="$DESTDIR/$AIM_SHARE_PATH"
+AIM_CONFIG_PATH="$DESTDIR/$AIM_CONFIG_PATH"
+AIM_CROSSCOMPILECONF_PATH="$DESTDIR/$AIM_CROSSCOMPILECONF_PATH"
 
-RUR_CONFIG_COLOR=/etc/rur/color.sh
-
-# Prepend with destination dir if DESTDIR is present
-RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
-RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
-RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
-RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
-
-source $RUR_CONFIG_COLOR
+# Default configuration files
+AIM_CONFIG_COLOR=$AIM_CONFIG_PATH/color.sh
+AIM_CONFIG_SANITY=$AIM_CONFIG_PATH/sanity.sh
 
 ####################################################################################################
-# User configuration
+# Tweaks and general configuration details
 ####################################################################################################
 
-if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
-	source $RUR_CONFIG_FILE_BACKENDS
-fi
+source $AIM_CONFIG_COLOR
+source $AIM_CONFIG_SANITY
 
 ####################################################################################################
 # Checks
@@ -58,18 +56,9 @@ fi
 
 modulename="$1"
 
-# Check if there are no whitespaces
-mn_sanity_check=${modulename//[[:space:]]}
-
-if [[ "$mn_sanity_check" == "$1" ]]; then
-	if [[ "$1" == *Module ]]; then
-		msg_info "Cross-compile $1"
-	else
-		msg_warning "End the module with \"Module\""
-		exit 1
-	fi
-else
-	msg_warning "Please, do not use whitespaces"
+aim_sanity $modulename error
+if [[ "$error" != 0 ]]; then
+	msg_error "Module name check failed, we quit"
 	exit 1
 fi
 
@@ -91,17 +80,29 @@ then
 	exit 1
 fi
 
-if [[ "$target" != "blackfin" ]]
-then
-	msg_warning "Only target \"blackfin\" is currently supported"
-	exit 1
-fi
+case "$target" in 
 
-msg_info "Set installation dir and get color config"
-source /etc/apt-cross/ac-build/ac_get.sh
+"blackfin")
+	msg_info "Cross-compile for \"blackfin\" processor"
+;;
+"raspberry")
+	msg_info "Cross-compile for the \"Raspberry PI\""
+;;
+*)
+	msg_error "Currently supported target architectures: \"blackfin\" and \"raspberry\""
+	exit 1
+;;
+esac
+
+#msg_info "Set installation dir and get color config"
+#source /etc/apt-cross/ac-build/ac_get.sh
 
 msg_info "Get platform specific compiler"
-source /etc/apt-cross/ac-platform/$target.sh
+if [[ ! -e $AIM_CROSSCOMPILECONF_PATH/$target.sh ]]; then
+	msg_error "File for target architecture does not exist: $AIM_CROSSCOMPILECONF_PATH/$target.sh"
+	exit 1
+fi
+source $AIM_CROSSCOMPILECONF_PATH/$target.sh
 
 #cd $AC_INSTALL_DIR
 #echo "[#] Display directories in $AC_INSTALL_DIR: "
@@ -211,10 +212,10 @@ build() {
         set_timing
         set_logging
  
-        msg_info "We use the toolchain and disable the tests because of some awkward error"
-        msg_info "Note that CMAKE_TOOLCHAIN_FILE will only be used on the first run"
-        msg_info "it is not allowed to change an existing build tree"
-        msg_info "see: http://www.cmake.org/pipermail/cmake/2011-February/042554.html"
+#       msg_info "We use the toolchain and disable the tests because of some awkward error"
+#        msg_info "Note that CMAKE_TOOLCHAIN_FILE will only be used on the first run"
+#        msg_info "it is not allowed to change an existing build tree"
+#        msg_info "see: http://www.cmake.org/pipermail/cmake/2011-February/042554.html"
 #        cmake -C ../${target}.initial.cmake -DCMAKE_TOOLCHAIN_FILE=../$target.toolchain.cmake \
 #                ..
         cmake ..
