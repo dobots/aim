@@ -1,3 +1,3 @@
 local.cmake
-build_blackfin/
-build_standard/
+build_*/
+build/
