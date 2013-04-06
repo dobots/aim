@@ -29,13 +29,14 @@ namespace rur {
 
 class FindRobotModuleExt: public FindRobotModule {
 public:
+	void Init(std::string & name);
+
 	// The tick function will be called from the FindRobotModuleMain file
 	void Tick();
 
 	// As soon as Stop() returns "true", the FindRobotModuleMain will stop the module
 	bool Stop();
 protected:
-
 	CCamera* cam;
 
 	//! Image
@@ -43,6 +44,10 @@ protected:
 
 private:
 	bool stop_flag;
+
+	sem_t imageSem;
+
+	int counter;
 };
 
 }

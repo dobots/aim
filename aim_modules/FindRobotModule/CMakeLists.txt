@@ -63,6 +63,8 @@ include_directories(${CMAKE_SOURCE_DIR}/camera/include)
 # We need the implementation of sem_wait and sem_post
 set(LIBS -pthread)
 
+set(CMAKE_CXX_FLAGS -s)
+
 ##########################################################################################
 
 # First set empty

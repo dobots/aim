@@ -18,7 +18,7 @@ int CCamera::init(const char *deviceName,int wi,int he)
 {
 	height = he;
 	width  = wi;
-	printf("Open\n");
+	printf("Open device %s\n", deviceName);
 	devfd = opendev(deviceName,width, height, &palette);
 //	printf("Device opened\n");
 //	sleep(1);
@@ -42,9 +42,12 @@ int CCamera::renewImage(CRawImage* image)
 		fprintf(stderr,"Cannot grab a frame from a camera!\n"); 
 		return ret;
 	}
+	printf("Wait for release of image semaphore\n");
 	sem_wait(imSem);
+	printf("Within semaphore\n");
 	Pyuv422torgb24(buffer,image->data,width,height);
 	sem_post(imSem);
+	printf("Image semaphore released\n");
 	//	memcpy(image->data,buffer,width*height*2);
 	return 0; 
 }

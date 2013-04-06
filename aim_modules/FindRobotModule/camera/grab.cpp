@@ -277,5 +277,9 @@ int grab(int devfd, int width, int height, int palette,unsigned char* buffer)
 
 	} while (!done);
 
+#if defined(DEBUG)
+	printf("captured the image\n");
+#endif
+
 	return 0;
 }
