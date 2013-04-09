@@ -55,6 +55,77 @@ CRawImage::CRawImage(const CRawImage & other): width(other.width), height(other.
 	  updateHeader();
 }
 
+#define ASSERT(condition) { \
+	if(!(condition)){ \
+		std::cerr << "ASSERT FAILED: " << #condition << " @ " << __FILE__ << " (" << __LINE__ << ")" << std::endl; \
+		assert(condition); \
+	} \
+	}
+
+Pixel CRawImage::getPixel(int x, int y) {
+	assert (bpp == 3);
+	assert (x >= 0 && x < width);
+	assert (y >= 0 && y < height);
+	int base = (y*width+x)*3;
+	Pixel pixel;
+	pixel.b = data[base+0];
+	pixel.r = data[base+1];
+	pixel.g = data[base+2];
+	return pixel;
+}
+
+Pixel CRawImage::getPixel(int x, int y, Patch & patch) {
+	assert (x >= 0 && x < patch.width);
+	assert (y >= 0 && y < patch.height);
+	int base = (y*patch.width+x)*3;
+	Pixel pixel;
+	pixel.b = patch.data[base+0];
+	pixel.r = patch.data[base+1];
+	pixel.g = patch.data[base+2];
+	return pixel;
+}
+
+void CRawImage::setPixel(int x, int y, Patch & patch, Pixel pixel) {
+//	std::cout << "Set pixel " << x << "," << y << " for patch " << patch.width << "x" << patch.height << std::endl;
+	ASSERT(x >= 0 && x < patch.width);
+	ASSERT(y >= 0 && y < patch.height);
+	int base = (y*patch.width+x)*3;
+	patch.data[base+0] = pixel.b;
+	patch.data[base+1] = pixel.r;
+	patch.data[base+2] = pixel.g;
+}
+
+/**
+ * Get patch of size "patch.width * patch.length". This is more "bewerkelijk" than seems at first sight because the
+ * array is stored in a linear fashion, to get a "square" of data out of it, you will need to jump all over the place.
+ * That's why we now just check every individual element.
+ */
+void CRawImage::getPatch(int x, int y, Patch & patch) {
+	std::cout << "Get patch at " << x << ',' << y << std::endl;
+	assert (bpp == 3);
+	assert (x >= 0 && x < width);
+	assert (y >= 0 && y < height);
+	patch.data = (unsigned char*)calloc(patch.width*patch.height*bpp, sizeof(unsigned char));
+
+	for (int i = 0; i < patch.width; ++i) {
+		for (int j = 0; j < patch.height; ++j) {
+			int base = ((y+j)*width+x+i)*3;
+			Pixel pixel;
+			pixel.b = data[base+0];
+			pixel.r = data[base+1];
+			pixel.g = data[base+2];
+			setPixel(i,j, patch, pixel);
+		}
+	}
+}
+
+CRawImage* CRawImage::patch2Img(Patch &patch) {
+	CRawImage *img = new CRawImage(patch.width, patch.height, 3);
+	memcpy(img->data, patch.data, patch.width*patch.height*3);
+	return img;
+}
+
+
 void CRawImage::refresh() {
 	size = bpp*width*height;
 	if (data != NULL) free(data);
@@ -199,7 +270,7 @@ void CRawImage::saveBmp(const char* inName)
 //	std::cout << __func__ << ": save" << std::endl;
 	FILE* file = fopen(inName, "wb");
 //	std::cout << __func__ << ": save2" << std::endl;
-	//swap();
+	swap();
 	fwrite(header,54,1,file);
 	if (bpp == 1) {
 		unsigned char *temp_palette = (unsigned char*)calloc(PALETTE_SIZE, sizeof(unsigned char));
@@ -212,7 +283,7 @@ void CRawImage::saveBmp(const char* inName)
 		if (temp_palette != NULL) free(temp_palette);
 	}
 	fwrite(data,size,1,file);
-	//swap();
+	swap();
 	fclose(file);
 	std::cout << __func__ << ": saved \"" << inName << "\"" << std::endl;
 }
@@ -244,7 +315,7 @@ bool CRawImage::loadBmp(const char* inName)
 		n = fread(data,size,1,file);
 		if (n == 0) return false;
 		fclose(file);
-		swap();
+//		swap();
 		return true;
 	}
 	return false;
