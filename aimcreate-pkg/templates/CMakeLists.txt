@@ -18,6 +18,8 @@
 #
 # Copyright © 2013 Anne van Rossum <anne@almende.com>
 ##########################################################################################
+# Check "man cmake" for very detailed information on this build system
+##########################################################################################
 
 IF(WIN32)
   cmake_minimum_required(VERSION 2.6)
@@ -28,11 +30,11 @@ ENDIF(WIN32)
 # The directory with all the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/aim/cmake/")
 
-MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
+MESSAGE(STATUS "Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
 
 # The macro below forces the build directory to be different from source directory:
 INCLUDE( MacroEnsureOutOfSourceBuild )
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "[*] Requires an out of source build." ) 
+MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "AUTHOR_WARNING Requires an out of source build." ) 
 
 # Build options
 OPTION(BUILD_YARP      "Build module with YARP" OFF)
@@ -43,12 +45,12 @@ OPTION(BUILD_STANDARD  "Default build option" ON)
 # Check first if on command line CMAKE has set one of the options
 IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ))
   # If not, load the option from file
-  MESSAGE("[*] Check ${CMAKE_SOURCE_DIR}/aim/local.cmake")
+  message(STATUS "Check ${CMAKE_SOURCE_DIR}/aim/local.cmake")
   IF (EXISTS "${CMAKE_SOURCE_DIR}/aim/local.cmake")
-    MESSAGE("[*] Use user-defined local configuration file")
+    MESSAGE(STATUS "Use user-defined local configuration file")
     INCLUDE(local.cmake)
   ELSE()
-    MESSAGE("[*] Use default configuration file")
+    MESSAGE(STATUS "Use default configuration file")
     INCLUDE(default.cmake)
   ENDIF()
 ENDIF()
@@ -83,27 +85,27 @@ SET(IDL_FILE "aim/idl/${PROJECT_NAME}.idl")
 SET(HEADER_FILE "aim/inc/${PROJECT_NAME}.h")
 
 # Actually generate the header files
-MESSAGE("[*] Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}\", \"${BACKENDS_PATH}\", \"${HEADER_FILE}\"")
+MESSAGE(STATUS "Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}\", \"${BACKENDS_PATH}\", \"${HEADER_FILE}\"")
 EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE} ${BACKENDS_PATH} ${HEADER_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 
 # Write the (backend) configuration
-MESSAGE("[*] Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
+MESSAGE(STATUS "Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/aim/config.h.cmake ${CMAKE_SOURCE_DIR}/aim/inc/Config.h )
 
 # Find all cmake packages
 IF (BUILD_YARP)
-  MESSAGE("[*] YARP build, useful for YARP middleware")
+  MESSAGE(STATUS "YARP build, useful for YARP middleware")
   FIND_PACKAGE(YARP REQUIRED)
   INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS} PARENT_SCOPE)
   SET(LIBS ${LIBS} ${YARP_LIBRARIES})
 ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
-  MESSAGE("[*] The project source dir: ${PROJECT_SOURCE_DIR}")
+  MESSAGE(STATUS "The project source dir: ${PROJECT_SOURCE_DIR}")
   IF ("$ENV{ROS_ROOT}" STREQUAL "") 
-    MESSAGE(FATAL_ERROR "[*] Requires env. variable $ROS_ROOT. Run for example: \"source /opt/ros/groovy/setup.bash\".")
+    MESSAGE(FATAL_ERROR "Requires env. variable $ROS_ROOT. Run for example: \"source /opt/ros/groovy/setup.bash\".")
   ENDIF()
-  MESSAGE("[*] ROS build, useful for ROS middleware")
+  MESSAGE(STATUS "ROS build, useful for ROS middleware")
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   # http://www.ros.org/wiki/rosbuild/CMakeLists#rosbuild_init
   rosbuild_init()
@@ -112,8 +114,8 @@ IF (BUILD_ROS)
   SET(INCLUDE_DIRS "$ENV{ROS_ROOT}/../../include")
 
   SET(LIBS ${LIBS} ${${PROJECT_NAME}_LIBRARIES})
-  MESSAGE("[*] Libraries according to rosbuild_init: ${${PROJECT_NAME}_LIBRARIES}")
-  MESSAGE("[*] Warning. Because these seem to be empty we will hardcode references to the libraries!")
+  MESSAGE(STATUS "Libraries according to rosbuild_init: ${${PROJECT_NAME}_LIBRARIES}")
+  MESSAGE(STATUS "Warning. Because these seem to be empty we will hardcode references to the libraries!")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/librosconsole.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp_serialization.so")
@@ -122,7 +124,7 @@ IF (BUILD_ROS)
 ENDIF (BUILD_ROS)
 
 IF (BUILD_ZEROMQ)
-  MESSAGE("[*] ZeroMQ build, useful for ZeroMQ message queues")
+  MESSAGE(STATUS "ZeroMQ build, useful for ZeroMQ message queues")
   FIND_PACKAGE(ZMQ REQUIRED)
   INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
   SET(LIBS ${LIBS} ${ZMQ_LIBRARIES})
@@ -144,7 +146,7 @@ SET(LIBS ${LIBS} PARENT_SCOPE)
 
 # Warning for user when standard build
 IF (BUILD_STANDARD)
-  MESSAGE("[*] Standard build, not usable in middleware yet")
+	MESSAGE(WARNING "This is the \"standard\" build option. This means that there is no information coming in or over the defined ports. The functions generated from the interface description file are dummies. You will need to adjust it to actually use your code functionally, but you can use this standard build already to make sure that everything compiles fine.")
 ENDIF (BUILD_STANDARD)
 
 # Search for functional source code

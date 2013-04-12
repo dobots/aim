@@ -14,6 +14,7 @@ RUR_SHARE_PATH=/usr/share/rur
 RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
 RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
 RUR_CONFIG_PATH=/etc/rur
+AIM_CONFIG_PATH=/etc/aim
 
 # Configuration files
 RUR_CONFIG_FILE_BACKENDS=${RUR_CONFIG_PATH}/backends.conf
@@ -24,6 +25,17 @@ RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
 RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
 RUR_BACKENDS_PATH="$DESTDIR/$RUR_BACKENDS_PATH"
 RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
+
+# Default configuration files
+AIM_CONFIG_COLOR=$AIM_CONFIG_PATH/color.sh
+AIM_CONFIG_SANITY=$AIM_CONFIG_PATH/sanity.sh
+
+####################################################################################################
+# Tweaks and general configuration details
+####################################################################################################
+
+source $AIM_CONFIG_COLOR
+source $AIM_CONFIG_SANITY
 
 ####################################################################################################
 # User configuration
@@ -65,24 +77,10 @@ fi
 
 modulename="$1"
 
-# Check if there are no whitespaces
-mn_sanity_check=${modulename//[[:space:]]}
-if [[ "$mn_sanity_check" == "$1" ]]; then
-	if [[ "$1" == *Module ]]; then
-		echo "[*] Thanks, $1 is a proper module name"
-		goon="y"
-	else
-		echo "[#] Please, end the module with \"Module\"" 
-		read -p "[#] Ending on *Module is necessary for aimregister, do you still want to go on [y/N]? " goon
-	fi
-else
-	echo "[#] Please, do not use whitespaces" 
-	read -p "[#] Using whitespaces likely leads to errors somewhere down the line, do you still want to go on [y/N]? " goon
-fi
-
-if [ "${goon}" != "y" ]; then
-	echo "[#] Sorry, type \"y\" next time if you want to uninstall (you typed ${goon})"
-	exit 0
+aim_sanity $modulename error
+if [[ "$error" != 0 ]]; then
+	msg_error "Module name check failed, there are many reasons to construct a specific name of the form \"*Module\". The main reason here is to allow easy checks on execution on a server. Although the modules created by aimcreate-pkg should run in for example a Linux Container, remote execution of modules is key to many applications. Hence, it is nice to be able to perform some basic checking if there are no system utilities called by third parties. Although only binaries should be called that are registered by aim-registry a specific naming convention allows for an additional sanity check." 
+	exit 1
 fi
 
 ####################################################################################################
@@ -90,7 +88,7 @@ fi
 ####################################################################################################
 
 # Create the proper directory
-echo "[#] Create the directory $modulename"
+msg_info "Create the directory $modulename"
 mkdir -p "$modulename"
 cd "$modulename"
 
@@ -98,12 +96,12 @@ mkdir -p aim
 
 # Copy from template directory
 thispath=$(pwd)
-echo "[#] Copy from template directory $RUR_TEMPLATE_PATH to \"$thispath\"/aim"
+msg_info "Copy from template directory $RUR_TEMPLATE_PATH to \"$thispath\"/aim"
 cp --recursive $RUR_TEMPLATE_PATH/* aim
 cd aim
 
 # Adapt scripts to $modulename
-echo "[#] Adapt template scripts to use $modulename"
+msg_info "Adapt template scripts to use $modulename"
 sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
 sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
@@ -113,32 +111,32 @@ sed -i "s/TemplateModule/$modulename/g" Makefile.parent
 sed -i "s/TemplateModule/$modulename/g" package.xml
 sed -i "s/TemplateModule/$modulename/g" manifest.xml
 
-echo "[#] Move parent files to root directory of $modulename"
+msg_info "Move parent files to root directory of $modulename"
 mv CMakeLists.txt.parent ../CMakeLists.txt
 mv Makefile.parent ../Makefile
 
-echo "[#] Move idl file to separate directory"
+msg_info "Move idl file to separate directory"
 mkdir -p idl
 if [ -a "idl/$modulename.idl" ]; then
-	echo "[#] The idl file exists already, we will not overwrite it in case it has been adapted"	
+	msg_info "The idl file exists already, we will not overwrite it in case it has been adapted"	
 else
 	mv TemplateModule.idl "idl/$modulename.idl"
 fi
 
 if [ -n "$backend" ]; then
-	echo "[#] We will use backend: $backend, feel free to use other ones later on!"
+	msg_info "We will use backend: $backend, feel free to use other ones later on!"
 	sed -i "s/set(BUILD_STANDARD on)/set(BUILD\_$backend on)/g" default.cmake
 fi
 
 # Move relevant files to the inc/ directory
-echo "[#] Move header files to inc/ directory"
+msg_info "Move header files to inc/ directory"
 #mkdir -p src
 mkdir -p inc
 
 mv TemplateModuleExt.h "inc/${modulename}Ext.h"
 
 # Move relevant files to the ../src/ directory
-echo "[#] Move source files to src/ directory"
+msg_info "Move source files to src/ directory"
 mkdir -p ../src
 
 mv TemplateModuleMain.cpp "../src/${modulename}Main.cpp"
@@ -149,5 +147,5 @@ mv TemplateModuleExt.cpp "../src/${modulename}Ext.cpp"
 
 #cp "src/${modulename}Main.cpp" "../src/${modulename}Main.cpp"
 #cp "src/${modulename}.cpp" "../src/${modulename}.cpp"
-echo "[#] Done! Type make and you are good to go!"
+msg_info "Done! Type make and you are good to go!"
 

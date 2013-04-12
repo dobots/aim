@@ -37,7 +37,7 @@ PROJECT(${PROJECT_NAME})
 
 # The directory with some of the FindXXX modules
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
+MESSAGE(STATUS "Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
 
 ##########################################################################################
 # Section to include your own FindX cmake files and options
@@ -49,7 +49,7 @@ MESSAGE("[*] Search for FindX files in ${CMAKE_SOURCE_DIR}/cmake")
 # OPTION(BUILD_EIGEN OFF "Build module with Eigen support")
 # CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/inc/config.h)
 # IF (BUILD_EIGEN) 
-# 	MESSAGE("[*] Eigen support, this will enable all (sparse) matrix related code")
+# 	MESSAGE(STATUS "Eigen support, this will enable all (sparse) matrix related code")
 # 	FIND_PACKAGE(Eigen3 REQUIRED)
 # 	INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 # ENDIF()
@@ -64,7 +64,7 @@ ADD_SUBDIRECTORY(aim)
 
 # Get include directories
 FOREACH(INCLDIR ${PARENT_INCLUDE_DIRS})
-  MESSAGE("[*] Add ${INCLDIR}")
+  MESSAGE(STATUS "Add ${INCLDIR}")
   INCLUDE_DIRECTORIES(${INCLDIR})
 ENDFOREACH()
 
@@ -72,8 +72,8 @@ ENDFOREACH()
 # SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
-MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
-MESSAGE("[*] Linked libraries: ${LIBS}")
+MESSAGE(STATUS "\"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
+MESSAGE(STATUS "Linked libraries: ${LIBS}")
 
 # Source directory
 SET(SOURCE_DIR "src")
@@ -103,13 +103,13 @@ endforeach()
 
 SET(PROJECT_HEADER ../aim/inc/${PROJECT_NAME}.h)
 IF (NOT EXISTS ${PROJECT_HEADER})
-  MESSAGE(FATAL_ERROR "No ${PROJECT_HEADER} header file found. "
+	MESSAGE(FATAL_ERROR "No ${PROJECT_HEADER} header file found. "
   "Did the RurBuilder run and generate something in aim/inc? " 
   "Did you install omniidl by e.g.\n" 
   "  \"sudo apt-get install omniidl\"?")
 ENDIF() 
 
-MESSAGE("[*] Files included: ${AIM_FILES} ${FOLDER_HEADER}")
+MESSAGE(STATUS "Header files included: ${AIM_FILES} ${FOLDER_HEADER}")
 
 # Set up our main executable.
 IF(FOLDER_SOURCE STREQUAL "")
