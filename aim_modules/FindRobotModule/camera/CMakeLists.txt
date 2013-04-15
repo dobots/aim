@@ -34,7 +34,6 @@ message("[*] Project source dir is ${PROJECT_SOURCE_DIR}")
 
 set(CAMERA_SRCS 
 	${PROJECT_SOURCE_DIR}/CCamera.cpp
-	${PROJECT_SOURCE_DIR}/color.cpp
 	${PROJECT_SOURCE_DIR}/CRawImage.cpp
 	${PROJECT_SOURCE_DIR}/grab.cpp
 	${PROJECT_SOURCE_DIR}/libcam.cpp

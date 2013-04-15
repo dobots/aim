@@ -12,7 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "grab.h"
-#include "color.h"
+//#include "color.h"
 #include <semaphore.h>
 
 

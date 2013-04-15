@@ -6,6 +6,18 @@
 #include <string.h>
 //#define THICK_CROSS
 
+struct Pixel {
+	char r;
+	char g;
+	char b;
+};
+
+struct Patch {
+	unsigned char *data;
+	int width;
+	int height;
+};
+
 /**
 @author Tom Krajnik
 */
@@ -18,6 +30,16 @@ public:
 
   //! Copy constructor
   CRawImage(const CRawImage & other);
+
+  Pixel getPixel(int x, int y);
+
+  Pixel getPixel(int x, int y, Patch & patch);
+
+  void setPixel(int x, int y, Patch & patch, Pixel pixel);
+
+  void getPatch(int x, int y, Patch & patch);
+
+  CRawImage* patch2Img(Patch &patch);
 
   void refresh();
 

@@ -25,10 +25,18 @@
 #include <CRawImage.h>
 #include <CCamera.h>
 
+/**
+ * Just as in the OpenCV code we will assume defined(ANDROID) or in our case defined(BLACKFIN)
+ */
+
 namespace rur {
 
 class FindRobotModuleExt: public FindRobotModule {
 public:
+	FindRobotModuleExt();
+
+	~FindRobotModuleExt();
+
 	void Init(std::string & name);
 
 	// The tick function will be called from the FindRobotModuleMain file
@@ -36,6 +44,10 @@ public:
 
 	// As soon as Stop() returns "true", the FindRobotModuleMain will stop the module
 	bool Stop();
+
+	Patch getPatch(int pi, int pj);
+
+	void Patches(std::vector<Patch*> & patches);
 protected:
 	CCamera* cam;
 
@@ -48,6 +60,8 @@ private:
 	sem_t imageSem;
 
 	int counter;
+
+	bool from_file;
 };
 
 }
