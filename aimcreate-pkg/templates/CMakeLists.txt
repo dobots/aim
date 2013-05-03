@@ -60,8 +60,13 @@ IF (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ)
   SET(BUILD_STANDARD OFF)
 ENDIF ()
 
+MESSAGE(STATUS "Read \"/etc/rur/backends.cmake\" configuration file")
 INCLUDE(/etc/rur/backends.cmake)
+MESSAGE(STATUS "Read (optionally) \"~/.rur/backends_path.cmake\" configuration file")
 INCLUDE(~/.rur/backends_path.cmake OPTIONAL)
+IF(NOT (IS_DIRECTORY ${BACKENDS_PATH}))
+	MESSAGE(FATAL_ERROR "No backends path found. Check the contents of the aforementioned configuration files.")
+ENDIF()
 
 # Set commands for header generation
 IF (BUILD_YARP) 
