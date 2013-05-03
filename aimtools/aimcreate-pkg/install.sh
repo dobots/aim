@@ -11,6 +11,9 @@ RUR_TEMPLATE_PATH=$RUR_SHARE_PATH/templates
 RUR_BACKENDS_PATH=$RUR_SHARE_PATH/backends
 RUR_CONFIG_PATH=/etc/rur
 
+# We need a reference to the path without the destination dir
+RUR_BACKENDS_PATH_WITHOUT_DESTDIR=${RUR_BACKENDS_PATH}
+
 # Prepend with destination dir if DESTDIR is present
 RUR_SHARE_PATH="$DESTDIR/$RUR_SHARE_PATH"
 RUR_TEMPLATE_PATH="$DESTDIR/$RUR_TEMPLATE_PATH"
@@ -45,13 +48,13 @@ if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
 	source $RUR_CONFIG_FILE_BACKENDS
 else
 	echo "[#] Write backends path to configuration file: ${RUR_CONFIG_FILE_BACKENDS}"
-	echo "RUR_BACKENDS_PATH=\"$RUR_BACKENDS_PATH\"" >> $RUR_CONFIG_FILE_BACKENDS
+	echo "RUR_BACKENDS_PATH=\"$RUR_BACKENDS_PATH_WITHOUT_DESTDIR\"" >> $RUR_CONFIG_FILE_BACKENDS
 fi
 
-echo "[#] Use backends path: ${RUR_BACKENDS_PATH}"
+echo "[#] Use backends path: ${RUR_BACKENDS_PATH_WITHOUT_DESTDIR}"
 
 echo "[#] Write backends path to cmake configuration file: ${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
-echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
+echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH_WITHOUT_DESTDIR)" > "${RUR_CONFIG_FILE_BACKENDS_CMAKE}"
 
 ####################################################################################################
 # Start
