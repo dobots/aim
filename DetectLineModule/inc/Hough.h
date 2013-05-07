@@ -4,22 +4,19 @@
 #include <cstring>
 
 #include <nd-array.hpp>
+#include <Accumulator.h>
+#include <vector>
 
 enum HoughTransformType { HOUGH, RANDOMIZED_HOUGH, PROB_PROG_HOUGH, SEGMENT_HOUGH, HOUGH_TRANSFORM_TYPE_COUNT };
 
-struct Cell {
-	int x;
-	int y;
-};
+struct Point {};
 
 /**
- * The Hough transform uses a specific type of data structure that is called the accumulator in this context. It is
- * basically just a discretization of the Hough space. For lines, which have only two parameters, you will need a 2D
- * Hough space.
+ * The point clouds can be in 2D.
  */
-class Accumulator : public nd_array<Cell,short> {
-public:
-
+struct Point2D: Point {
+	int x;
+	int y;
 };
 
 /**
@@ -33,11 +30,32 @@ public:
 
 	virtual ~Hough();
 
+	//! Set the transform, it's your responsible to clear the point cloud and or reset the accumulator
 	inline void setType(HoughTransformType type) { this->type = type; }
 
-private:
+	//! Add points one by one
+	void addPoint(Point p);
 
+	//! Add points in a bunch, points should just be two or three elements, so by value, not by reference
+	void addPoints(std::vector<Point> & point_cloud);
+
+	//! Perform the actual transform on all the points hitherto received
+	void doTransform();
+
+	//! Remove all points from the point cloud
+	void clear();
+
+	//! Get the accumulator, e.g. to reset it
+	inline Accumulator* getAccumulator() { return accumulator; }
+private:
+	//! The type of Hough transform to use
 	HoughTransformType type;
+
+	//! Accumulator
+	Accumulator *accumulator;
+
+	//! Point cloud, for now store temporary all points, and only perform transform when doTransform is called
+	std::vector<Point> points;
 };
 
 

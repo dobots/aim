@@ -62,6 +62,20 @@ public:
 	 * 3D dimensional grid with 4 cells wide, 3 cells high, and 2 cells deep. a dimension is not allowed to be 0.
 	 */
 	nd_array(dimension_container & dimensions) {
+		init(dimensions);
+	}
+
+	/**
+	 * For convenience sake,
+	 */
+	nd_array() {
+		values.clear();
+	}
+
+	/**
+	 *
+	 */
+	void init(dimension_container & dimensions) {
 		this->dimensions = dimensions;
 		linear_index size, new_size = 1;
 		strides.clear();
@@ -76,7 +90,7 @@ public:
 			size = new_size;
 		}
 		strides.push_back(size);
-		for (linear_index i = 0; i < size; ++i) values.push_back(value_type(0));
+		values.resize(size, value_type());
 	}
 
 	/**
@@ -242,7 +256,7 @@ public:
 	}
 
 	//! Get the number of dimensions.
-	std::vector::size_type get_dimensions() const {
+	size_t get_dimensions() const {
 		return dimensions.size();
 	}
 
