@@ -19,6 +19,7 @@
  * @case    Artificial Intelligence Framework
  */
 #include <Hough.h>
+#include <Random.h>
 
 /**
  * By default the randomized Hough transform will be used.
@@ -47,6 +48,10 @@ void Hough::addPoints(std::vector<Point> & point_cloud) {
  *
  */
 void Hough::doTransform() {
+	std::vector<Point> random_set;
+	random_n(points.begin(), points.end(), random_set.begin(), 2);
+
+//	points.
 //	random_sh
 }
 

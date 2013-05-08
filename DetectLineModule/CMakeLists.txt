@@ -69,7 +69,7 @@ FOREACH(INCLDIR ${PARENT_INCLUDE_DIRS})
 ENDFOREACH()
 
 # Manually add some CXX flag (disabled by default because most cross-compilers choke on it)
-# SET(CMAKE_CXX_FLAGS -std=c++11)
+SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")
@@ -109,14 +109,22 @@ IF (NOT EXISTS ${PROJECT_HEADER})
   "  \"sudo apt-get install omniidl\"?")
 ENDIF() 
 
-MESSAGE("[*] Files included: ${AIM_FILES} ${FOLDER_HEADER}")
+#message(STATUS "Enable testing framework")
+enable_testing()
+ADD_SUBDIRECTORY(test)
+
+SET(COMMON_INCLUDES ${FOLDER_SOURCE} ${FOLDER_HEADER} ${AIM_FILES})
+
+MESSAGE(STATUS "Files included: ${AIM_FILES} ${FOLDER_HEADER}")
 
 # Set up our main executable.
 IF(FOLDER_SOURCE STREQUAL "")
   MESSAGE(FATAL_ERROR "No source code files found. Please add something")
 ELSE ()
-  ADD_EXECUTABLE(${PROJECT_NAME} ${FOLDER_SOURCE} ${FOLDER_HEADER} ${AIM_FILES})
+  ADD_EXECUTABLE(${PROJECT_NAME} ${COMMON_INCLUDES})
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBS})
-  INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)   
+  INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+  
+  #ADD_LIBRARY(${PROJECT_NAME}lib ${COMMON_INCLUDES})
 ENDIF ()
 

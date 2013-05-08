@@ -25,9 +25,10 @@ struct Point2D: Point {
  */
 class Hough {
 public:
-
+	//! Default constructor
 	Hough();
 
+	//! Default destructor
 	virtual ~Hough();
 
 	//! Set the transform, it's your responsible to clear the point cloud and or reset the accumulator

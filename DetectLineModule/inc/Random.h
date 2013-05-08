@@ -21,7 +21,6 @@
  * @case    Artificial Intelligence Framework
  */
 
-
 #ifndef RANDOM_H_
 #define RANDOM_H_
 
@@ -34,32 +33,29 @@
 #include <functional>
 #include <numeric>
 #include <iostream>
+#include <random>
 #include <cmath>
 #include <iterator>
-#include <random>
-
-//template<typename T>
-//static std::vector<T> random_picking(std::vector<T> )
 
 /**
  * @brief Pick a random number. Using modules (%) will produce biased results.
  *
- * This implementation uses the uniform distribution
+ * This implementation uses the uniform distribution from the standard library.
  *   http://stackoverflow.com/questions/6942273/get-random-element-from-container-c-stl
  */
-//template<typename Iter, typename RandomGenerator>
-//Iter random_element(Iter start, Iter end, RandomGenerator g) {
-//    std::uniform_int_distribution dis(0, std::distance(start, end));
-//    std::advance(start, dis(g));
-//    return start;
-//}
-//
-//template<typename Iter>
-//Iter random_element(Iter start, Iter end) {
-//    std::random_device rd;
-//    std::mt19937 gen(rd);
-//    return random_element(start, end, gen);
-//}
+template<typename Iter, typename RandomGenerator>
+Iter random_element(Iter start, Iter end, RandomGenerator& g) {
+    std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+    std::advance(start, dis(g));
+    return start;
+}
+
+template<typename Iter>
+Iter random_element(Iter start, Iter end) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return random_element(start, end, gen);
+}
 
 /**
  * @brief Randomly pick a number of elements from an array using the algorithm of Robert Floyd.
@@ -85,23 +81,28 @@ OutputIterator random_n(InputIterator first, InputIterator last, OutputIterator 
 	__glibcxx_function_requires(_OutputIteratorConcept<OutputIterator, ValueType>);
 	__glibcxx_requires_valid_range(first1, last1);
 
-	assert (number < (last - first));
+	if (first == last) return result;
+	assert (number <= (last - first));
 
-	OutputIterator result_first = result;
-	InputIterator j = last - number; // not last+1-number, because we use ++
-	while (++j != last) {
-		ValueType value;// = *random_element(0,j);
-		// check if "value" is already in the output set
-		for (OutputIterator i = result_first; i < result; ++i) {
-			// if in the set, overwrite draw random value with element at index j, and break out of loop
-			if (*result == value) {
-				value = *j;
-				break;
-			}
+	// store the index to the element, not the value itself, so we do not need a "==" value operator for std::find
+	std::vector<InputIterator> temp;
+	// start at last-number (first increment last-number+1 happens in the while loop)
+	InputIterator j = last - number;
+
+	while (++j != last + 1) {
+		InputIterator rand = random_element(first,j);
+		if (std::find(temp.begin(), temp.end(), rand) != temp.end()) {
+			// the index to the random value is already in the output set
+			temp.push_back(j);
+		} else {
+			temp.push_back(rand);
 		}
-		// insert random value in result
-		*++result = value;
+	}
 
+	std::cerr << "Generated result vector of size " << temp.size() << std::endl;
+
+	for (size_t i = 0; i < temp.size(); ++i) {
+		*++result = *(temp[i]);
 	}
 	return ++result;
 }
