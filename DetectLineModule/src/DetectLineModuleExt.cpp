@@ -21,9 +21,22 @@
  */
 
 #include <DetectLineModuleExt.h>
+#include <Random.h>
 //#include <CImg.h>
 
 using namespace rur;
+
+//!
+void DetectLineModuleExt::Init(std::string & name) {
+	std::vector<Point2D> points;
+	size_t nr_points = 10;
+	points.resize(nr_points,Point2D());
+	for (int i = 0; i < nr_points; ++i) {
+		points[i].x = random_value(0,127);
+		points[i].y = random_value(0,127);
+	}
+	hough.addPoints(points);
+}
 
 //! Replace with your own functionality
 void DetectLineModuleExt::Tick() {

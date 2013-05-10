@@ -25,6 +25,7 @@
 #include <vector>
 
 Accumulator::Accumulator(Size size) {
+	this->size = &size;
 	std::vector<short> dimensions; dimensions.clear();
 	dimensions.push_back(size.x);
 	dimensions.push_back(size.y);

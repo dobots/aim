@@ -18,46 +18,53 @@
  * @company Almende B.V.
  * @case    Artificial Intelligence Framework
  */
+
 #include <Hough.h>
 #include <Random.h>
 
 /**
  * By default the randomized Hough transform will be used.
  */
-Hough::Hough(): type(RANDOMIZED_HOUGH) {
-	points.clear();
-	Size size;
-	size.x = 100;
-	size.y = 100;
-	accumulator = new Accumulator(size);
-}
+//Hough::Hough(): type(RANDOMIZED_HOUGH) {
+//	points.clear();
+//	Size size;
+//	size.x = 100;
+//	size.y = 100;
+//	accumulator = new Accumulator(size);
+//}
 
-Hough::~Hough() {
-	points.clear();
-}
+//Hough::Hough(Size size): type(RANDOMIZED_HOUGH) {
+//	points.clear();
+//	accumulator = new Accumulator(size);
+//}
 
-void Hough::addPoint(Point p) {
-	points.push_back(p);
-}
+//Hough::~Hough() {
+//	points.clear();
+//}
 
-void Hough::addPoints(std::vector<Point> & point_cloud) {
-	points.insert(points.end(), point_cloud.begin(), point_cloud.end());
-}
+//void Hough::addPoint(Point p) {
+//	points.push_back(p);
+//}
+
+//void Hough::addPoints(std::vector<Point> & point_cloud) {
+//	points.insert(points.end(), point_cloud.begin(), point_cloud.end());
+//}
 
 /**
  *
  */
-void Hough::doTransform() {
-	std::vector<Point> random_set;
-	random_n(points.begin(), points.end(), random_set.begin(), 2);
-
-//	points.
-//	random_sh
-}
+//void Hough::doTransform() {
+//	std::vector<Point> random_set;
+//	random_set.resize(2, Point());
+//	random_n(points.begin(), points.end(), random_set.begin(), 2);
+//
+////	points.
+////	random_sh
+//}
 
 /**
  * We will erase all elements, and because the points are actual values and no pointers this will erase all points.
  */
-void Hough::clear() {
-	points.clear();
-}
+//void Hough::clear() {
+//	points.clear();
+//}

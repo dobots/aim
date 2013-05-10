@@ -19,13 +19,19 @@
  * @company Almende B.V.
  * @case    Artificial Intelligence Framework
  */
+#ifndef DETECTLINEMODULEEXT_H_
+#define DETECTLINEMODULEEXT_H_
 
 #include <DetectLineModule.h>
+#include <Hough.h>
 
 namespace rur {
 
 class DetectLineModuleExt: public DetectLineModule {
 public:
+	// Initialize
+	void Init(std::string & name);
+
 	// The tick function will be called from the DetectLineModuleMain file
 	void Tick();
 
@@ -33,8 +39,9 @@ public:
 	bool Stop();
 
 private:
-
+	Hough<Point2D> hough;
 };
 
 }
 
+#endif // DETECTLINEMODULEEXT_H_

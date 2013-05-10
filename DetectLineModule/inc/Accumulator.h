@@ -66,6 +66,11 @@ public:
 	 * so.
 	 */
 	void Reset();
+
+	inline Size * getSize() { return size; }
+private:
+
+	Size *size;
 };
 
 
