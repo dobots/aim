@@ -45,6 +45,7 @@
  */
 template<typename Iter, typename RandomGenerator>
 Iter random_element(Iter start, Iter end, RandomGenerator& g) {
+    if (start == end) return start;
     std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
     std::advance(start, dis(g));
     return start;
@@ -58,7 +59,9 @@ Iter random_element(Iter start, Iter end) {
 }
 
 /**
- * @brief Randomly pick a number of elements from an array using the algorithm of Robert Floyd.
+ * @brief Randomly pick a number of elements from an array using the algorithm of Robert Floyd. This does not mean that
+ * the order in which these elements are returned is random. Just the combination is picked at random. As extreme case,
+ * if you pick 10 numbers out of an array with 10 numbers, it might return these numbers in the same order every time.
  *
  * In case you will need to pick a few unique elements from a list you can use several algorithms. The Fisher-Yates
  * shuffle generates a random permutation of a set for example, although its original implementation is not in-place.
@@ -82,27 +85,30 @@ OutputIterator random_n(InputIterator first, InputIterator last, OutputIterator 
 	__glibcxx_requires_valid_range(first1, last1);
 
 	if (first == last) return result;
+	if (number == 0) return result;
 	assert (number <= (last - first));
 
-	// store the index to the element, not the value itself, so we do not need a "==" value operator for std::find
-	std::vector<InputIterator> temp;
-	// start at last-number (first increment last-number+1 happens in the while loop)
-	InputIterator j = last - number;
+	// store distance to element, not value itself, so we do not need a "==" value operator for std::find
+	std::vector<size_t> distance;
+	InputIterator j = last - number + 1;
 
-	while (++j != last + 1) {
-		InputIterator rand = random_element(first,j);
-		if (std::find(temp.begin(), temp.end(), rand) != temp.end()) {
-			// the index to the random value is already in the output set
-			temp.push_back(j);
+	// in the case of number=1, j will need to be the last element
+	while (j <= last) {
+		InputIterator rand_index = random_element(first,j);
+		size_t rand = std::distance(first, rand_index);
+		if (std::find(distance.begin(), distance.end(), rand) != distance.end()) {
+			size_t d = std::distance(first,j) - 1;
+			distance.push_back(d);
 		} else {
-			temp.push_back(rand);
+			distance.push_back(rand);
 		}
+		++j;
 	}
 
-	std::cerr << "Generated result vector of size " << temp.size() << std::endl;
-
-	for (size_t i = 0; i < temp.size(); ++i) {
-		*++result = *(temp[i]);
+	// fill return container
+	for (size_t i = 0; i < distance.size(); ++i) {
+		*result = *(first+distance[i]);
+		++result;
 	}
 	return ++result;
 }
