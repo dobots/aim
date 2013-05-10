@@ -34,6 +34,7 @@ class RurModule( visit.Visit) :
 	#	port_direction		in/out
 	#	port_param_name		the name of the variable is used for the port name, e.g. /output
 	#	port_param_type		the type of the variable, e.g. int
+	#	port_param_kind		the kind of the variable, as defined in idltype.py
 	def getPortConfiguration(self, portobject):
 		params = portobject.parameters()
 		if len(params) != 1:
@@ -43,6 +44,7 @@ class RurModule( visit.Visit) :
 		port_param = params[0]
 		port_param_name = port_param.identifier()
 		port_param_type = self.getParamType(port_param)
+		port_param_kind = self.getParamKind(port_param)
 		if port_param.is_in():
 			port_direction = Direction.IN
 		elif port_param.is_out():
@@ -52,7 +54,7 @@ class RurModule( visit.Visit) :
 			port_direction = Direction.INOUT
 		else:
 			self.st.out("//! Warning: no proper direction for port defined in .idl file")
-		return port, port_name, port_direction, port_param_name, port_param_type
+		return port, port_name, port_direction, port_param_name, port_param_type, port_param_kind
 
 	# The function for each port is defined by a preceding "read" or "write", e.g. writeOutput
 	def getPortFunctionName(self, port_name):
@@ -63,14 +65,24 @@ class RurModule( visit.Visit) :
 		return function_name
 
 	def writePortFunctionSignature(self, portobject):
-		port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(portobject)
+		port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(portobject)
 		if port_direction == Direction.IN:
+			self.st.out( "// Read from this function and assume it means something")
 			self.st.out( "inline " + param_type + " *read" + port_name + "(bool blocking_dummy=false) {" )
 		if port_direction == Direction.OUT:
+			self.st.out( "// Write to this function and assume it ends up at some receiving module")
 			self.st.out( "inline bool write" + port_name + "(const " + param_type + " " + param_name + ") {" )
 		self.st.inc_indent()
 
 	def writeFunctionEnd(self):
 		self.st.dec_indent()
 		self.st.out( "}" )
+	
+	def writeIncludeGuardStart(self):
+		print "#ifndef " + self.classname.upper() + "_H_"
+		print "#define " + self.classname.upper() + "_H_"
+		print ""
+		
+	def writeIncludeGuardEnd(self):
+		print "#endif // " + self.classname.upper() + "_H_"
 
