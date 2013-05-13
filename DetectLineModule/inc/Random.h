@@ -113,8 +113,9 @@ OutputIterator inline random_n(InputIterator first, InputIterator last, OutputIt
 	}
 
 	// fill result container
-	for (size_t i = 0; i < distance.size(); ++i) {
-		*result = *(first+distance[i]);
+	typename std::vector<size_t>::iterator iter;
+	for (iter = distance.begin(); iter != distance.end(); ++iter) {
+		*result = *(first+*iter);
 		++result;
 	}
 	return result;

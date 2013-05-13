@@ -77,7 +77,7 @@ public:
 	 */
 	void init(dimension_container & dimensions) {
 		this->dimensions = dimensions;
-		linear_index size, new_size = 1;
+		linear_index size = 1, new_size = 1;
 		strides.clear();
 		values.clear();
 		values.reserve(size);

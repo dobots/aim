@@ -26,7 +26,9 @@
 
 using namespace rur;
 
-//!
+/**
+ *
+ */
 void DetectLineModuleExt::Init(std::string & name) {
 	std::vector<Point2D> points;
 	size_t nr_points = 10;
@@ -36,10 +38,13 @@ void DetectLineModuleExt::Init(std::string & name) {
 		points[i].y = random_value(0,127);
 	}
 	hough.addPoints(points);
+	std::cout << "Loaded all points (normally from image processing module)" << std::endl;
 }
 
 //! Replace with your own functionality
 void DetectLineModuleExt::Tick() {
+	hough.doTransform();
+	stop = true;
 //	switch (strategy) {
 //	case NON_MAXIMUM_SUPPRESSION:
 //		NonMaximumSuppression();
@@ -57,6 +62,10 @@ void DetectLineModuleExt::Tick() {
 
 //! Replace with your own functionality
 bool DetectLineModuleExt::Stop() {
+	if (stop) {
+		std::cout << "Gracefully stopped" << std::endl;
+		return true;
+	}
 	return false;
 }
 

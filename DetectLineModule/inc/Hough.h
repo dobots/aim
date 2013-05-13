@@ -24,6 +24,7 @@
 
 #include <cstring>
 #include <vector>
+#include <iostream>
 
 #include <nd-array.hpp>
 #include <Accumulator.h>
@@ -32,12 +33,33 @@ enum HoughTransformType { HOUGH, RANDOMIZED_HOUGH, PROB_PROG_HOUGH, SEGMENT_HOUG
 
 struct Point {};
 
+//! Local class that knows that commas can be treated as white spaces. It is by the input stream operator.
+struct commasep: std::ctype<char> {
+	commasep(): std::ctype<char>(get_table()) {}
+	static std::ctype_base::mask const* get_table() {
+		static std::vector<std::ctype_base::mask>
+		rc(std::ctype<char>::table_size,std::ctype_base::mask());
+		rc[','] = std::ctype_base::space;
+		return &rc[0];
+	}
+};
+
 /**
- * The point clouds can be in 2D.
+ * The point cloud can be in 2D.
  */
 struct Point2D: Point {
 	int x;
 	int y;
+private:
+	friend std::ostream& operator<<(std::ostream& os, const Point2D & p) {
+		os << p.x << ',' << p.y;
+		return os;
+	}
+	friend std::istream& operator>>( std::istream& is, Point2D& p) {
+		is.imbue(std::locale(std::locale(), new commasep));
+		is >> p.x >> p.y;
+		return is;
+	}
 };
 
 /**
@@ -82,9 +104,13 @@ public:
 
 	//! Perform the actual transform on all the points hitherto received
 	void doTransform() {
-		std::vector<Point> random_set;
-		random_set.resize(2, Point());
+		std::vector<P> random_set;
+		random_set.resize(2, P());
 		random_n(points.begin(), points.end(), random_set.begin(), 2);
+		typename std::vector<P>::iterator iter;
+		for (iter = random_set.begin(); iter != random_set.end(); ++iter) {
+			std::cout << *iter << std::endl;
+		}
 	}
 
 	//! Remove all points from the point cloud

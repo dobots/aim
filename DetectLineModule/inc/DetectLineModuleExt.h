@@ -40,6 +40,9 @@ public:
 
 private:
 	Hough<Point2D> hough;
+
+	//! Flag stops program
+	bool stop;
 };
 
 }
