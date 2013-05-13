@@ -1,7 +1,5 @@
 #include <WriteModule.h>
 
-#include <zmq.hpp>
-
 namespace rur {
 
 class WriteModuleExt: public WriteModule {

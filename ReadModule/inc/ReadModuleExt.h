@@ -1,7 +1,5 @@
 #include <ReadModule.h>
 
-#include <zmq.hpp>
-
 namespace rur {
 
 class ReadModuleExt: public ReadModule {

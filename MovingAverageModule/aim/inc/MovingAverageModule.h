@@ -8,8 +8,9 @@
  * we personally strongly object against this software being used by the military, in the
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
-
+ *
  */
+
 #include <string>
 #include <vector>
 
@@ -31,10 +32,11 @@ private:
 
 protected:
   static const int channel_count = 2;
-  const char* const channel[2] = {"readInput", "writeAverage"};
+  const char* channel[2];
 
 public:
   MovingAverageModule() {
+    const char* const channel[2] = {"readInput", "writeAverage"};
     dummyInput = int(0);
     cliParam = new Param();
   }
@@ -50,13 +52,15 @@ public:
   // Function to get Param struct (to subsequently set CLI parameters)
   inline Param *GetParam() { return cliParam; };
   
+  // Read from this function and assume it means something
   inline int *readInput(bool blocking_dummy=false) {
     return &dummyInput;
   }
   
-  inline void writeAverage(const int output) {
+  // Write to this function and assume it ends up at some receiving module
+  inline bool writeAverage(const int output) {
+    return true;
   }
-  
 };
 }
 

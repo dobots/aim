@@ -51,7 +51,7 @@ FOREACH(INCLDIR ${PARENT_INCLUDE_DIRS})
 ENDFOREACH()
 
 # Manually add some CXX flag
-SET(CMAKE_CXX_FLAGS -std=c++11)
+#SET(CMAKE_CXX_FLAGS -std=c++11)
 
 # Some debug information
 MESSAGE("[*] \"${PROJECT_NAME}\" uses the following CXX flags: \"${CMAKE_CXX_FLAGS}\" (can be empty)")

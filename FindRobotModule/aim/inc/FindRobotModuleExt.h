@@ -1,6 +1,6 @@
 /**
- * @file KeypointModule.cpp
- * @brief ...
+ * @file FindRobotModuleExt.cpp
+ * @brief FindRobotModule extension
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common 
  * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from 
@@ -20,15 +20,49 @@
  * @case    Artificial Intelligence Framework
  */
 
-#include <KeypointModule.h>
+#include <FindRobotModule.h>
 
-using namespace rur;
+#include <CRawImage.h>
+#include <CCamera.h>
 
-void KeypointModule::Tick() {
+/**
+ * Just as in the OpenCV code we will assume defined(ANDROID) or in our case defined(BLACKFIN)
+ */
 
-}
+namespace rur {
 
-bool KeypointModule::Stop() {
-	return false;
+class FindRobotModuleExt: public FindRobotModule {
+public:
+	FindRobotModuleExt();
+
+	~FindRobotModuleExt();
+
+	void Init(std::string & name);
+
+	// The tick function will be called from the FindRobotModuleMain file
+	void Tick();
+
+	// As soon as Stop() returns "true", the FindRobotModuleMain will stop the module
+	bool Stop();
+
+	Patch getPatch(int pi, int pj);
+
+	void Patches(std::vector<Patch*> & patches);
+protected:
+	CCamera* cam;
+
+	//! Image
+	CRawImage* image0;
+
+private:
+	bool stop_flag;
+
+	sem_t imageSem;
+
+	int counter;
+
+	bool from_file;
+};
+
 }
 
