@@ -25,6 +25,7 @@
 //#include <CImg.h>
 
 using namespace rur;
+using namespace dobots;
 
 /**
  *

@@ -1,6 +1,6 @@
 /**
- * @brief TestRandom.cpp
- * @file TestRandom.cpp
+ * @brief Test the Hesse normal form
+ * @file TestHesseNormal.cpp
  *
  * This file is created at Almende B.V. It is open-source software and part of the Common
  * Hybrid Agent Platform (CHAP). A toolbox with a lot of open-source tools, ranging from
@@ -28,7 +28,31 @@
 #include <cstdio>
 #include "gtest/gtest.h"
 
+#include <Hough.h>
+
 namespace {
+
+class HoughTest : public ::testing::Test {
+  protected:
+
+    HoughTest() {
+        // Class setup
+    }
+
+    virtual ~HoughTest() { }
+
+    virtual void SetUp() {
+    	Point2D p0(2,1);
+    	Point2D p1(1,2);
+    	hough.addPoint(p0);
+    	hough.addPoint(p1);
+    }
+
+    virtual void TearDown() {
+    }
+
+    dobots::Hough<Point2D> hough;
+};
 
 static int fd_stdout, fd_stderr;
 
@@ -48,35 +72,18 @@ TEST(FileTest, Redirect) {
 }
 
 /**
- * Check the random element.
+ * From here we can hough in HoughTest.
  */
-TEST(RandomTest, NumberOfResults) {
-	int nr_cnt = 3;
+TEST_F(HoughTest, HesseNormal) {
+	//EXPECT_EQ(hough.points.size, 2);
 
-	std::vector<int> numbers;
-	std::vector<int>::iterator iter;
-	for (int i = 1; i < nr_cnt+1; ++i) {
-		numbers.push_back(i);
-	}
+	//hough.doTransform();
+	Point2D p0(2,1);
+	Point2D p1(1,2);
+	Point2D p = hough.transform(p0, p1);
 
-	// use sum as check
-	long int sumA = 0;
-	for (iter = numbers.begin(); iter < numbers.end(); ++iter) {
-		sumA += *iter;
-	}
-
-	std::vector<int> random;
-	random.resize(nr_cnt, 0);
-	random_n(numbers.begin(), numbers.end(), random.begin(), nr_cnt);
-
-	// use sum as check
-	long int sum = 0;
-	for (iter = random.begin(); iter < random.end(); ++iter) {
-		sum += *iter;
-	}
-
-	// check if total sum equals the expectation
-	ASSERT_EQ(sumA, sum);
+	EXPECT_LT(abs(p.x - atan(1)), 0.00001);
+	EXPECT_LT(abs(p.y*p.y - 4.5), 0.00001);
 }
 
 TEST(CloseTest, Close) {

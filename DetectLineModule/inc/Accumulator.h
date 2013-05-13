@@ -42,6 +42,8 @@ struct Cell: Coordinates {
 	int hits;
 };
 
+namespace dobots {
+
 /**
  * The Hough transform uses a specific type of data structure that is called the accumulator in this context. It is
  * basically just a discretization of the Hough space. For lines, which have only two parameters, you will need a 2D
@@ -73,6 +75,6 @@ private:
 	Size *size;
 };
 
-
+}
 
 #endif /* ACCUMULATOR_H_ */

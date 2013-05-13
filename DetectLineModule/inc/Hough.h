@@ -25,6 +25,7 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include <nd-array.hpp>
 #include <Accumulator.h>
@@ -48,8 +49,10 @@ struct commasep: std::ctype<char> {
  * The point cloud can be in 2D.
  */
 struct Point2D: Point {
-	int x;
-	int y;
+	float x;
+	float y;
+	Point2D(): x(0), y(0) {}
+	Point2D(int x, int y) { this->x = x; this->y = y; }
 private:
 	friend std::ostream& operator<<(std::ostream& os, const Point2D & p) {
 		os << p.x << ',' << p.y;
@@ -61,6 +64,8 @@ private:
 		return is;
 	}
 };
+
+namespace dobots {
 
 /**
  * The Hough transform can be used to detect higher-order structures from a bunch of points, commonly called a point
@@ -87,6 +92,7 @@ public:
 	//! Default destructor
 	virtual ~Hough() {
 		clear();
+		delete accumulator;
 	}
 
 	//! Set the transform, it's your responsible to clear the point cloud and or reset the accumulator
@@ -111,6 +117,29 @@ public:
 		for (iter = random_set.begin(); iter != random_set.end(); ++iter) {
 			std::cout << *iter << std::endl;
 		}
+		P pnt0 = random_set[0];
+		P pnt1 = random_set[1];
+		P p = transform(pnt0, pnt1);
+		std::cout << "Result: " << p << std::endl;
+	}
+
+	template <typename P1>
+	P1 transform(P1 pnt0, P1 pnt1) {
+		assert(false); // no general implementation possible
+		return pnt0;
+	}
+
+	Point2D transform(Point2D pnt0, Point2D pnt1) {
+		float theta = atan(std::abs(pnt0.x - pnt1.x) / std::abs(pnt0.y - pnt1.y));
+
+		// use first point
+		float r1 = std::sqrt(pnt0.x*pnt0.x+pnt0.y*pnt0.y);
+		float theta1 = asin(std::abs(pnt0.y)/r1);
+		float phi1 = std::abs(theta1 - theta);
+		Point2D result;
+		result.x = theta;
+		result.y = r1 * cos(phi1);
+		return result;
 	}
 
 	//! Remove all points from the point cloud
@@ -131,5 +160,6 @@ private:
 	std::vector<P> points;
 };
 
+}
 
 #endif // HOUGH_H_

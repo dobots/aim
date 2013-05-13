@@ -24,6 +24,8 @@
 
 #include <vector>
 
+using namespace dobots;
+
 Accumulator::Accumulator(Size size) {
 	this->size = &size;
 	std::vector<short> dimensions; dimensions.clear();
@@ -37,6 +39,4 @@ Accumulator::~Accumulator() {
 
 void Accumulator::Increment(Coordinates c) {
 }
-
-
 

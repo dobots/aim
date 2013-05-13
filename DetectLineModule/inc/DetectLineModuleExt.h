@@ -39,7 +39,7 @@ public:
 	bool Stop();
 
 private:
-	Hough<Point2D> hough;
+	dobots::Hough<Point2D> hough;
 
 	//! Flag stops program
 	bool stop;
