@@ -59,7 +59,6 @@ IF (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ OR BUILD_NODEJS)
   SET(BUILD_STANDARD OFF)
 ENDIF ()
 
-INCLUDE(/etc/rur/backends.cmake)
 INCLUDE(~/.rur/backends_path.cmake OPTIONAL)
 
 # Set commands for header generation
