@@ -78,11 +78,16 @@ IF (BUILD_STANDARD)
   SET(MIDDLEWARE "standard")
 ENDIF ()
 
-# Generate header files
-MESSAGE("[*] Run the build.sh script with arguments: \"${MIDDLEWARE}\" and \"${BACKENDS_PATH}\"")
-EXECUTE_PROCESS(COMMAND ./build.sh ${MIDDLEWARE} ${BACKENDS_PATH} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/aim/scripts)
+# Set files to be used or generated
+SET(IDL_FILE "aim/idl/${PROJECT_NAME}.idl")
+SET(HEADER_FILE "aim/inc/${PROJECT_NAME}.h")
+
+# Actually generate the header files
+MESSAGE("[*] Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}\", \"${BACKENDS_PATH}\", \"${HEADER_FILE}\"")
+EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE} ${BACKENDS_PATH} ${HEADER_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 
 # Write the (backend) configuration
+MESSAGE("[*] Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/aim/config.h.cmake ${CMAKE_SOURCE_DIR}/aim/inc/Config.h )
 
 # Find all cmake packages
@@ -94,9 +99,26 @@ IF (BUILD_YARP)
 ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
+  MESSAGE("[*] The project source dir: ${PROJECT_SOURCE_DIR}")
+  IF ("$ENV{ROS_ROOT}" STREQUAL "") 
+    MESSAGE(FATAL_ERROR "[*] Requires env. variable $ROS_ROOT. Run for example: \"source /opt/ros/groovy/setup.bash\".")
+  ENDIF()
   MESSAGE("[*] ROS build, useful for ROS middleware")
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+  # http://www.ros.org/wiki/rosbuild/CMakeLists#rosbuild_init
   rosbuild_init()
+
+  SET(INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS})
+  SET(INCLUDE_DIRS "$ENV{ROS_ROOT}/../../include")
+
+  SET(LIBS ${LIBS} ${${PROJECT_NAME}_LIBRARIES})
+  MESSAGE("[*] Libraries according to rosbuild_init: ${${PROJECT_NAME}_LIBRARIES}")
+  MESSAGE("[*] Warning. Because these seem to be empty we will hardcode references to the libraries!")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp.so")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/librosconsole.so")
+  SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp_serialization.so")
+ 
+  SET(PARENT_INCLUDE_DIRS ${INCLUDE_DIRS} PARENT_SCOPE)
 ENDIF (BUILD_ROS)
 
 IF (BUILD_ZEROMQ)
