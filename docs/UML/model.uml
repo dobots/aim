@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="20110701" xmlns:xmi="http://www.omg.org/spec/XMI/20110701" xmlns:uml="http://www.eclipse.org/uml2/4.0.0/UML" xmi:id="_Kweu0LffEeK7asi9hmZKyg" name="model">
+  <packagedElement xmi:type="uml:Component" xmi:id="_OFcfgLffEeK7asi9hmZKyg" name="Matlab algorithms"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_kBrGQLffEeK7asi9hmZKyg" clientDependency="_hJ1hALfgEeK7asi9hmZKyg _-gAe4LfiEeK7asi9hmZKyg" name="YARP middleware"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_mCV9gLffEeK7asi9hmZKyg" clientDependency="_ioWtcLfgEeK7asi9hmZKyg _x5EzkLfiEeK7asi9hmZKyg" name="ZMQ middleware"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_o5yEsLffEeK7asi9hmZKyg" clientDependency="_iLfyULfgEeK7asi9hmZKyg _BasHULfjEeK7asi9hmZKyg" name="ROS middleware"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_tNhKwLffEeK7asi9hmZKyg" clientDependency="_jC8-wLfgEeK7asi9hmZKyg _saZkYLfiEeK7asi9hmZKyg _Pu8aoLfkEeK7asi9hmZKyg" name="NodeJS middleware"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_xVwygLffEeK7asi9hmZKyg" name="C++ algorithms"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_zqaVsLffEeK7asi9hmZKyg" clientDependency="_ILKLALfiEeK7asi9hmZKyg" name="Rur-builder wrapper generator"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_E0QLgLfgEeK7asi9hmZKyg" name="IDL file"/>
+  <packagedElement xmi:type="uml:Interface" xmi:id="_ecctsLfgEeK7asi9hmZKyg" name="Rur wrapper"/>
+  <packagedElement xmi:type="uml:InterfaceRealization" xmi:id="_hJ1hALfgEeK7asi9hmZKyg" name="Realization0" client="_kBrGQLffEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg" contract="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:InterfaceRealization" xmi:id="_iLfyULfgEeK7asi9hmZKyg" name="Realization1" client="_o5yEsLffEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg" contract="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:InterfaceRealization" xmi:id="_ioWtcLfgEeK7asi9hmZKyg" name="Realization2" client="_mCV9gLffEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg" contract="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:InterfaceRealization" xmi:id="_jC8-wLfgEeK7asi9hmZKyg" name="Realization3" client="_tNhKwLffEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg" contract="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_IH_-wLfhEeK7asi9hmZKyg" clientDependency="_K4RuALfhEeK7asi9hmZKyg _feVMALfhEeK7asi9hmZKyg _DWIVwLfiEeK7asi9hmZKyg" name="IDL File"/>
+  <packagedElement xmi:type="uml:Manifestation" xmi:id="_K4RuALfhEeK7asi9hmZKyg" name="interface description becomes glue code" client="_IH_-wLfhEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_feVMALfhEeK7asi9hmZKyg" name="" client="_IH_-wLfhEeK7asi9hmZKyg" supplier="_xVwygLffEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Abstraction" xmi:id="_DWIVwLfiEeK7asi9hmZKyg" name="Abstraction1" client="_IH_-wLfhEeK7asi9hmZKyg" supplier="_OFcfgLffEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_ILKLALfiEeK7asi9hmZKyg" name="Dependency1" client="_zqaVsLffEeK7asi9hmZKyg" supplier="_ecctsLfgEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Interface" xmi:id="_TJ-pALfiEeK7asi9hmZKyg" name=""/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_VibHELfiEeK7asi9hmZKyg" name="Mobile (Android) app"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_brtZgLfiEeK7asi9hmZKyg" name="Web (AngularJS) app"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_saZkYLfiEeK7asi9hmZKyg" name="depends server-side" client="_tNhKwLffEeK7asi9hmZKyg" supplier="_brtZgLfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_x5EzkLfiEeK7asi9hmZKyg" name="depends for video-streaming" client="_mCV9gLffEeK7asi9hmZKyg" supplier="_VibHELfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_8uSCkLfiEeK7asi9hmZKyg" name="Robot app"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_-gAe4LfiEeK7asi9hmZKyg" name="" client="_kBrGQLffEeK7asi9hmZKyg" supplier="_8uSCkLfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_BasHULfjEeK7asi9hmZKyg" name="" client="_o5yEsLffEeK7asi9hmZKyg" supplier="_8uSCkLfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_FDhPMLfjEeK7asi9hmZKyg" name="Home Automation app"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_MPaOILfjEeK7asi9hmZKyg" clientDependency="_VCwTELfjEeK7asi9hmZKyg _WEhSELfjEeK7asi9hmZKyg _YVyxILfjEeK7asi9hmZKyg _ZkA3wLfjEeK7asi9hmZKyg" name="Directory Service"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_VCwTELfjEeK7asi9hmZKyg" name="" client="_MPaOILfjEeK7asi9hmZKyg" supplier="_8uSCkLfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_WEhSELfjEeK7asi9hmZKyg" name="Dependency2" client="_MPaOILfjEeK7asi9hmZKyg" supplier="_VibHELfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_YVyxILfjEeK7asi9hmZKyg" name="Dependency3" client="_MPaOILfjEeK7asi9hmZKyg" supplier="_brtZgLfiEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_ZkA3wLfjEeK7asi9hmZKyg" name="" client="_MPaOILfjEeK7asi9hmZKyg" supplier="_FDhPMLfjEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_Pu8aoLfkEeK7asi9hmZKyg" name="" client="_tNhKwLffEeK7asi9hmZKyg" supplier="_FDhPMLfjEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_iTQqYLfkEeK7asi9hmZKyg" clientDependency="_1L1S4LfkEeK7asi9hmZKyg" name="aimcreate-pkg"/>
+  <packagedElement xmi:type="uml:Manifestation" xmi:id="_1L1S4LfkEeK7asi9hmZKyg" name="" client="_iTQqYLfkEeK7asi9hmZKyg" supplier="_OFcfgLffEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_-EZ2ELfkEeK7asi9hmZKyg" clientDependency="_L4xvcLfmEeK7asi9hmZKyg" name="aimrun"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_G2U-sLflEeK7asi9hmZKyg" clientDependency="_NvqYkLfmEeK7asi9hmZKyg _QJU-oLfmEeK7asi9hmZKyg" name="aimconnect"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_McdgwLflEeK7asi9hmZKyg" clientDependency="_-s0rgLflEeK7asi9hmZKyg _Ewe3ELfmEeK7asi9hmZKyg _I6bvALfmEeK7asi9hmZKyg" name="dodedodo.com app market"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_qPRCMLflEeK7asi9hmZKyg" clientDependency="_wzfkMLflEeK7asi9hmZKyg" name="aimget"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_saPE8LflEeK7asi9hmZKyg" clientDependency="_2OUOILflEeK7asi9hmZKyg _5i_q8LflEeK7asi9hmZKyg" name="github repository"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_wzfkMLflEeK7asi9hmZKyg" name="download" client="_qPRCMLflEeK7asi9hmZKyg" supplier="_OFcfgLffEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_2OUOILflEeK7asi9hmZKyg" name="pull" client="_saPE8LflEeK7asi9hmZKyg" supplier="_qPRCMLflEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_5i_q8LflEeK7asi9hmZKyg" name="crawl" client="_saPE8LflEeK7asi9hmZKyg" supplier="_McdgwLflEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_-s0rgLflEeK7asi9hmZKyg" name="update" client="_McdgwLflEeK7asi9hmZKyg" supplier="_MPaOILfjEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_Ewe3ELfmEeK7asi9hmZKyg" name="deploy" client="_McdgwLflEeK7asi9hmZKyg" supplier="_G2U-sLflEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_I6bvALfmEeK7asi9hmZKyg" name="deploy" client="_McdgwLflEeK7asi9hmZKyg" supplier="_-EZ2ELfkEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_L4xvcLfmEeK7asi9hmZKyg" name="deploy" client="_-EZ2ELfkEeK7asi9hmZKyg" supplier="_FDhPMLfjEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_NvqYkLfmEeK7asi9hmZKyg" name="connect" client="_G2U-sLflEeK7asi9hmZKyg" supplier="_FDhPMLfjEeK7asi9hmZKyg"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="_QJU-oLfmEeK7asi9hmZKyg" name="connect" client="_G2U-sLflEeK7asi9hmZKyg" supplier="_brtZgLfiEeK7asi9hmZKyg"/>
+</uml:Model>
