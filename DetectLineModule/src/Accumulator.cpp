@@ -27,7 +27,8 @@
 using namespace dobots;
 
 Accumulator::Accumulator(Size size) {
-	this->size = &size;
+	this->size.x = size.x;
+	this->size.y = size.y;
 	std::vector<short> dimensions; dimensions.clear();
 	dimensions.push_back(size.x);
 	dimensions.push_back(size.y);

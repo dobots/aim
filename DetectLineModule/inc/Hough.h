@@ -49,8 +49,8 @@ struct commasep: std::ctype<char> {
  * The point cloud can be in 2D.
  */
 struct Point2D: Point {
-	float x;
-	float y;
+	int x;
+	int y;
 	Point2D(): x(0), y(0) {}
 	Point2D(int x, int y) { this->x = x; this->y = y; }
 private:
@@ -74,19 +74,24 @@ namespace dobots {
 template <typename P>
 class Hough {
 public:
-	//! Default constructor uses a Hough space of size 100x100
+	//! Default constructor expects image points in size of 640x480 and uses a Hough space of size 100x100
 	Hough(): type(RANDOMIZED_HOUGH) {
 		points.clear();
 		Size size;
 		size.x = 100;
 		size.y = 100;
+		input_size.x = 640;
+		input_size.y = 480;
+		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
 		accumulator = new Accumulator(size);
 	}
 
 	//! Constructor with non-standard size for the Hough space
-	Hough(Size size): type(RANDOMIZED_HOUGH) {
+	Hough(Size input_size, Size hough_space_size): type(RANDOMIZED_HOUGH) {
 		points.clear();
-		accumulator = new Accumulator(size);
+		this->input_size = input_size;
+		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
+		accumulator = new Accumulator(hough_space_size);
 	}
 
 	//! Default destructor
@@ -129,6 +134,11 @@ public:
 		return pnt0;
 	}
 
+	/**
+	 * Transform the line through two points to a (theta,r) coordinate pair. The angle theta ranges from 0 to 2*pi
+	 * normally, here it is scaled so it fits a "char". The final accumulator which has to store the values is of
+	 * limited size, that's why.
+	 */
 	Point2D transform(Point2D pnt0, Point2D pnt1) {
 		float theta = atan(std::abs(pnt0.x - pnt1.x) / std::abs(pnt0.y - pnt1.y));
 
@@ -137,8 +147,8 @@ public:
 		float theta1 = asin(std::abs(pnt0.y)/r1);
 		float phi1 = std::abs(theta1 - theta);
 		Point2D result;
-		result.x = theta;
-		result.y = r1 * cos(phi1);
+		result.x = ((r1 * cos(phi1)) * accumulator->getSize().x) / max_distance; // r scaled with max_dist/max x
+		result.y = (theta * accumulator->getSize().y) / (8*atan(1)); // theta scaled with s
 		return result;
 	}
 
@@ -158,6 +168,12 @@ private:
 
 	//! Point cloud, for now store temporary all points, and only perform transform when doTransform is called
 	std::vector<P> points;
+
+	//! The input points should fall in this range
+	Size input_size;
+
+	//! Max distance (calculated from input_size)
+	int max_distance;
 };
 
 }

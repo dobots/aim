@@ -22,7 +22,6 @@
 
 #include <DetectLineModuleExt.h>
 #include <Random.h>
-//#include <CImg.h>
 
 using namespace rur;
 using namespace dobots;
@@ -31,6 +30,11 @@ using namespace dobots;
  *
  */
 void DetectLineModuleExt::Init(std::string & name) {
+	image = new CRawImage(640,480,3);
+	image->loadBmp("data/fakerobot.bmp");
+
+
+
 	std::vector<Point2D> points;
 	size_t nr_points = 10;
 	points.resize(nr_points,Point2D());
@@ -64,6 +68,7 @@ void DetectLineModuleExt::Tick() {
 //! Replace with your own functionality
 bool DetectLineModuleExt::Stop() {
 	if (stop) {
+		delete image;
 		std::cout << "Gracefully stopped" << std::endl;
 		return true;
 	}

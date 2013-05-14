@@ -69,10 +69,10 @@ public:
 	 */
 	void Reset();
 
-	inline Size * getSize() { return size; }
+	inline Size getSize() { return size; }
 private:
 
-	Size *size;
+	Size size;
 };
 
 }

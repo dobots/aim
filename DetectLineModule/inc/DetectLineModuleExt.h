@@ -25,6 +25,8 @@
 #include <DetectLineModule.h>
 #include <Hough.h>
 
+#include <CRawImage.h>
+
 namespace rur {
 
 class DetectLineModuleExt: public DetectLineModule {
@@ -43,6 +45,9 @@ private:
 
 	//! Flag stops program
 	bool stop;
+
+	//! Use simple image structure
+	CRawImage *image;
 };
 
 }

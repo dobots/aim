@@ -9,6 +9,7 @@
  * bio-industry, for animal experimentation, or anything that violates the Universal
  * Declaration of Human Rights.
  *
+ * @author A.C. van Rossum
  */
 
 #ifndef DETECTLINEMODULE_H_

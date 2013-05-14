@@ -78,12 +78,18 @@ TEST_F(HoughTest, HesseNormal) {
 	//EXPECT_EQ(hough.points.size, 2);
 
 	//hough.doTransform();
-	Point2D p0(2,1);
-	Point2D p1(1,2);
+	Point2D p0(20,10);
+	Point2D p1(10,20);
 	Point2D p = hough.transform(p0, p1);
 
-	EXPECT_LT(abs(p.x - atan(1)), 0.00001);
-	EXPECT_LT(abs(p.y*p.y - 4.5), 0.00001);
+	// p.x should be sqrt(15*15+15*15), scaled with 100 over 800 (by default 640x480 gives maximum distance of 800),
+	// and default accumulator size is 100, this would lead to 21*1/8=2.56, floored, becomes 2
+	// p.y should be M_PI/4 (which is equal to atan(1), however it is scaled with 100/(2*PI), so it should be 12.5 and
+	// with truncation downwards, equal to 12
+
+	EXPECT_EQ(p.x, 2);
+	EXPECT_EQ(p.y, 12);
+
 }
 
 TEST(CloseTest, Close) {
