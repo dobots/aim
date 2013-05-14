@@ -53,12 +53,8 @@ int CCamera::init(const char *deviceName,int wi,int he)
 	devfd = open_device();
 	init_device();
 	start_capturing();
-	//	struct buffer b = mainloop();
-
-	//	get_result();
-	//	stop_capturing();
 	printf("Open device %s\n", deviceName);
-	//	devfd = opendev(deviceName,width, height, &palette);
+	//OLD:	devfd = opendev(deviceName,width, height, &palette);
 
 	if (!devfd)
 	{
@@ -83,7 +79,7 @@ int CCamera::renewImage(CRawImage* image)
 	}
 	assert (b.length == width*height*2);
 	memcpy(buffer,b.start,b.length);
-	//	int ret = grab(devfd, width, height, palette,buffer);
+	//OLD:	int ret = grab(devfd, width, height, palette,buffer);
 	//	if (ret < 0) {
 	//		fprintf(stderr,"Cannot grab a frame from a camera!\n");
 	//		return ret;

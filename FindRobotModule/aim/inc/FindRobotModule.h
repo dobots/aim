@@ -11,6 +11,9 @@
  *
  */
 
+#ifndef FINDROBOTMODULE_H_
+#define FINDROBOTMODULE_H_
+
 #include <string>
 #include <vector>
 
@@ -56,15 +59,18 @@ public:
   inline Param *GetParam() { return cliParam; };
   
   // Read from this function and assume it means something
+  // Read from this function and assume it means something
   inline long_seq *readAudio(bool blocking_dummy=false) {
     return &dummyAudio;
   }
   
   // Read from this function and assume it means something
+  // Read from this function and assume it means something
   inline int *readInfrared(bool blocking_dummy=false) {
     return &dummyInfrared;
   }
   
+  // Write to this function and assume it ends up at some receiving module
   // Write to this function and assume it ends up at some receiving module
   inline bool writeLeftWheel(const int output) {
     return true;
@@ -72,3 +78,4 @@ public:
 };
 }
 
+#endif // FINDROBOTMODULE_H_
