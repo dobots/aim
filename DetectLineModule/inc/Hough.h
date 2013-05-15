@@ -140,14 +140,24 @@ public:
 	 * limited size, that's why.
 	 */
 	Point2D transform(Point2D pnt0, Point2D pnt1) {
-		float theta = atan(std::abs(pnt0.x - pnt1.x) / std::abs(pnt0.y - pnt1.y));
+		float theta;
+		float r;
+		if (pnt0.y == pnt1.y) { // horizontal lines are special, or else division by zero
+			theta = (pnt0.y >= 0) ? 2*atan(1) : 6*atan(1);
+			r = pnt0.y;
+		} else {
+			theta = atan(std::abs(pnt0.x - pnt1.x) / std::abs(pnt0.y - pnt1.y));
+			// use first point to calculate distance line to origin, could've second point
+			float r1 = std::sqrt(pnt0.x*pnt0.x+pnt0.y*pnt0.y);
+			float theta1 = asin(std::abs(pnt0.y)/r1);
+			float phi1 = std::abs(theta1 - theta);
+			r = r1 * cos(phi1);
+		}
 
-		// use first point
-		float r1 = std::sqrt(pnt0.x*pnt0.x+pnt0.y*pnt0.y);
-		float theta1 = asin(std::abs(pnt0.y)/r1);
-		float phi1 = std::abs(theta1 - theta);
+
+		// cast to Point2D structure
 		Point2D result;
-		result.x = ((r1 * cos(phi1)) * accumulator->getSize().x) / max_distance; // r scaled with max_dist/max x
+		result.x = (r * accumulator->getSize().x) / max_distance; // r scaled with max_dist/max x
 		result.y = (theta * accumulator->getSize().y) / (8*atan(1)); // theta scaled with s
 		return result;
 	}

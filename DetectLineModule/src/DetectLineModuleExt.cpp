@@ -26,46 +26,50 @@
 using namespace rur;
 using namespace dobots;
 
+void DetectLineModuleExt::loadImage(std::string file, std::vector<Point2D> & points) {
+	image = new CRawImage(640,480,1);
+	if (!image->loadBmp(file.c_str())) {
+		std::cerr << "Failed to open file " << file << std::endl;
+		return;
+	}
+	image->saveBmp("test.bmp");
+	int margin = 2;
+	for (int i = margin; i < (640 - margin); ++i) {
+		for (int j = margin; j < (480 - margin); ++j) {
+			if (image->getValue(i,j) > 0) {
+				points.push_back(Point2D(i,j));
+				std::cout << " (" << (int)image->getValue(i,j) << ")[" << i << ',' << j << ']';
+			}
+		}
+	}
+	std::cout << std::endl;
+	std::cout << "Got " << points.size() << " points out of image " << file << std::endl;
+}
+
 /**
  *
  */
 void DetectLineModuleExt::Init(std::string & name) {
-	image = new CRawImage(640,480,3);
-	image->loadBmp("data/fakerobot.bmp");
-
-
-
 	std::vector<Point2D> points;
+	loadImage("../data/dots.bmp", points);
+#ifdef FAKE
 	size_t nr_points = 10;
 	points.resize(nr_points,Point2D());
 	for (int i = 0; i < nr_points; ++i) {
 		points[i].x = random_value(0,127);
 		points[i].y = random_value(0,127);
 	}
+#endif
+	tick = 0;
 	hough.addPoints(points);
 	std::cout << "Loaded all points (normally from image processing module)" << std::endl;
 }
 
-//! Replace with your own functionality
 void DetectLineModuleExt::Tick() {
 	hough.doTransform();
-	stop = true;
-//	switch (strategy) {
-//	case NON_MAXIMUM_SUPPRESSION:
-//		NonMaximumSuppression();
-//	}
+	if (++tick == 10) stop = true;
 }
 
-/**
- * A sliding-window over the image finds the maximum pixel value in a patch and sets all other pixels to zero.
- */
-//void DetectLineModuleExt::NonMaximumSuppression() {
-//	int window_size;
-//	CImg<> N(5,5);
-//	cimg_for2x2(img,x,y,0,0,N,float); // loop seems only to work for defined types
-//}
-
-//! Replace with your own functionality
 bool DetectLineModuleExt::Stop() {
 	if (stop) {
 		delete image;

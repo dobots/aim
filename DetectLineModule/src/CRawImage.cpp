@@ -64,6 +64,14 @@ CRawImage::CRawImage(const CRawImage & other): width(other.width), height(other.
 	  updateHeader();
 }
 
+char CRawImage::getValue(int x, int y) {
+	assert (bpp == 1);
+	assert (x >= 0 && x < width);
+	assert (y >= 0 && y < height);
+	int index = (y*width+x);
+	return data[index];
+}
+
 Pixel CRawImage::getPixel(int x, int y) {
 	assert (bpp == 3);
 	assert (x >= 0 && x < width);
@@ -305,14 +313,16 @@ bool CRawImage::loadBmp(const char* inName)
 
 	// we assume that the image to be loaded has 3 bytes per pixel, if
 	// currently at bpp = 1, we adjust
-	if (bpp == 1) setbpp(3);
+//	if (bpp == 1) setbpp(3);
 
 	FILE* file = fopen(inName,"rb");
 	if (file!=NULL)
 	{
 		size_t n = fread(data,54,1,file);
-		if (n == 0) {
-			return false;
+		if (n == 0) return false;
+		if (bpp == 1) { // there is a "color" palette if the image is grayscale
+			n = fread(data,PALETTE_SIZE,1,file);
+			if (n == 0) return false;
 		}
 		n = fread(data,size,1,file);
 		if (n == 0) return false;

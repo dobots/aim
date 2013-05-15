@@ -59,6 +59,9 @@ public:
 	//! Copy constructor
 	CRawImage(const CRawImage & other);
 
+	//! Gets value at [x,y], only valid if bpp=1
+	char getValue(int x, int y);
+
 	//! Only valid if bpp=3, returns an rgb pixel
 	Pixel getPixel(int x, int y);
 

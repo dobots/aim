@@ -40,6 +40,8 @@ public:
 	// As soon as Stop() returns "true", the DetectLineModuleMain will stop the module
 	bool Stop();
 
+	//! Load a vector of points from a preprocessed image
+	void loadImage(std::string file, std::vector<Point2D> & points);
 private:
 	dobots::Hough<Point2D> hough;
 
@@ -48,6 +50,9 @@ private:
 
 	//! Use simple image structure
 	CRawImage *image;
+
+	//! Keep track of number of ticks
+	unsigned long tick;
 };
 
 }
