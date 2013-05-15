@@ -21,29 +21,26 @@ namespace rur {
 
 struct Param {
   std::string module_id;
-  int parameter;
+  char parameter;
 };
 
-typedef std::vector<int> long_seq;
+typedef std::vector<char> char_seq;
 
 class CornerDetectorModule {
 private:
   
-  long_seq dummyAudio;
-  
-  int dummyInfrared;
+  char_seq dummyCamera;
   
   Param *cliParam;
 
 protected:
-  static const int channel_count = 3;
-  const char* channel[3];
+  static const int channel_count = 2;
+  const char* channel[2];
 
 public:
   CornerDetectorModule() {
-    const char* const channel[3] = {"readAudio", "readInfrared", "writeLeftWheel"};
-    dummyAudio = long_seq(0);
-    dummyInfrared = int(0);
+    const char* const channel[2] = {"readCamera", "writePoints"};
+    dummyCamera = char_seq(0);
     cliParam = new Param();
   }
   
@@ -60,19 +57,13 @@ public:
   
   // Read from this function and assume it means something
   // Read from this function and assume it means something
-  inline long_seq *readAudio(bool blocking_dummy=false) {
-    return &dummyAudio;
-  }
-  
-  // Read from this function and assume it means something
-  // Read from this function and assume it means something
-  inline int *readInfrared(bool blocking_dummy=false) {
-    return &dummyInfrared;
+  inline char_seq *readCamera(bool blocking_dummy=false) {
+    return &dummyCamera;
   }
   
   // Write to this function and assume it ends up at some receiving module
   // Write to this function and assume it ends up at some receiving module
-  inline bool writeLeftWheel(const int output) {
+  inline bool writePoints(const char_seq output) {
     return true;
   }
 };

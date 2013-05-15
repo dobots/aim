@@ -20,7 +20,10 @@
  * @project	Specific Software Project
  */
 
+#include <iostream>
+
 #include <CornerDetectorModuleExt.h>
+
 
 using namespace rur;
 
@@ -28,18 +31,32 @@ void CornerDetectorModuleExt::Init(std::string &id) {
 	detector = new CornerDetector();
 	CRawImage *img = new CRawImage(640,480,3);
 	img->loadBmp("../data/fakerobot.bmp");
+	img->makeMonochrome();
 	detector->SetImage(img);
-	std::vector<Corner> corners;
 	detector->GetCorners(corners);
+	std::cout << "Discovered " << corners.size() << " corners " << std::endl;
 }
 
 //! Replace with your own functionality
 void CornerDetectorModuleExt::Tick() {
-
+	std::vector<Corner>::iterator iter;
+	std::vector<char> corner_msg; corner_msg.clear();
+	for (iter = corners.begin(); iter != corners.end(); ++iter) {
+		Corner c = *iter;
+		corner_msg.push_back(c.x);
+		corner_msg.push_back(c.y);
+	}
+	std::cout << "Send message of size " << corner_msg.size() << std::endl;
+	writePoints(corner_msg);
+	stop = true;
 }
 
 //! Replace with your own functionality
 bool CornerDetectorModuleExt::Stop() {
+	if (stop) {
+		delete detector;
+		return true;
+	}
 	return false;
 }
 

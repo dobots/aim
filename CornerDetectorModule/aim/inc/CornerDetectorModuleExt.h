@@ -35,8 +35,14 @@ public:
 	// As soon as Stop() returns "true", the CornerDetectorModuleMain will stop the module
 	bool Stop();
 private:
+	//! The detector itself
 	CornerDetector *detector;
 
+	//! Store corners in vector
+	std::vector<Corner> corners;
+
+	//! Flag to stop the module
+	bool stop;
 };
 
 }

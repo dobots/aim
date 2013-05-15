@@ -180,11 +180,12 @@ void CornerDetector::GetCorners(std::vector<Corner> & corners) {
 //					dH->data[i+1+(j-1)*img->width] +
 //					dH->data[i-1+(j+1)*img->width];
 			if (total > threshold*4) {
-				dH->data[i+j*img->width] = 255;
-				dH->data[i-1+j*img->width] = 255;
-				dH->data[i-1+(j-1)*img->width] = 255;
-				dH->data[i+(j-1)*img->width] = 255;
-
+//				dH->data[i+j*img->width] = 255;
+//				dH->data[i-1+j*img->width] = 255;
+//				dH->data[i-1+(j-1)*img->width] = 255;
+//				dH->data[i+(j-1)*img->width] = 255;
+				dH->data[i+j*img->width] = 100;
+				corners.push_back(Corner(i,j));
 			}
 			else dH->data[i+j*img->width] = 0;
 		}
@@ -206,6 +207,8 @@ void CornerDetector::GetCorners(std::vector<Corner> & corners) {
 	// which seems to be better, but is computationally more expensive than determining the determinant and trace
 
 	cout << __func__ << ": end" << endl;
+
+
 }
 
 
