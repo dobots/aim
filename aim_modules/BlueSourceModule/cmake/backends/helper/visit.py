@@ -128,6 +128,10 @@ class Visit (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
         param_type = self.__result_type
         return param_type
 
+    def getParamKind(self, param):
+        #return param.paramType().kind()
+        return param.paramType().unalias().kind()
+
     def getMemberType(self, member):
         member.memberType().accept(self)
         member_type = self.__result_type

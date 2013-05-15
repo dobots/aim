@@ -176,7 +176,7 @@ class StandardVisitor (rur.RurModule):
         self.st.inc_indent()
         names = [];
         for p in self.portList:
-            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
+            port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(p)
             if port_direction == rur.Direction.IN:
                   names.append("\"read" + port_name + "\"") 
                   
@@ -205,7 +205,7 @@ class StandardVisitor (rur.RurModule):
     
     def writePorts(self):
         for p in self.portList:
-            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
+            port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(p)
 
             if port_direction == rur.Direction.IN:
                   self.st.out( "// Read from this function and assume it means something")
@@ -223,7 +223,7 @@ class StandardVisitor (rur.RurModule):
     def writePortsAsArray(self):
         names = [];
         for p in self.portList:
-            port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(p)
+            port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(p)
             if port_direction == rur.Direction.IN:
                   names.append("\"read" + port_name + "\"") 
                   
@@ -237,12 +237,12 @@ class StandardVisitor (rur.RurModule):
 
     def writeDummyAllocation(self, node):
         self.st.out("")
-        port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(node)
+        port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(node)
         if port_direction == rur.Direction.IN:
              self.st.out( param_type + " dummy" + port_name + ";")  
 
     def writeDummyInitiation(self, node):
-        port, port_name, port_direction, param_name, param_type = self.getPortConfiguration(node)
+        port, port_name, port_direction, param_name, param_type, param_kind = self.getPortConfiguration(node)
         if port_direction == rur.Direction.IN:
              self.st.out( "dummy" + port_name + " = " + param_type + "(0);")  
   
