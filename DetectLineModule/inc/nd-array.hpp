@@ -157,6 +157,14 @@ public:
 		values[i] = value;
 	}
 
+	//! Convenience function, increments value at index with indicated amount
+	void add(linear_index index0, value_type amount) {
+		assert (dimensions.size() == 1);
+		assert (index0 < dimensions[0]);
+		linear_index i = index0;
+		values[i] += amount;
+	}
+
 	//! Convenience function, can only be used if the nd-array is 2-dimensional
 	void set(linear_index index0, linear_index index1, value_type value) {
 		assert (dimensions.size() == 2);
@@ -164,6 +172,15 @@ public:
 		assert (index1 < dimensions[1]);
 		linear_index i = index0 + index1 * dimensions[0];
 		values[i] = value;
+	}
+
+	//! Convenience function, increments value at index with indicated amount
+	void add(linear_index index0, linear_index index1, value_type amount) {
+		assert (dimensions.size() == 2);
+		assert (index0 < dimensions[0]);
+		assert (index1 < dimensions[1]);
+		linear_index i = index0 + index1 * dimensions[0];
+		values[i] += amount;
 	}
 
 	//! Convenience function, can only be used if the nd-array is 3-dimensional
@@ -176,18 +193,34 @@ public:
 		values[i] = value;
 	}
 
+	void add(linear_index index0, linear_index index1, linear_index index2, value_type amount) {
+		assert (dimensions.size() == 3);
+		assert (index0 < dimensions[0]);
+		assert (index1 < dimensions[1]);
+		assert (index2 < dimensions[2]);
+		linear_index i = index0 + index1 * dimensions[0] + index2 * dimensions[0] * dimensions[1];
+		values[i] += amount;
+	}
+
 	//! Gets a value through the tabular index (use the linear index if available, because of speed)
 	value_type const get(tabular_index index) {
 		return values[get_linear_index(index)];
 	}
 
 	//! Getf gets the value at the given linear index. Provided because of speed. Nothing is checked.
-	inline value_type const getf(linear_index index) {
+	inline value_type const getf(linear_index index) const {
 		return values[index];
 	}
 
 	//! Convenience function, can only be used if the nd-array is actually 1-dimensional
-	value_type const get(linear_index index0) {
+	const value_type & get(linear_index index0) const {
+			assert (dimensions.size() == 1);
+			assert (index0 < dimensions[0]);
+			linear_index i = index0;
+			return values[i];
+	}
+
+	value_type & get(linear_index index0) {
 		assert (dimensions.size() == 1);
 		assert (index0 < dimensions[0]);
 		linear_index i = index0;
@@ -195,7 +228,15 @@ public:
 	}
 
 	//! Convenience function, can only be used if the nd-array is 2-dimensional
-	value_type const get(linear_index index0, linear_index index1) {
+	const value_type & get(linear_index index0, linear_index index1) const {
+		assert (dimensions.size() == 2);
+		assert (index0 < dimensions[0]);
+		assert (index1 < dimensions[1]);
+		linear_index i = index0 + index1 * dimensions[0];
+		return values[i];
+	}
+
+	value_type & get(linear_index index0, linear_index index1) {
 		assert (dimensions.size() == 2);
 		assert (index0 < dimensions[0]);
 		assert (index1 < dimensions[1]);
@@ -204,7 +245,16 @@ public:
 	}
 
 	//! Convenience function, can only be used if the nd-array is 3-dimensional
-	value_type const get(linear_index index0, linear_index index1, linear_index index2) {
+	const value_type & get(linear_index index0, linear_index index1, linear_index index2) const {
+		assert (dimensions.size() == 3);
+		assert (index0 < dimensions[0]);
+		assert (index1 < dimensions[1]);
+		assert (index2 < dimensions[2]);
+		linear_index i = index0 + index1 * dimensions[0] + index2 * dimensions[0] * dimensions[1];
+		return values[i];
+	}
+
+	value_type & get(linear_index index0, linear_index index1, linear_index index2) {
 		assert (dimensions.size() == 3);
 		assert (index0 < dimensions[0]);
 		assert (index1 < dimensions[1]);

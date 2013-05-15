@@ -24,23 +24,9 @@
 #ifndef ACCUMULATOR_H_
 #define ACCUMULATOR_H_
 
+#include <HoughDefs.h>
+
 #include <nd-array.hpp>
-
-struct Coordinates {
-	int x;
-	int y;
-};
-
-struct Size: Coordinates {};
-
-/**
- * A cell in the accumulator. This is different per transform, but we will use the same cell for all of them with a
- * flexible number of fields.
- */
-struct Cell: Coordinates {
-	//! The number of times a given entity (line) is detected.
-	int hits;
-};
 
 namespace dobots {
 
@@ -52,16 +38,16 @@ namespace dobots {
 class Accumulator : public nd_array<Cell,short> {
 public:
 	//! Default accumulator constructor
-	Accumulator(Size size);
+	Accumulator(ASize size);
 
 	//! Default accumulator destructor
 	~Accumulator();
 
 	/**
 	 * Increment cell in the accumulator. This assumes that the calling function knows how to map from the point cloud
-	 * to the coordinates of a given cell.
+	 * to the coordinates of a given cell. The original points are also handed over to keep track of segments.
 	 */
-	void Increment(Coordinates c);
+	void Increment(ACoordinates c, Point2D p0, Point2D p1);
 
 	/**
 	 * Reset the accumulator, for example when switching from method, but also in some methods you are required to do
@@ -69,10 +55,10 @@ public:
 	 */
 	void Reset();
 
-	inline Size getSize() { return size; }
+	inline ASize getSize() { return size; }
 private:
 
-	Size size;
+	ASize size;
 };
 
 }

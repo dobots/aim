@@ -23,10 +23,11 @@
 #include <Accumulator.h>
 
 #include <vector>
+#include <cassert>
 
 using namespace dobots;
 
-Accumulator::Accumulator(Size size) {
+Accumulator::Accumulator(ASize size) {
 	this->size.x = size.x;
 	this->size.y = size.y;
 	std::vector<short> dimensions; dimensions.clear();
@@ -38,6 +39,12 @@ Accumulator::Accumulator(Size size) {
 Accumulator::~Accumulator() {
 }
 
-void Accumulator::Increment(Coordinates c) {
+void Accumulator::Increment(ACoordinates c, Point2D p0, Point2D p1) {
+	assert (c.x < size.x);
+	assert (c.y < size.y);
+	Cell & cell = get(c.x, c.y);
+	cell.hits++;
+	cell.points.push_back(p0);
+	cell.points.push_back(p1);
 }
 

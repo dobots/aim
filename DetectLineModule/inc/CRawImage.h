@@ -62,6 +62,9 @@ public:
 	//! Gets value at [x,y], only valid if bpp=1
 	char getValue(int x, int y);
 
+	//! Sets value at [x,y], only valid if bpp=1
+	void setValue(int x, int y, char value);
+
 	//! Only valid if bpp=3, returns an rgb pixel
 	Pixel getPixel(int x, int y);
 
@@ -103,6 +106,8 @@ public:
 
 	//! Plot a vertical and/or horizontal line through x and y (not entirely trivial if bpp > 1)
 	void plotLine(int x,int y);
+	//! Plot line from point 0 to point 1
+	void plotLine(int x0, int y0, int x1, int y1);
 	//! Plot blob in center of image
 	void plotCenter();
 	//! Plot a cross of size "size" at given position

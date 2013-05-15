@@ -105,6 +105,14 @@ void CRawImage::setPixel(int x, int y, Patch & patch, Pixel pixel) {
 	patch.data[base+2] = pixel.g;
 }
 
+void CRawImage::setValue(int x, int y, char value) {
+	assert (bpp == 1);
+	assert (x >= 0 && x < width);
+	assert (y >= 0 && y < height);
+	int index = (y*width+x);
+	data[index] = value;
+}
+
 /**
  * Get patch of size "patch.width * patch.length". This is more "bewerkelijk" than seems at first sight because the
  * array is stored in a linear fashion, to get a "square" of data out of it, you will need to jump all over the place.
@@ -366,6 +374,39 @@ void CRawImage::plotLine(int x,int y) {
 		data[bidx+1] = 255;
 		data[bidx+2] = 0;
 	}
+}
+
+void CRawImage::plotLine(int x0, int y0, int x1, int y1) {
+	assert(bpp == 1); // for now
+	assert (x0 >= 0 && x0 < width);
+	assert (x1 >= 0 && x1 < width);
+	assert (y0 >= 0 && y0 < height);
+	assert (y1 >= 0 && y1 < height);
+	int xr = abs(x0-x1);
+	int yr = abs(y0-y1);
+//	std::cout << "Plot line from [" << x0 << "," << y0 << "] to [" << x1 << "," << y1 << "]" << std::endl;
+	if (xr > yr) {
+//		std::cout << "Adjust x with 1, and adjust y correspondingly slower" << std::endl;
+		int xstep = x0 < x1 ? 1 : -1;
+		int ystep = y0 < y1 ? 1 : -1;
+		for (int i = x0; i != x1; i+=xstep) { // loop over slowest moving index
+			int j = y0 + xstep*ystep*((i-x0) * yr) / xr;
+//			std::cout << " [" << i << "," << j << "] ";
+			setValue(i,j,255);
+		}
+	} else {
+//		std::cout << "Adjust y with 1, and adjust x correspondingly slower" << std::endl;
+		int xstep = x0 < x1 ? 1 : -1;
+		int ystep = y0 < y1 ? 1 : -1;
+//		std::cout << "y will be " << ((ystep < 0) ? "decremented" : "incremented") << std::endl;
+//		std::cout << "x will be " << ((xstep < 0) ? "decremented" : "incremented") << std::endl;
+		for (int j = y0; j != y1; j+=ystep) { // loop over slowest moving index
+			int i = x0 + xstep*ystep*((j-y0) * xr) / yr;
+//			std::cout << " [" << i << "," << j << "] ";
+			setValue(i,j,255);
+		}
+	}
+//	std::cout << std::endl;
 }
 
 void CRawImage::plotCross(int i,int j,int size) {

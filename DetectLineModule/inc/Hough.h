@@ -26,44 +26,11 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 #include <nd-array.hpp>
 #include <Accumulator.h>
-
-enum HoughTransformType { HOUGH, RANDOMIZED_HOUGH, PROB_PROG_HOUGH, SEGMENT_HOUGH, HOUGH_TRANSFORM_TYPE_COUNT };
-
-struct Point {};
-
-//! Local class that knows that commas can be treated as white spaces. It is by the input stream operator.
-struct commasep: std::ctype<char> {
-	commasep(): std::ctype<char>(get_table()) {}
-	static std::ctype_base::mask const* get_table() {
-		static std::vector<std::ctype_base::mask>
-		rc(std::ctype<char>::table_size,std::ctype_base::mask());
-		rc[','] = std::ctype_base::space;
-		return &rc[0];
-	}
-};
-
-/**
- * The point cloud can be in 2D.
- */
-struct Point2D: Point {
-	int x;
-	int y;
-	Point2D(): x(0), y(0) {}
-	Point2D(int x, int y) { this->x = x; this->y = y; }
-private:
-	friend std::ostream& operator<<(std::ostream& os, const Point2D & p) {
-		os << p.x << ',' << p.y;
-		return os;
-	}
-	friend std::istream& operator>>( std::istream& is, Point2D& p) {
-		is.imbue(std::locale(std::locale(), new commasep));
-		is >> p.x >> p.y;
-		return is;
-	}
-};
+#include <HoughDefs.h>
 
 namespace dobots {
 
@@ -77,7 +44,7 @@ public:
 	//! Default constructor expects image points in size of 640x480 and uses a Hough space of size 100x100
 	Hough(): type(RANDOMIZED_HOUGH) {
 		points.clear();
-		Size size;
+		ASize size;
 		size.x = 100;
 		size.y = 100;
 		input_size.x = 640;
@@ -87,7 +54,7 @@ public:
 	}
 
 	//! Constructor with non-standard size for the Hough space
-	Hough(Size input_size, Size hough_space_size): type(RANDOMIZED_HOUGH) {
+	Hough(ISize input_size, ASize hough_space_size): type(RANDOMIZED_HOUGH) {
 		points.clear();
 		this->input_size = input_size;
 		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
@@ -118,18 +85,14 @@ public:
 		std::vector<P> random_set;
 		random_set.resize(2, P());
 		random_n(points.begin(), points.end(), random_set.begin(), 2);
-		typename std::vector<P>::iterator iter;
-		for (iter = random_set.begin(); iter != random_set.end(); ++iter) {
-			std::cout << *iter << std::endl;
-		}
 		P pnt0 = random_set[0];
 		P pnt1 = random_set[1];
-		P p = transform(pnt0, pnt1);
-		std::cout << "Result: " << p << std::endl;
+		ACoordinates c = transform(pnt0, pnt1);
+		getAccumulator()->Increment(c, pnt0, pnt1);
 	}
 
-	template <typename P1>
-	P1 transform(P1 pnt0, P1 pnt1) {
+	template <typename P1, typename C1>
+	C1 transform(P1 pnt0, P1 pnt1) {
 		assert(false); // no general implementation possible
 		return pnt0;
 	}
@@ -139,7 +102,7 @@ public:
 	 * normally, here it is scaled so it fits a "char". The final accumulator which has to store the values is of
 	 * limited size, that's why.
 	 */
-	Point2D transform(Point2D pnt0, Point2D pnt1) {
+	ACoordinates transform(Point2D pnt0, Point2D pnt1) {
 		float theta;
 		float r;
 		if (pnt0.y == pnt1.y) { // horizontal lines are special, or else division by zero
@@ -155,8 +118,8 @@ public:
 		}
 
 
-		// cast to Point2D structure
-		Point2D result;
+		// return in Hough coordinates
+		ACoordinates result;
 		result.x = (r * accumulator->getSize().x) / max_distance; // r scaled with max_dist/max x
 		result.y = (theta * accumulator->getSize().y) / (8*atan(1)); // theta scaled with s
 		return result;
@@ -180,7 +143,7 @@ private:
 	std::vector<P> points;
 
 	//! The input points should fall in this range
-	Size input_size;
+	ISize input_size;
 
 	//! Max distance (calculated from input_size)
 	int max_distance;

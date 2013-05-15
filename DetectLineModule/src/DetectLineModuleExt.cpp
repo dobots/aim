@@ -23,6 +23,8 @@
 #include <DetectLineModuleExt.h>
 #include <Random.h>
 
+#include <HoughDefs.h>
+
 using namespace rur;
 using namespace dobots;
 
@@ -38,7 +40,7 @@ void DetectLineModuleExt::loadImage(std::string file, std::vector<Point2D> & poi
 		for (int j = margin; j < (480 - margin); ++j) {
 			if (image->getValue(i,j) > 0) {
 				points.push_back(Point2D(i,j));
-				std::cout << " (" << (int)image->getValue(i,j) << ")[" << i << ',' << j << ']';
+//				std::cout << " (" << (int)image->getValue(i,j) << ")[" << i << ',' << j << ']';
 			}
 		}
 	}
@@ -67,7 +69,35 @@ void DetectLineModuleExt::Init(std::string & name) {
 
 void DetectLineModuleExt::Tick() {
 	hough.doTransform();
-	if (++tick == 10) stop = true;
+	if (++tick == 1000) {
+		Accumulator & acc = *hough.getAccumulator();
+		ASize asize = acc.getSize();
+		CRawImage *a_img = new CRawImage(asize.x, asize.y, 1);
+		for (int i = 0; i < asize.x; ++i) {
+			for (int j = 0; j < asize.y; ++j) {
+				Cell & c = acc.get(i,j);
+//				if (c.hits > 0) std::cout << "Hit at " << i << ',' << j << std::endl;
+				a_img->setValue(i,j,c.hits > 10 ? 100 : c.hits*10);
+			}
+		}
+		a_img->saveBmp("acc_img.bmp");
+		delete a_img;
+
+		CRawImage *l_img = new CRawImage(640, 480, 1);
+		for (int i = 0; i < asize.x; ++i) {
+			for (int j = 0; j < asize.y; ++j) {
+				Cell & c = acc.get(i,j);
+				if (c.hits > 15) {
+					int last = c.points.size()-1;
+					l_img->plotLine(c.points[0].x, c.points[0].y, c.points[last].x, c.points[last].y);
+				}
+			}
+		}
+		l_img->saveBmp("line_img.bmp");
+		delete l_img;
+
+		stop = true;
+	}
 }
 
 bool DetectLineModuleExt::Stop() {

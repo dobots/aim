@@ -80,15 +80,15 @@ TEST_F(HoughTest, HesseNormal) {
 	//hough.doTransform();
 	Point2D p0(20,10);
 	Point2D p1(10,20);
-	Point2D p = hough.transform(p0, p1);
+	ACoordinates c = hough.transform(p0, p1);
 
 	// p.x should be sqrt(15*15+15*15), scaled with 100 over 800 (by default 640x480 gives maximum distance of 800),
 	// and default accumulator size is 100, this would lead to 21*1/8=2.56, floored, becomes 2
 	// p.y should be M_PI/4 (which is equal to atan(1), however it is scaled with 100/(2*PI), so it should be 12.5 and
 	// with truncation downwards, equal to 12
 
-	EXPECT_EQ(p.x, 2);
-	EXPECT_EQ(p.y, 12);
+	EXPECT_EQ(c.x, 2);
+	EXPECT_EQ(c.y, 12);
 
 }
 
