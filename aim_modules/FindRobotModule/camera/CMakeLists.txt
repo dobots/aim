@@ -36,7 +36,7 @@ set(CAMERA_SRCS
 	${PROJECT_SOURCE_DIR}/CCamera.cpp
 	${PROJECT_SOURCE_DIR}/CRawImage.cpp
 	${PROJECT_SOURCE_DIR}/grab.cpp
-	${PROJECT_SOURCE_DIR}/libcam.cpp
+#	${PROJECT_SOURCE_DIR}/libcam.cpp
 )
  
 include_directories("${PROJECT_BINARY_DIR}")

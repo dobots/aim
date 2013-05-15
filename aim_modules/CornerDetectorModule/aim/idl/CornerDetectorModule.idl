@@ -1,0 +1,41 @@
+/**
+ * IDL description of the CornerDetectorModule
+ *
+ * This file is automatically parsed by the rurbuilder backends for the omniidl 
+ * compiler. The names of the functions will become port identifiers. The names 
+ * of the function variables are not used. For now, if the function variable 
+ * ends with a number, like "void Sensor(in char input2);" there will be two
+ * portnames created.
+ *
+ * Author: 
+ * Copyright: 
+ * Date: 
+ * License: 
+ */
+
+// Recommended namespace "rur"
+module rur {
+
+// The command-line parameters
+struct Param {
+  // multiple modules can be addressed in parallel, killed, etc. using "module_id"
+  string module_id;
+  // a certain parameter over the command-line (char becomes int) 
+  char parameter;
+};
+
+// Typedef for array of integers
+typedef sequence<char> char_seq;
+
+// We want to be able to give our class a name
+interface CornerDetectorModule {
+
+  // Input from camera
+  void Camera(in char_seq input);
+
+  // A command to one of the wheels
+  void Points(out char_seq output);
+
+};
+
+};

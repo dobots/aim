@@ -1,0 +1,13 @@
+<package>
+  <name>CornerDetectorModule</name>
+  <description brief="CornerDetectorModule">
+     CornerDetectorModule
+  </description>
+  <author>Anne van Rossum</author>
+  <license>LGPL v3</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/example</url>
+  <depend package="roscpp"/>
+</package>
+
+

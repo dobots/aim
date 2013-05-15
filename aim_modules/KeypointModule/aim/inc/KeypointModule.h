@@ -11,6 +11,9 @@
  *
  */
 
+#ifndef KEYPOINTMODULE_H_
+#define KEYPOINTMODULE_H_
+
 #include <string>
 #include <vector>
 
@@ -56,15 +59,18 @@ public:
   inline Param *GetParam() { return cliParam; };
   
   // Read from this function and assume it means something
+  // Read from this function and assume it means something
   inline long_seq *readSensor(bool blocking_dummy=false) {
     return &dummySensor;
   }
   
   // Read from this function and assume it means something
+  // Read from this function and assume it means something
   inline int *readSensorArrayLength(bool blocking_dummy=false) {
     return &dummySensorArrayLength;
   }
   
+  // Write to this function and assume it ends up at some receiving module
   // Write to this function and assume it ends up at some receiving module
   inline bool writeResult(const int output) {
     return true;
@@ -72,3 +78,4 @@ public:
 };
 }
 
+#endif // KEYPOINTMODULE_H_
