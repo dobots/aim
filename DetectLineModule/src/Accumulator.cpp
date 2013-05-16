@@ -30,7 +30,7 @@ using namespace dobots;
 Accumulator::Accumulator(ASize size) {
 	this->size.x = size.x;
 	this->size.y = size.y;
-	std::vector<short> dimensions; dimensions.clear();
+	std::vector<ACCUMULATOR_DATA_TYPE> dimensions; dimensions.clear();
 	dimensions.push_back(size.x);
 	dimensions.push_back(size.y);
 	init(dimensions);
@@ -40,8 +40,8 @@ Accumulator::~Accumulator() {
 }
 
 void Accumulator::Increment(ACoordinates c, Point2D p0, Point2D p1) {
-	assert (c.x < size.x);
-	assert (c.y < size.y);
+	assert (c.x >= 0 && c.x < size.x);
+	assert (c.y >= 0 && c.y < size.y);
 	Cell & cell = get(c.x, c.y);
 	cell.hits++;
 	cell.points.push_back(p0);

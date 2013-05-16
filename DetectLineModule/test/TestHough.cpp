@@ -29,6 +29,7 @@
 #include "gtest/gtest.h"
 
 #include <Hough.h>
+#include <CRawImage.h>
 
 namespace {
 
@@ -42,10 +43,10 @@ class HoughTest : public ::testing::Test {
     virtual ~HoughTest() { }
 
     virtual void SetUp() {
-    	Point2D p0(2,1);
-    	Point2D p1(1,2);
-    	hough.addPoint(p0);
-    	hough.addPoint(p1);
+//    	Point2D p0(2,1);
+//    	Point2D p1(1,2);
+//    	hough.addPoint(p0);
+//    	hough.addPoint(p1);
     }
 
     virtual void TearDown() {
@@ -82,14 +83,27 @@ TEST_F(HoughTest, HesseNormal) {
 	Point2D p1(10,20);
 	ACoordinates c = hough.transform(p0, p1);
 
+//	int x = std::sqrt(15*15+15*15) * 1000/800;
+//	int y = 1000/8;
+
 	// p.x should be sqrt(15*15+15*15), scaled with 100 over 800 (by default 640x480 gives maximum distance of 800),
 	// and default accumulator size is 100, this would lead to 21*1/8=2.56, floored, becomes 2
 	// p.y should be M_PI/4 (which is equal to atan(1), however it is scaled with 100/(2*PI), so it should be 12.5 and
 	// with truncation downwards, equal to 12
 
-	EXPECT_EQ(c.x, 2);
-	EXPECT_EQ(c.y, 12);
+	EXPECT_EQ(c.x, 26); // with default size of 100: 2
+	EXPECT_EQ(c.y, 125);// with default size of 100: 12
 
+}
+
+TEST(ImageTest, MakeSquare) {
+	CRawImage image(640,480,1);
+	image.plotLine(200,200,200,300);
+	image.plotLine(200,300,300,300);
+	image.plotLine(300,300,300,200);
+	image.plotLine(300,200,200,200);
+	image.saveBmp("../square.bmp");
+	std::cout << "Save file square.bmp" << std::endl;
 }
 
 TEST(CloseTest, Close) {

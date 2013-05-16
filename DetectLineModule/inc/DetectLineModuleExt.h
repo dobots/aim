@@ -42,6 +42,10 @@ public:
 
 	//! Load a vector of points from a preprocessed image
 	void loadImage(std::string file, std::vector<Point2D> & points);
+
+	//! Load a vector of points from a preprocessed image
+	void loadImage(std::string file, pointcloud & spatial_points);
+
 private:
 	dobots::Hough<Point2D> hough;
 

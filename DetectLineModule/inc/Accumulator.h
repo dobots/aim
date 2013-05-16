@@ -35,7 +35,7 @@ namespace dobots {
  * basically just a discretization of the Hough space. For lines, which have only two parameters, you will need a 2D
  * Hough space.
  */
-class Accumulator : public nd_array<Cell,short> {
+class Accumulator : public nd_array<Cell,ACCUMULATOR_DATA_TYPE> {
 public:
 	//! Default accumulator constructor
 	Accumulator(ASize size);

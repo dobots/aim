@@ -31,6 +31,9 @@
 #include <nd-array.hpp>
 #include <Accumulator.h>
 #include <HoughDefs.h>
+#include <Random.h>
+
+typedef nd_array < std::vector<Point2D>,short > pointcloud;
 
 namespace dobots {
 
@@ -43,10 +46,11 @@ class Hough {
 public:
 	//! Default constructor expects image points in size of 640x480 and uses a Hough space of size 100x100
 	Hough(): type(RANDOMIZED_HOUGH) {
-		points.clear();
+		std::cout << "Use standard constructor for Hough transform" << std::endl;
+		clear();
 		ASize size;
-		size.x = 100;
-		size.y = 100;
+		size.x = ACCUMULATOR_SIZE_X; // ACCUMULATOR_DATA_TYPE
+		size.y = ACCUMULATOR_SIZE_Y;
 		input_size.x = 640;
 		input_size.y = 480;
 		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
@@ -55,7 +59,7 @@ public:
 
 	//! Constructor with non-standard size for the Hough space
 	Hough(ISize input_size, ASize hough_space_size): type(RANDOMIZED_HOUGH) {
-		points.clear();
+		clear();
 		this->input_size = input_size;
 		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
 		accumulator = new Accumulator(hough_space_size);
@@ -64,7 +68,9 @@ public:
 	//! Default destructor
 	virtual ~Hough() {
 		clear();
-		delete accumulator;
+		if (accumulator != NULL)
+			delete accumulator;
+		accumulator = NULL;
 	}
 
 	//! Set the transform, it's your responsible to clear the point cloud and or reset the accumulator
@@ -72,16 +78,34 @@ public:
 
 	//! Add points one by one
 	void addPoint(P p) {
-		points.push_back(p);
+//		points.push_back(p);
 	}
 
 	//! Add points in a bunch, points should just be two or three elements, so by value, not by reference
 	void addPoints(std::vector<P> & point_cloud) {
-		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
+//		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
+	}
+
+	//! Add points to spatial point cloud
+	void addPoints(pointcloud & spatial_point_cloud) {
+		spatial_points = spatial_point_cloud;
 	}
 
 	//! Perform the actual transform on all the points hitherto received
 	void doTransform() {
+		// pick first a random index from spatial_points patch grid
+		int px = spatial_points.get_dimension(0);
+		int py = spatial_points.get_dimension(1);
+		int size = px*py;
+		int linear_r = random_value(0,size-1);
+//		std::cout << "Dimensions: " << px << ',' << py << ", pick " << linear_r << " from total of " << size << std::endl;
+//		std::cout << "Pick patch " << px << ',' << py << std::endl;
+		std::vector<P> points = spatial_points.get(linear_r%px,linear_r/px);
+		if (points.size() < 3) {
+			return;
+		} else {
+//			std::cout << "Enough points" << std::endl;
+		}
 		std::vector<P> random_set;
 		random_set.resize(2, P());
 		random_n(points.begin(), points.end(), random_set.begin(), 2);
@@ -112,11 +136,14 @@ public:
 			theta = atan(std::abs(pnt0.x - pnt1.x) / std::abs(pnt0.y - pnt1.y));
 			// use first point to calculate distance line to origin, could've second point
 			float r1 = std::sqrt(pnt0.x*pnt0.x+pnt0.y*pnt0.y);
-			float theta1 = asin(std::abs(pnt0.y)/r1);
-			float phi1 = std::abs(theta1 - theta);
-			r = r1 * cos(phi1);
+			if (r1 == 0) {
+				r = 0;
+			} else {
+				float theta1 = asin(std::abs(pnt0.y)/r1);
+				float phi1 = std::abs(theta1 - theta);
+				r = r1 * cos(phi1);
+			}
 		}
-
 
 		// return in Hough coordinates
 		ACoordinates result;
@@ -127,7 +154,7 @@ public:
 
 	//! Remove all points from the point cloud
 	void clear() {
-		points.clear();
+//		points.clear();
 	}
 
 	//! Get the accumulator, e.g. to reset it
@@ -140,7 +167,10 @@ private:
 	Accumulator *accumulator;
 
 	//! Point cloud, for now store temporary all points, and only perform transform when doTransform is called
-	std::vector<P> points;
+//	std::vector<P> points;
+
+	//! Point cloud, but in a spatial structure
+	pointcloud spatial_points;
 
 	//! The input points should fall in this range
 	ISize input_size;

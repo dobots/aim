@@ -27,6 +27,10 @@
 #include <sstream>
 #include <cassert>
 
+// error messages
+#include <iostream>
+#include <limits>
+
 /**
  * An nd-array is an N-dimensional array. The dimension of the table is on purpose not a template parameter. This would
  * namely make it quite hard to create classes that would make use of nd_array's with a diverse set of dimensions. For
@@ -77,20 +81,23 @@ public:
 	 */
 	void init(dimension_container & dimensions) {
 		this->dimensions = dimensions;
-		linear_index size = 1, new_size = 1;
+		linear_index tsize = 1, new_size = 1;
 		strides.clear();
 		values.clear();
-		values.reserve(size);
+		values.reserve(tsize);
 		for (dimension_type i = 0; i < dimensions.size(); ++i) {
-			strides.push_back(size);
+			strides.push_back(tsize);
 			assert(dimensions[i] != 0);
-			new_size = size * dimensions[i];
-			// Check if we did go beyond the maximum size of the overall container, by using the reverse operator: "/"
-			assert((new_size / dimensions[i]) == size);
-			size = new_size;
+			new_size = tsize * dimensions[i];
+			if ((new_size / dimensions[i]) != tsize) {
+				std::cerr << "Size " << size() << " exceeds maximum size (" << std::numeric_limits<T>::max()
+						<< ") of the container, adjust template parameter T" << std::endl;
+				assert((new_size / dimensions[i]) == tsize);
+			}
+			tsize = new_size;
 		}
-		strides.push_back(size);
-		values.resize(size, value_type());
+		strides.push_back(tsize);
+		values.resize(tsize, value_type());
 	}
 
 	/**
@@ -295,14 +302,20 @@ public:
 	}
 
 	/**
-	 * Returns the maximum size in the sense of memory requirements for this nd-array.
+	 * Returns the maximum size in a loose sense related to total memory requirements for this nd-array (depending on
+	 * the size of the elements stored). It is the product of all dimension sizes.
 	 */
-	linear_index size() const {
-		linear_index max = 1;
+	long long int size() const {
+		long long int max = 1;
 		for (dimension_type i = 0; i < dimensions.size(); ++i) {
 			max *= dimensions[i];
 		}
 		return max;
+	}
+
+	//! Get the size of given dimension.
+	dimension_type get_dimension(size_t index) const {
+		return dimensions[index];
 	}
 
 	//! Get the number of dimensions.

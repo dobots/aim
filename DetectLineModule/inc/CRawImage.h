@@ -18,15 +18,17 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef unsigned char VALUE_TYPE;
+
 /**
  * This is a very basic implementation of an image. It just uses three char's, one for each of the color channels.
  * Nothing fancy, no padding. Moreover, this struct is only used for communication with the user. The internal structure
  * is a (linear) array with RGB values or monochrome values.
  */
 struct Pixel {
-	char r;
-	char g;
-	char b;
+	VALUE_TYPE r;
+	VALUE_TYPE g;
+	VALUE_TYPE b;
 };
 
 /**
@@ -36,7 +38,7 @@ struct Pixel {
  * compilation unit.
  */
 struct Patch {
-	unsigned char *data;
+	VALUE_TYPE *data;
 	int width;
 	int height;
 };
@@ -60,10 +62,10 @@ public:
 	CRawImage(const CRawImage & other);
 
 	//! Gets value at [x,y], only valid if bpp=1
-	char getValue(int x, int y);
+	VALUE_TYPE getValue(int x, int y);
 
 	//! Sets value at [x,y], only valid if bpp=1
-	void setValue(int x, int y, char value);
+	void setValue(int x, int y, VALUE_TYPE value);
 
 	//! Only valid if bpp=3, returns an rgb pixel
 	Pixel getPixel(int x, int y);
@@ -73,6 +75,9 @@ public:
 
 	//! Set a pixel in a given patch
 	void setPixel(int x, int y, Patch & patch, Pixel pixel);
+
+	//! Set a value in a given patch
+	void setValue(int x, int y, Patch & patch, VALUE_TYPE value);
 
 	//! Get the patch itself (requires a malloc op)
 	void getPatch(int x, int y, Patch & patch);
@@ -126,7 +131,7 @@ public:
 	double getOverallBrightness(bool upperHalf);
 
 	//! Just show the data to the user, if you screw up, it's your own responsibility
-	unsigned char* data;
+	VALUE_TYPE* data;
 
 	//! Reallocate the internal data structure on changing the number of bytes per pixel
 	void setbpp(int bpp) { this->bpp = bpp; refresh(); }

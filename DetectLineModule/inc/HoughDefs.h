@@ -28,7 +28,10 @@
 #include <vector>
 #include <istream>
 
-typedef unsigned char ACCUMULATOR_DATA_TYPE;
+typedef int ACCUMULATOR_DATA_TYPE;
+
+const int ACCUMULATOR_SIZE_X = 100;
+const int ACCUMULATOR_SIZE_Y = 100;
 
 enum HoughTransformType { HOUGH, RANDOMIZED_HOUGH, PROB_PROG_HOUGH, SEGMENT_HOUGH, HOUGH_TRANSFORM_TYPE_COUNT };
 
