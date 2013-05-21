@@ -27,11 +27,9 @@ When the density of points is not uniform over the cells, this has vastly differ
 
 You see here an input image of squares. Then the corresponding Hough space, which is extremely sparse. Only a few cells have been "incremented" by the corresponding point pairs. And last, you see an image in which only the lines that are stored in these Hough cells that exceed a given threshold (set here to be 1% of the total number of iterations that increment the accumulator).
 
-<img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square.bmp" height="100" width="100"/>
-
-![Screenshot](https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square.bmp "Input image of squares")
-![Screenshot](https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_accumulator.bmp "Hough space")
-![Screenshot](https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_backprojection.bmp "Restored image of squares")
+<img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square.bmp" height="320" width="240" title="Input image of squares"/>
+<img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_accumulator.bmp" height="320" width="240" title="Hough space"/>
+<img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_backprojection.bmp" height="320" width="240" title="Restored image"/>
 
 ## To be expected next
 
