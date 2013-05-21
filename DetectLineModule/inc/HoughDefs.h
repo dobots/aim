@@ -30,8 +30,8 @@
 
 typedef int ACCUMULATOR_DATA_TYPE;
 
-const int ACCUMULATOR_SIZE_X = 100;
-const int ACCUMULATOR_SIZE_Y = 100;
+const ACCUMULATOR_DATA_TYPE ACCUMULATOR_SIZE_X = 100;
+const ACCUMULATOR_DATA_TYPE ACCUMULATOR_SIZE_Y = 100;
 
 enum HoughTransformType { HOUGH, RANDOMIZED_HOUGH, PROB_PROG_HOUGH, SEGMENT_HOUGH, HOUGH_TRANSFORM_TYPE_COUNT };
 
@@ -64,6 +64,7 @@ struct Point2D: Point {
 	int y;
 	Point2D(): x(0), y(0) {}
 	Point2D(int x, int y) { this->x = x; this->y = y; }
+	void set(int x, int y) { this->x = x; this->y = y; }
 	friend std::ostream& operator<<(std::ostream& os, const Point2D & p) {
 		os << p.x << ',' << p.y;
 		return os;
@@ -77,6 +78,11 @@ struct Point2D: Point {
 
 struct ISize: Point2D { };
 
+struct Segment2D {
+	Point2D src;
+	Point2D dest;
+};
+
 /**
  * A cell in the accumulator. This is different per transform, but we will use the same cell for all of them with a
  * flexible number of fields.
@@ -84,8 +90,8 @@ struct ISize: Point2D { };
 struct Cell {
 	//! The number of times a given entity (line) is detected.
 	int hits;
-	//! Original points
-	std::vector<Point2D> points;
+	//! Segments that contributed to this cell
+	std::vector<Segment2D> segments;
 };
 
 

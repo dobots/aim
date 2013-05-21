@@ -32,14 +32,16 @@ const int IMG_WIDTH = 640;
 const int IMG_HEIGHT = 480;
 
 //! Adjust these figures, make sure patch width times number of patches unequivocally matches the entire width
-const int NR_PATCHES_WIDTH = 8;
-const int NR_PATCHES_HEIGHT = 8;
+const int NR_PATCHES_WIDTH = 10;
+const int NR_PATCHES_HEIGHT = 10;
 
 const int PATCH_WIDTH = IMG_WIDTH/NR_PATCHES_WIDTH;
 const int PATCH_HEIGHT = IMG_HEIGHT/NR_PATCHES_HEIGHT;
 
-const int HIT_THRESHOLD = 20;
-const int TOTAL_TICK_COUNT = 100000;
+const int TOTAL_TICK_COUNT = 10000;
+
+// threshold is now at at least 1 percent of the total number of points
+const int HIT_THRESHOLD = TOTAL_TICK_COUNT / 200;
 
 /**
  * Helper function that considers all points above zero in an image to be points detected previously by a corner or
@@ -149,26 +151,61 @@ void DetectLineModuleExt::Tick() {
 		for (int i = 0; i < asize.x; ++i) {
 			for (int j = 0; j < asize.y; ++j) {
 				Cell & c = acc.get(i,j);
-//				if (c.hits > 0) std::cout << "Hit at " << i << ',' << j << std::endl;
-				a_img->setValue(i,j,c.hits > HIT_THRESHOLD ? 100 : 0);
+				if (c.hits > HIT_THRESHOLD) {
+//					std::cout << "Hit at " << i << ',' << j << " with #hits: " << c.hits << std::endl;
+					a_img->setValue(i,j,100);
+				}
 			}
 		}
 		a_img->saveBmp("acc_img.bmp");
 		delete a_img;
 
 		CRawImage *l_img = new CRawImage(IMG_WIDTH, IMG_HEIGHT, 1);
+		// first print raster
+		for (int i = 0; i < IMG_WIDTH; ++i) {
+			for (int j = 0; j < IMG_HEIGHT; ++j) {
+				if ((i % PATCH_WIDTH) == 0) l_img->setValue(i,j,20);
+				if ((j % PATCH_HEIGHT) == 0) l_img->setValue(i,j,20);
+			}
+		}
+
+		// loop over the accumulator
 		for (int i = 0; i < asize.x; ++i) {
 			for (int j = 0; j < asize.y; ++j) {
+				// print lines
 				Cell & c = acc.get(i,j);
 				if (c.hits > HIT_THRESHOLD) {
-//					int last = c.points.size()-1;
-//					l_img->plotLine(c.points[0].x, c.points[0].y, c.points[last].x, c.points[last].y);
-					for (int l = 0; l < c.points.size()-1; l+=2) {
-						l_img->plotLine(c.points[l].x, c.points[l].y, c.points[l+1].x, c.points[l+1].y);
+//#define PLOT_REVERSE_TRANSFORM
+#define PLOT_SUBSEQUENT
+
+#ifdef PLOT_WIDEST
+					int last = c.points.size()-1;
+					l_img->plotLine(c.points[0].x, c.points[0].y, c.points[last].x, c.points[last].y);
+#endif
+#ifdef PLOT_SUBSEQUENT
+					for (int l = 0; l < c.segments.size(); l++) {
+						l_img->plotLine(c.segments[l].src.x, c.segments[l].src.y,
+								c.segments[l].dest.x, c.segments[l].dest.y);
 					}
+#endif
+#ifdef PLOT_REVERSE_TRANSFORM
+					// from distance and angle, draw line
+					int p0x = (double)i / (std::cos(j-50));
+					int p0y = 0;
+					int p1x = 0;
+					int p1y = (double)i / (std::sin(j-50));
+					l_img->plotLine(p0x, p0y, p1x, p1y);
+#endif
+
+					// use the probability density over points to establish which segments to plot
+//					for (int l = 0; l < c.points.size()-1; l+=2) {
+//						l_img->plotLine(c.points[l].x, c.points[l].y, c.points[l+1].x, c.points[l+1].y);
+//					}
+
 				}
 			}
 		}
+
 		l_img->saveBmp("line_img.bmp");
 		delete l_img;
 

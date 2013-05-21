@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 using namespace dobots;
 
@@ -39,12 +40,12 @@ Accumulator::Accumulator(ASize size) {
 Accumulator::~Accumulator() {
 }
 
-void Accumulator::Increment(ACoordinates c, Point2D p0, Point2D p1) {
+void Accumulator::Increment(ACoordinates c, Segment2D seg) {
 	assert (c.x >= 0 && c.x < size.x);
 	assert (c.y >= 0 && c.y < size.y);
+
 	Cell & cell = get(c.x, c.y);
 	cell.hits++;
-	cell.points.push_back(p0);
-	cell.points.push_back(p1);
+	cell.segments.push_back(seg);
 }
 

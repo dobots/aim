@@ -47,7 +47,7 @@ public:
 	 * Increment cell in the accumulator. This assumes that the calling function knows how to map from the point cloud
 	 * to the coordinates of a given cell. The original points are also handed over to keep track of segments.
 	 */
-	void Increment(ACoordinates c, Point2D p0, Point2D p1);
+	void Increment(ACoordinates c, Segment2D seg);
 
 	/**
 	 * Reset the accumulator, for example when switching from method, but also in some methods you are required to do
@@ -55,6 +55,7 @@ public:
 	 */
 	void Reset();
 
+	//! Size of the accumulator
 	inline ASize getSize() { return size; }
 private:
 

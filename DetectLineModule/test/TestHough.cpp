@@ -73,15 +73,26 @@ TEST(FileTest, Redirect) {
 }
 
 /**
- * From here we can hough in HoughTest.
+ * From here we can test the hough transform. Let us first test the angles, and then the distances.
  */
 TEST_F(HoughTest, HesseNormal) {
-	//EXPECT_EQ(hough.points.size, 2);
 
-	//hough.doTransform();
+	std::cout << "Test line y=-x+30" << std::endl;
 	Point2D p0(20,10);
 	Point2D p1(10,20);
+
+	double slope;
+	double y_intersection;
+	hough.getLineDescription<double>(p0, p1, slope, y_intersection);
+	EXPECT_EQ(-1, slope);
+	EXPECT_EQ(30, y_intersection);
+
+
 	ACoordinates c = hough.transform(p0, p1);
+	int SHIFT=100/2;
+	int expect = 12+SHIFT;
+	EXPECT_EQ(expect, c.y); // with default size of 100: 12 + shifted with 100/2
+
 
 //	int x = std::sqrt(15*15+15*15) * 1000/800;
 //	int y = 1000/8;
@@ -91,17 +102,67 @@ TEST_F(HoughTest, HesseNormal) {
 	// p.y should be M_PI/4 (which is equal to atan(1), however it is scaled with 100/(2*PI), so it should be 12.5 and
 	// with truncation downwards, equal to 12
 
-	EXPECT_EQ(c.x, 26); // with default size of 100: 2
-	EXPECT_EQ(c.y, 125);// with default size of 100: 12
+//	EXPECT_EQ(c.x, 2); // with default size of 100: 2
+	//EXPECT_EQ(12, c.y); // with default size of 100: 12
 
+	std::cout << "Test line y=-x+30 with points reversed (should be same outcome)" << std::endl;
+	p0.set(10,20);
+	p1.set(20,10);
+	c = hough.transform(p0, p1);
+	EXPECT_EQ(expect, c.y);
+
+	// with large accumulator of 1000x1000
+//	EXPECT_EQ(c.x, 26);
+//	EXPECT_EQ(c.y, 125);
+
+	std::cout << "Test diagonal line through the origin (radial) y=1*x+0" << std::endl;
+	p0.set(10,10);
+	p1.set(20,20);
+	c = hough.transform(p0, p1);
+	expect = 37+SHIFT;
+	EXPECT_EQ(expect, c.y);
+
+	std::cout << "Test horizontal line y=0*x-10" << std::endl;
+	p0.set(-10,-10);
+	p1.set(10,-10);
+	c = hough.transform(p0, p1);
+	expect = 0+SHIFT;
+	EXPECT_EQ(expect, c.y);
+
+	std::cout << "Line y=-1.5*x-20" << std::endl;
+	p0.set(0,30);
+	p1.set(20,0);
+	c = hough.transform(p0, p1);
+	expect = 9+SHIFT;
+	EXPECT_EQ(expect, c.y);
+
+
+	// same line, but mirrored
+//	Point2D p2(20,50);
+//	Point2D p3(10,40);
+//	c = hough.transform(p2, p3);
+	// with default size of 100
+//	EXPECT_EQ(c.x, 2);
+
+//	EXPECT_EQ(c.y, 36);
 }
 
 TEST(ImageTest, MakeSquare) {
 	CRawImage image(640,480,1);
-	image.plotLine(200,200,200,300);
-	image.plotLine(200,300,300,300);
-	image.plotLine(300,300,300,200);
-	image.plotLine(300,200,200,200);
+	int x = 150, y = 150, size = 100;
+	int s = size >> 1;
+	image.plotLine(x-s,y-s,x-s,y+s);
+	image.plotLine(x-s,y+s,x+s,y+s);
+	image.plotLine(x+s,y+s,x+s,y-s);
+	image.plotLine(x+s,y-s,x-s,y-s);
+
+	// another square, totally in the corner
+	x = (640-50) - s; y = (480-50) - s;
+	image.plotLine(x-s,y-s,x-s,y+s);
+	image.plotLine(x-s,y+s,x+s,y+s);
+	image.plotLine(x+s,y+s,x+s,y-s);
+	image.plotLine(x+s,y-s,x-s,y-s);
+
 	image.saveBmp("../square.bmp");
 	std::cout << "Save file square.bmp" << std::endl;
 }
