@@ -31,6 +31,8 @@ You see here an input image of squares. Then the corresponding Hough space, whic
 <img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_accumulator.bmp" width="320" height="240" title="Hough space"/>  
 <img src="https://github.com/mrquincle/aim_modules/raw/master/DetectLineModule/data/square_backprojection.bmp" width="320" height="240" title="Restored image" hspace="10"/>
 
+Use Ctrl+PLUS in your browser to see these images in more detail.
+
 ## To be expected next
 
 There is currently:
