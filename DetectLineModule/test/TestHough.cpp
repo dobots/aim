@@ -28,6 +28,8 @@
 #include <cstdio>
 #include "gtest/gtest.h"
 
+#include <sys/stat.h>
+
 #include <Hough.h>
 #include <CRawImage.h>
 
@@ -133,7 +135,7 @@ TEST_F(HoughTest, HesseNormal) {
 	p0.set(0,30);
 	p1.set(20,0);
 	c = hough.transform(p0, p1);
-	expect = 9+SHIFT;
+	expect = 15+SHIFT; //9?
 	EXPECT_EQ(expect, c.y);
 
 
@@ -151,10 +153,23 @@ TEST(ImageTest, MakeSquare) {
 	CRawImage image(640,480,1);
 	int x = 150, y = 150, size = 100;
 	int s = size >> 1;
-	image.plotLine(x-s,y-s,x-s,y+s);
-	image.plotLine(x-s,y+s,x+s,y+s);
-	image.plotLine(x+s,y+s,x+s,y-s);
-	image.plotLine(x+s,y-s,x-s,y-s);
+	int RANDOM_POINTS = 30;
+	int yr, xr;
+	for (int i = 0; i < RANDOM_POINTS; ++i) {
+		yr = random_value(y-s, y+s);
+		image.setValue(x-s,yr,100);
+		yr = random_value(y-s, y+s);
+		image.setValue(x+s,yr,100);
+		xr = random_value(x-s, x+s);
+		image.setValue(xr,y+s,100);
+		xr = random_value(x-s, x+s);
+		image.setValue(xr,y-s,100);
+
+		//		image.plotLine(x-s,y-s,x-s,y+s);
+//		image.plotLine(x-s,y+s,x+s,y+s);
+//		image.plotLine(x+s,y+s,x+s,y-s);
+//		image.plotLine(x+s,y-s,x-s,y-s);
+	}
 
 	// another square, totally in the corner
 	x = (640-50) - s; y = (480-50) - s;
@@ -163,7 +178,21 @@ TEST(ImageTest, MakeSquare) {
 	image.plotLine(x+s,y+s,x+s,y-s);
 	image.plotLine(x+s,y-s,x-s,y-s);
 
-	image.saveBmp("../square.bmp");
+	RANDOM_POINTS = 300;
+	for (int i = 0; i < RANDOM_POINTS; ++i) {
+		int x = random_value(0, 640-1);
+		int y = random_value(0, 480-1);
+		image.setValue(x,y,100);
+	}
+
+	std::cout << "Save file square.bmp" << std::endl;
+	std::string path = "../../data";
+	struct stat st;
+	if (stat(path.c_str(), &st) != 0) {
+		int status = mkdir("../../data", 0777) != 0 && errno != EEXIST;
+		EXPECT_EQ(0, status);
+	}
+	image.saveBmp("../../data/square.bmp");
 	std::cout << "Save file square.bmp" << std::endl;
 }
 

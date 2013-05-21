@@ -79,34 +79,62 @@ public:
 
 	//! Add points one by one
 	void addPoint(P p) {
-		//		points.push_back(p);
+		points.push_back(p);
 	}
 
 	//! Add points in a bunch, points should just be two or three elements, so by value, not by reference
 	void addPoints(std::vector<P> & point_cloud) {
-		//		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
+		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
 	}
 
 	//! Add points to spatial point cloud
 	void addPoints(pointcloud & spatial_point_cloud) {
 		spatial_points = spatial_point_cloud;
+		updatePoints();
 	}
 
-	//! Perform the actual transform on all the points hitherto received
-	void doTransform() {
+	void pickRandomPatch(int &x, int &y) {
 		// pick first a random index from spatial_points patch grid
 		int px = spatial_points.get_dimension(0);
 		int py = spatial_points.get_dimension(1);
 		int size = px*py;
 		int linear_r = random_value(0,size-1);
-		//		std::cout << "Dimensions: " << px << ',' << py << ", pick " << linear_r << " from total of " << size << std::endl;
-		//		std::cout << "Pick patch " << px << ',' << py << std::endl;
-		std::vector<P> points = spatial_points.get(linear_r%px,linear_r/px);
-		if (points.size() < 3) {
-			return;
-		} else {
-			//			std::cout << "Enough points" << std::endl;
+		x = linear_r % px;
+		y = linear_r / px;
+	}
+
+	void updatePoints() {
+		points.clear();
+		std::cout << "Add points to linear array" << std::endl;
+		for (int i = 0; i < spatial_points.size(); ++i) {
+			addPoints(spatial_points.getf(i));
 		}
+		std::cout << "Points added to linear array" << std::endl;
+	}
+
+	//! This is a better method if the density differs across the cells, it requires all points to be added to one
+	//! data structure. It will pick a point at random and return the given patch indices.
+	void pickRandomPoint(int &x, int &y) {
+		int linear_e = random_value(0,points.size()-1);
+		int wx = input_size.x / spatial_points.get_dimension(0);
+		int wy = input_size.y / spatial_points.get_dimension(1);
+
+		x = points[linear_e].x / wx;
+		y = points[linear_e].y / wy;
+//		std::cout << "Got point " << points[linear_e].x << ',' << points[linear_e].y <<
+//				" which becomes patch " << x << ',' << y << std::endl;
+	}
+
+	//! Perform the actual transform on all the points hitherto received
+	void doTransform() {
+		int ix, iy;
+#ifdef POINTS_EQUALLY_DISTRIBUTED
+		pickRandomPatch(ix,iy);
+#endif
+		pickRandomPoint(ix,iy);
+		std::vector<P> points = spatial_points.get(ix,iy);
+
+		if (points.size() < 3) return;
 		std::vector<P> random_set; random_set.clear();
 		random_set.resize(2, P());
 		random_n(points.begin(), points.end(), random_set.begin(), 2);
@@ -144,7 +172,7 @@ public:
 		assert (slope);
 		T alpha = atan(slope);
 		y_intersect = pnt0.y - (T)(pnt0.x) * slope;
-		std::cout << "Line in rectangular coordinates: y=" << slope << "*x+" << y_intersect << std::endl;
+//		std::cout << "Line in rectangular coordinates: y=" << slope << "*x+" << y_intersect << std::endl;
 	}
 
 	/**
@@ -166,14 +194,14 @@ public:
 			pnt1 = point0;
 		}
 
-		std::cout << "Transform points " << pnt0.x << "," << pnt0.y << " and " <<
-				pnt1.x << "," << pnt1.y << std::endl;
+//		std::cout << "Transform points " << pnt0.x << "," << pnt0.y << " and " <<
+//				pnt1.x << "," << pnt1.y << std::endl;
 
 		if (pnt0.y == pnt1.y) { // horizontal lines are special, or else division by zero
 			theta = (pnt0.y >= 0) ? 2*half_pi : 0;
 			r = pnt0.y;
 		} else if (pnt0.x == pnt1.x) { // vertical lines are special too
-			std::cout << "VERTICAL LINE at x=" << pnt0.x << std::endl;
+//			std::cout << "VERTICAL LINE at x=" << pnt0.x << std::endl;
 			theta = half_pi;
 			r = pnt0.x;
 		} else {
@@ -189,12 +217,12 @@ public:
 				r = pnt0.x;
 			} else {
 				r = std::sqrt(fx*fx+fy*fy);
-				std::cout << "Closest point S=" << fx << "," << fy << " at dist=" << (int)r << std::endl;
+//				std::cout << "Closest point S=" << fx << "," << fy << " at dist=" << (int)r << std::endl;
 
 				// debugging / checks
 				ftype dist0 = sqrt(pnt0.x*pnt0.x+pnt0.y*pnt0.y);
 				ftype dist1 = sqrt(pnt1.x*pnt1.x+pnt1.y*pnt1.y);
-				std::cout << "Point 0 is at dist=" << (int)dist0 << " and point 1 at dist=" << (int)dist1 << std::endl;
+//				std::cout << "Point 0 is at dist=" << (int)dist0 << " and point 1 at dist=" << (int)dist1 << std::endl;
 				assert (r <= dist0);
 				assert (r <= dist1);
 
@@ -213,11 +241,11 @@ public:
 		result.x = (r * (ftype)accumulator->getSize().x) / (max_distance*2); // r scaled with max_dist/max x
 		if (result.x == accumulator->getSize().x) result.x = accumulator->getSize().x-1;
 
-		std::cout << "Scaled distance " << result.x << " comes from " << r << std::endl;
+//		std::cout << "Scaled distance " << result.x << " comes from " << r << std::endl;
 		result.y = ((theta) * (ftype)accumulator->getSize().y) / (4*half_pi) + accumulator->getSize().y / 2; // theta scaled with s
 		if (result.y == accumulator->getSize().y) result.y = accumulator->getSize().y-1;
 
-		std::cout << "Scaled angle " << result.y << " comes from " << theta << std::endl;
+//		std::cout << "Scaled angle " << result.y << " comes from " << theta << std::endl;
 
 		// for debugging
 		assert (result.x < accumulator->getSize().x);
@@ -240,7 +268,7 @@ private:
 	Accumulator *accumulator;
 
 	//! Point cloud, for now store temporary all points, and only perform transform when doTransform is called
-	//	std::vector<P> points;
+	std::vector<P> points;
 
 	//! Point cloud, but in a spatial structure
 	pointcloud spatial_points;

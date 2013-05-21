@@ -219,6 +219,10 @@ public:
 		return values[index];
 	}
 
+	inline value_type & getf(linear_index index) {
+		return values[index];
+	}
+
 	//! Convenience function, can only be used if the nd-array is actually 1-dimensional
 	const value_type & get(linear_index index0) const {
 			assert (dimensions.size() == 1);

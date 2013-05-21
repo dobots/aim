@@ -41,7 +41,7 @@ const int PATCH_HEIGHT = IMG_HEIGHT/NR_PATCHES_HEIGHT;
 const int TOTAL_TICK_COUNT = 10000;
 
 // threshold is now at at least 1 percent of the total number of points
-const int HIT_THRESHOLD = TOTAL_TICK_COUNT / 200;
+const int HIT_THRESHOLD = TOTAL_TICK_COUNT / 100;
 
 /**
  * Helper function that considers all points above zero in an image to be points detected previously by a corner or
