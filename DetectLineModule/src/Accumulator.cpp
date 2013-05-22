@@ -47,5 +47,7 @@ void Accumulator::Increment(ACoordinates c, Segment2D seg) {
 	Cell & cell = get(c.x, c.y);
 	cell.hits++;
 	cell.segments.push_back(seg);
+	cell.points.push_back(seg.src);
+	cell.points.push_back(seg.dest);
 }
 

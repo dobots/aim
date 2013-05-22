@@ -144,74 +144,112 @@ void DetectLineModuleExt::Init(std::string & name) {
 void DetectLineModuleExt::Tick() {
 	hough.doTransform();
 	if (++tick == TOTAL_TICK_COUNT) {
-		Accumulator & acc = *hough.getAccumulator();
-		ASize asize = acc.getSize();
-		std::cout << "Create image for accumulator of size " << asize.x << 'x' << asize.y << std::endl;
-		CRawImage *a_img = new CRawImage(asize.x, asize.y, 1);
-		for (int i = 0; i < asize.x; ++i) {
-			for (int j = 0; j < asize.y; ++j) {
-				Cell & c = acc.get(i,j);
-				if (c.hits > HIT_THRESHOLD) {
-//					std::cout << "Hit at " << i << ',' << j << " with #hits: " << c.hits << std::endl;
-					a_img->setValue(i,j,100);
-				}
-			}
-		}
-		a_img->saveBmp("acc_img.bmp");
-		delete a_img;
+		plotAccumulator();
 
-		CRawImage *l_img = new CRawImage(IMG_WIDTH, IMG_HEIGHT, 1);
-		// first print raster
-		for (int i = 0; i < IMG_WIDTH; ++i) {
-			for (int j = 0; j < IMG_HEIGHT; ++j) {
-				if ((i % PATCH_WIDTH) == 0) l_img->setValue(i,j,20);
-				if ((j % PATCH_HEIGHT) == 0) l_img->setValue(i,j,20);
-			}
-		}
-
-		// loop over the accumulator
-		for (int i = 0; i < asize.x; ++i) {
-			for (int j = 0; j < asize.y; ++j) {
-				// print lines
-				Cell & c = acc.get(i,j);
-				if (c.hits > HIT_THRESHOLD) {
-//#define PLOT_REVERSE_TRANSFORM
-#define PLOT_SUBSEQUENT
-
-#ifdef PLOT_WIDEST
-					int last = c.points.size()-1;
-					l_img->plotLine(c.points[0].x, c.points[0].y, c.points[last].x, c.points[last].y);
-#endif
-#ifdef PLOT_SUBSEQUENT
-					for (int l = 0; l < c.segments.size(); l++) {
-						l_img->plotLine(c.segments[l].src.x, c.segments[l].src.y,
-								c.segments[l].dest.x, c.segments[l].dest.y);
-					}
-#endif
-#ifdef PLOT_REVERSE_TRANSFORM
-					// from distance and angle, draw line
-					int p0x = (double)i / (std::cos(j-50));
-					int p0y = 0;
-					int p1x = 0;
-					int p1y = (double)i / (std::sin(j-50));
-					l_img->plotLine(p0x, p0y, p1x, p1y);
-#endif
-
-					// use the probability density over points to establish which segments to plot
-//					for (int l = 0; l < c.points.size()-1; l+=2) {
-//						l_img->plotLine(c.points[l].x, c.points[l].y, c.points[l+1].x, c.points[l+1].y);
-//					}
-
-				}
-			}
-		}
-
-		l_img->saveBmp("line_img.bmp");
-		delete l_img;
+		plotSegments();
 
 		stop = true;
 	}
 }
+
+/**
+ * Reasoning on the points that contributed to a cell in the accumulator. The segments should be added to the vector
+ * given as argument.
+ */
+void DetectLineModuleExt::addSegments(Cell & c, std::vector<Segment2D> & sgmnts) {
+	if (c.segments.empty()) return;
+	switch(segmentation) {
+	case ALL_POINTS: default: {
+		// just consider every segment how it happens to enter as the final segment, no calculations here, neither
+		// interpolations
+		sgmnts.insert(sgmnts.end(), c.segments.begin(), c.segments.end());
+		break;
+	}
+	case LONGEST_LINE: {
+		Point2D min_x, min_y, max_x, max_y = c.points[0];
+		for (int i = 0; i < c.points.size(); ++i) {
+			if (c.points[i].x < min_x.x) min_x = c.points[i];
+			if (c.points[i].x > max_x.x) max_x = c.points[i];
+			if (c.points[i].y < min_y.y) min_y = c.points[i];
+			if (c.points[i].y > max_y.y) max_y = c.points[i];
+		}
+		break;
+	}
+	case DISTRIBUTION_SENSITIVE: {
+		// suppose we have points in the following pattern:
+		//   .... .... ... . . .                 ... .... . . .... . . . . . .. .....
+		// then we likely want to get two segments out of here (there is no ground truth here)
+
+		break;
+	}
+	case GLUE_POINTS: {
+		break;
+	}
+	}
+}
+
+/**
+ * Get segments by looping over each cell and calling getSegments for each of them if they are beyond a certain
+ * threshold w.r.t. number of hits.
+ */
+void DetectLineModuleExt::getSegments() {
+	Accumulator & acc = *hough.getAccumulator();
+	ASize asize = acc.getSize();
+
+	// loop over the accumulator
+	for (int i = 0; i < asize.x; ++i) {
+		for (int j = 0; j < asize.y; ++j) {
+			Cell & c = acc.get(i,j);
+			if (c.hits > HIT_THRESHOLD) {
+				addSegments(c, segments);
+			}
+		}
+	}
+}
+
+//! Plot the accumulator values as an image
+void DetectLineModuleExt::plotAccumulator() {
+	Accumulator & acc = *hough.getAccumulator();
+	ASize asize = acc.getSize();
+	std::cout << "Create image for accumulator of size " << asize.x << 'x' << asize.y << std::endl;
+	CRawImage *a_img = new CRawImage(asize.x, asize.y, 1);
+	for (int i = 0; i < asize.x; ++i) {
+		for (int j = 0; j < asize.y; ++j) {
+			Cell & c = acc.get(i,j);
+			if (c.hits > HIT_THRESHOLD) {
+//					std::cout << "Hit at " << i << ',' << j << " with #hits: " << c.hits << std::endl;
+				a_img->setValue(i,j,100);
+			}
+		}
+	}
+	a_img->saveBmp("acc_img.bmp");
+	delete a_img;
+}
+
+//! Plot the segments using values in the accumulator
+void DetectLineModuleExt::plotSegments() {
+	Accumulator & acc = *hough.getAccumulator();
+	ASize asize = acc.getSize();
+
+	CRawImage *l_img = new CRawImage(IMG_WIDTH, IMG_HEIGHT, 1);
+
+	// first print raster, this explains some artifacts which are out there
+	for (int i = 0; i < IMG_WIDTH; ++i) {
+		for (int j = 0; j < IMG_HEIGHT; ++j) {
+			if ((i % PATCH_WIDTH) == 0) l_img->setValue(i,j,20);
+			if ((j % PATCH_HEIGHT) == 0) l_img->setValue(i,j,20);
+		}
+	}
+
+	// print segments
+	for (int l = 0; l < segments.size(); l++) {
+		l_img->plotLine(segments[l].src.x, segments[l].src.y, segments[l].dest.x, segments[l].dest.y);
+	}
+
+	l_img->saveBmp("line_img.bmp");
+	delete l_img;
+}
+
 
 bool DetectLineModuleExt::Stop() {
 	if (stop) {

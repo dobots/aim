@@ -29,6 +29,8 @@
 
 namespace rur {
 
+enum Segmentation { ALL_POINTS, LONGEST_LINE, DISTRIBUTION_SENSITIVE, GLUE_POINTS, SEGMENTATION_TYPES };
+
 class DetectLineModuleExt: public DetectLineModule {
 public:
 	// Initialize
@@ -40,12 +42,21 @@ public:
 	// As soon as Stop() returns "true", the DetectLineModuleMain will stop the module
 	bool Stop();
 
+	void getSegments();
+
+	void addSegments(Cell & c, std::vector<Segment2D> & sgmnts);
+
 	//! Load a vector of points from a preprocessed image
 	void loadImage(std::string file, std::vector<Point2D> & points);
 
 	//! Load a vector of points from a preprocessed image
 	void loadImage(std::string file, pointcloud & spatial_points);
 
+	//! Plot the accumulator values as an image
+	void plotAccumulator();
+
+	//! Plot the segments using values in the accumulator
+	void plotSegments();
 private:
 	dobots::Hough<Point2D> hough;
 
@@ -57,6 +68,13 @@ private:
 
 	//! Keep track of number of ticks
 	unsigned long tick;
+
+	//! Type of segmentation
+	Segmentation segmentation;
+
+	//! Final set of segments
+	std::vector<Segment2D> segments;
+
 };
 
 }

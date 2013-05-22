@@ -92,6 +92,8 @@ struct Cell {
 	int hits;
 	//! Segments that contributed to this cell
 	std::vector<Segment2D> segments;
+	//! Points themselves, not organized according segments
+	std::vector<Point2D> points;
 };
 
 
