@@ -764,6 +764,7 @@ OutputIterator deref(InputIterator first, InputIterator last, OutputIterator res
 	while (++first != last) {
 		*++result = *first;
 	}
+	return result;
 }
 
 /**
@@ -784,6 +785,7 @@ OutputIterator ref(InputIterator first, InputIterator last, OutputIterator resul
 	while (++first != last) {
 		*++result = &*first;
 	}
+	return result;
 }
 
 /**

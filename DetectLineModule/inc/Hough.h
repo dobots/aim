@@ -35,22 +35,6 @@
 #include <Containers.hpp>
 
 namespace dobots {
-/*
-
-template<typename P>
-void deref(const std::vector<P*> source, std::vector<P> & dest) {
-	for (int i = 0; i < source.size(); ++i) {
-		dest.push_back(*source[i]);
-	}
-};
-
-template<typename P>
-void ref(const std::vector<P> source, std::vector<P*> & dest) {
-	for (int i = 0; i < source.size(); ++i) {
-		dest.push_back(&source[i]);
-	}
-};
-*/
 
 /**
  * The Hough transform can be used to detect higher-order structures from a bunch of points, commonly called a point
@@ -60,7 +44,7 @@ template <typename P>
 class Hough {
 public:
 	//! Use the nd-array also for the point cloud
-	typedef nd_array < std::vector<P>,short > pointcloud;
+	typedef nd_array < std::vector<P*>,short > pointcloud;
 
 	//! Default constructor expects image points in size of 640x480 and uses a Hough space of size 100x100
 	Hough(): type(RANDOMIZED_HOUGH) {
@@ -105,6 +89,7 @@ public:
 
 	//! Add points in a bunch, points should just be two or three elements, so by value, not by reference
 	void addPoints(std::vector<P*> & point_cloud) {
+//		std::cout << "Inserting " << point_cloud.size() << " points" << std::endl;
 		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
 	}
 
@@ -118,6 +103,7 @@ public:
 		// pick first a random index from spatial_points patch grid
 		int px = spatial_points.get_dimension(0);
 		int py = spatial_points.get_dimension(1);
+		//std::cout << "Dimensions are " << px << ',' << py << std::endl;
 		int size = px*py;
 		int linear_r = random_value(0,size-1);
 		x = linear_r % px;
@@ -127,11 +113,21 @@ public:
 	void updatePoints() {
 		points.clear();
 		for (int i = 0; i < spatial_points.size(); ++i) {
-			std::vector<P> pnts = spatial_points.getf(i);
-			for (int j = 0; j < pnts.size(); ++j) {
-				addPoint(&pnts[j]);
-			}
+			std::vector<P*> & pnts = spatial_points.getf(i);
+			//std::vector<P*> pnts;
+//			pnts.resize(cpy.size());
+//			ref(cpy.begin(), cpy.end(), pnts.begin());
+//			std::cout << "Add " << pnts.size() << " points " << std::endl;
+			addPoints(pnts);
+//			for (int j = 0; j < pnts.size(); ++j) {
+//				addPoint(&pnts[j]);
+//			}
 		}
+	}
+
+	//! Absolutely horrible to return a reference to member data, but bare with me for now.
+	std::vector<P*> & getPoints() {
+		return points;
 	}
 
 	//! This is a better method if the density differs across the cells, it requires all points to be added to one
@@ -143,33 +139,37 @@ public:
 
 		x = points[linear_e]->x / wx;
 		y = points[linear_e]->y / wy;
-		//		std::cout << "Got point " << points[linear_e].x << ',' << points[linear_e].y <<
-		//				" which becomes patch " << x << ',' << y << std::endl;
+//		std::cout << "Got point " << points[linear_e]->x << ',' << points[linear_e]->y <<
+//				" which becomes patch " << x << ',' << y << std::endl;
 	}
 
 	//! Perform the actual transform on all the points hitherto received
 	void doTransform() {
-		std::vector<P> *pnts;
+		std::vector<P*> pnts;
 		if (use_cells) {
 			int ix, iy;
-			if (use_random_patch_picker)
+			if (use_random_patch_picker) {
 				pickRandomPatch(ix,iy);
-			else
+			} else {
 				pickRandomPoint(ix,iy);
-			pnts = &spatial_points.get(ix,iy);
+			}
+			//std::vector<P> & cpy = spatial_points.get(ix,iy);
+			std::vector<P*> & sp = spatial_points.get(ix,iy);
+			pnts.insert(pnts.end(), sp.begin(), sp.end()); // copy all references to points into pnts
+			// create vector with references to points, instead of copying the points
+//			pnts.resize(cpy.size());
+//			ref(cpy.begin(), cpy.end(), pnts.begin());
 		} else {
-			pnts->resize(points.size());
-//			deref(points.begin(), points.end(), pnts->begin());
-//			deref<P>(points, *pnts);
+			pnts.insert(pnts.end(), points.begin(), points.end()); // copy all references to points into pnts
 		}
 
-		if (pnts->size() < 3) return;
-		std::vector<P> random_set; random_set.clear();
-		random_set.resize(2, P());
-		random_n(pnts->begin(), pnts->end(), random_set.begin(), 2);
-		P pnt0 = random_set[0];
-		P pnt1 = random_set[1];
-		ACoordinates c = transform(pnt0, pnt1);
+		if (pnts.size() < 3) return;
+		std::vector<P*> random_set; random_set.clear();
+		random_set.resize(2);
+		random_n(pnts.begin(), pnts.end(), random_set.begin(), 2);
+		P* pnt0 = random_set[0];
+		P* pnt1 = random_set[1];
+		ACoordinates c = transform(*pnt0, *pnt1);
 		Segment2D<P> segment;
 		segment.src = pnt0;
 		segment.dest = pnt1;

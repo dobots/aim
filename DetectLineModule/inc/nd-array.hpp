@@ -210,7 +210,7 @@ public:
 	}
 
 	//! Gets a value through the tabular index (use the linear index if available, because of speed)
-	value_type const get(tabular_index index) {
+	value_type const get(tabular_index index) const {
 		return values[get_linear_index(index)];
 	}
 
@@ -219,7 +219,7 @@ public:
 		return values[index];
 	}
 
-	inline value_type & getf(linear_index index) {
+	value_type & getf(linear_index index) {
 		return values[index];
 	}
 
@@ -247,6 +247,12 @@ public:
 		return values[i];
 	}
 
+	/**
+	 * Gets the value at the given index. In case this class is templated like this: nd_array < std::vector<P>,short >
+	 * with P some kind of struct, then obtain the elements by: std::vector<P> & element = array.get(ix,iy); because
+	 * with std::vector<P> element = array.get(ix,iy); the equal sign evokes a copy. When value_type is something more
+	 * complicated like in this case a vector of elements, this you probably would like to prevent.
+	 */
 	value_type & get(linear_index index0, linear_index index1) {
 		assert (dimensions.size() == 2);
 		assert (index0 < dimensions[0]);

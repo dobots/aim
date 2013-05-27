@@ -78,10 +78,15 @@ struct Point2D: Point {
 
 struct ISize: Point2D { };
 
+/**
+ * The definition of a segment is a bit filthy. It does only except templates which are subsequently used in the form
+ * of references. This to make sure there are no copy assignments done by accident.
+ */
 template <typename P>
 struct Segment2D {
-	P src;
-	P dest;
+	Segment2D(): src(NULL), dest(NULL) {}
+	P* src;
+	P* dest;
 };
 
 /**
@@ -95,7 +100,7 @@ struct Cell {
 	//! Segments that contributed to this cell
 	std::vector<Segment2D<P> > segments;
 	//! Points themselves, not organized according segments
-	std::vector<P> points;
+	std::vector<P*> points;
 };
 
 /**
@@ -110,6 +115,15 @@ struct x_increasing {
     		return (self.y < other.y); // for points that are exactly vertical, consider the y-coordinate
     	}
         return (self.x < other.x);
+    }
+};
+
+struct xref_increasing {
+    inline bool operator() (Point2D* self, Point2D* other) {
+    	if (self->x == other->x) {
+    		return (self->y < other->y); // for points that are exactly vertical, consider the y-coordinate
+    	}
+        return (self->x < other->x);
     }
 };
 

@@ -424,23 +424,35 @@ void CRawImage::plotLine(int x0, int y0, int x1, int y1) {
 //	std::cout << std::endl;
 }
 
+/**
+ * Plotting a (little) cross at position (i,j). The size of the cross is in pixels and is "just one leg" of it. The
+ * entire cross with size=3, becomes 7 pixels wide. The number of bytes per pixel, bpp can be 3 or 1.
+ */
 void CRawImage::plotCross(int i,int j,int size) {
 	int cross = 4;
 	for (int di = -size; di < size; ++di) {
 		int dii = i+di;
 		if (dii < 0) continue;
 		if (dii >= width) continue;
-		data[dii*bpp+j*width*bpp+0] = 0;
-		data[dii*bpp+j*width*bpp+1] = 0;
-		data[dii*bpp+j*width*bpp+2] = 255;
+		if (bpp == 3) {
+			data[dii*bpp+j*width*bpp+0] = 0;
+			data[dii*bpp+j*width*bpp+1] = 0;
+			data[dii*bpp+j*width*bpp+2] = 255;
+		} else {
+			data[dii*bpp+j*width*bpp+0] = 255;
+		}
 	}
 	for (int dj = -size; dj < size; ++dj) {
 		int djj = j+dj;
 		if (djj < 0) continue;
 		if (djj >= height) continue;
-		data[i*bpp+djj*width*bpp+0] = 0;
-		data[i*bpp+djj*width*bpp+1] = 0;
-		data[i*bpp+djj*width*bpp+2] = 255;
+		if (bpp == 3) {
+			data[i*bpp+djj*width*bpp+0] = 0;
+			data[i*bpp+djj*width*bpp+1] = 0;
+			data[i*bpp+djj*width*bpp+2] = 255;
+		} else {
+			data[i*bpp+djj*width*bpp+0] = 255;
+		}
 	}
 }
 

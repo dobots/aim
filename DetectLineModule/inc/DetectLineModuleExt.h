@@ -29,10 +29,22 @@
 
 //! Decorated point
 struct DecPoint: Point2D {
-	DecPoint(): Point2D(), skew(0), end_of_segment(0) {}
-	DecPoint(int x, int y): Point2D(x,y), skew(0), end_of_segment(0) {}
+	DecPoint();
+	DecPoint(int x, int y);
 	float skew;
-	float end_of_segment; // factor that indicates likelihood of point being an end of segment
+	DecPoint *match;
+//	int index;
+
+	friend std::ostream& operator<<(std::ostream& os, const DecPoint& p) {
+		//os << p.index << ':' << p.x << ',' << p.y;
+		os << p.x << ',' << p.y;
+		return os;
+	}
+	friend std::istream& operator>>( std::istream& is, DecPoint& p) {
+		is.imbue(std::locale(std::locale(), new commasep));
+		is >> p.x >> p.y;
+		return is;
+	}
 };
 
 struct skew_decreasing {
@@ -41,11 +53,19 @@ struct skew_decreasing {
     }
 };
 
+struct skewref_decreasing {
+    inline bool operator() (DecPoint* self, DecPoint* other) {
+        return (self->skew > other->skew);
+    }
+};
+
 
 namespace rur {
 
 //! The different types of line segmentation variants available
 enum Segmentation { ALL_POINTS, LONGEST_LINE, DISTRIBUTION_SENSITIVE, GLUE_POINTS, SEGMENTATION_TYPES };
+static const std::string SegmentationDescription[] = { "all points", "longest line", "distribution sensitive", "glue points",
+	"number of segmentation types" };
 
 /**
  * DetectLineModuleExt extends the public interface DetectLineModule with additional functions and data structs that
@@ -54,7 +74,11 @@ enum Segmentation { ALL_POINTS, LONGEST_LINE, DISTRIBUTION_SENSITIVE, GLUE_POINT
 class DetectLineModuleExt: public DetectLineModule {
 public:
 	//! Use the nd-array also for the point cloud
-	typedef nd_array < std::vector<DecPoint>,short > pointcloud;
+	typedef nd_array < std::vector<DecPoint*>,short > pointcloud;
+
+	DetectLineModuleExt();
+
+	~DetectLineModuleExt();
 
 	// Initialize
 	void Init(std::string & name);
@@ -105,7 +129,7 @@ private:
 	//! Type of segmentation
 	Segmentation segmentation;
 
-	//! Final set of segments
+	//! Final set of segments, segments store their points by reference
 	std::vector<Segment2D<DecPoint> > segments;
 
 };

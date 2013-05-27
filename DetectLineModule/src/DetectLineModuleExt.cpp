@@ -27,6 +27,7 @@
 #include <Random.h>
 
 #include <HoughDefs.h>
+#include <cmath>
 
 using namespace rur;
 using namespace dobots;
@@ -45,6 +46,32 @@ const int TOTAL_TICK_COUNT = 10000;
 
 // threshold is now at at least 1 percent of the total number of points
 const int HIT_THRESHOLD = TOTAL_TICK_COUNT / 100;
+
+const float SKEW_THRESHOLD = 0.9; // requires at least 10 points
+const int MATCH_NEIGHBOURHOOD_DEVIATION = 15;
+
+//static int DEBUG_DECPOINT_INDEX = 0;
+
+DecPoint::DecPoint(): Point2D(), skew(0), match(NULL) {
+//	index = ++DEBUG_DECPOINT_INDEX;
+//	if (index > 800)
+//		std::cout << "Create point " << index << std::endl;
+}
+
+DecPoint::DecPoint(int x, int y): Point2D(x,y), skew(0), match(NULL) {
+//	index = ++DEBUG_DECPOINT_INDEX;
+//	if (index > 800)
+//		std::cout << "Create point " << index << std::endl;
+}
+
+DetectLineModuleExt::DetectLineModuleExt(): DetectLineModule(), tick(0), stop(false), image(NULL),
+		segmentation(GLUE_POINTS) {
+
+}
+
+DetectLineModuleExt::~DetectLineModuleExt() {
+
+}
 
 /**
  * Helper function that considers all points above zero in an image to be points detected previously by a corner or
@@ -98,7 +125,7 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
 	for (int x = 0; x != NR_PATCHES_WIDTH; ++x) {
 		for (int y = 0; y != NR_PATCHES_HEIGHT; ++y) {
 			//			std::cout << "Get patch at " << x << "x" << y << std::endl;
-			std::vector<DecPoint> & v = spatial_points.get(x,y);
+			std::vector<DecPoint*> & v = spatial_points.get(x,y);
 			v.clear();
 			for (int i = 0; i < PATCH_WIDTH; ++i) {
 				int xi = x * PATCH_WIDTH + i;
@@ -106,7 +133,7 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
 					int yj = y * PATCH_HEIGHT + j;
 					//					std::cout << "Get value at " << xi << "x" << yj << std::endl;
 					if (image->getValue(xi,yj) > 0) {
-						v.push_back(DecPoint(xi,yj));
+						v.push_back(new DecPoint(xi,yj));
 					}
 				}
 			}
@@ -117,7 +144,7 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
 	long int pnt_count = 0;
 	for (int x = 0; x != NR_PATCHES_WIDTH; ++x) {
 		for (int y = 0; y != NR_PATCHES_HEIGHT; ++y) {
-			std::vector<DecPoint> & v = spatial_points.get(x,y);
+			std::vector<DecPoint*> & v = spatial_points.get(x,y);
 			pnt_count += v.size();
 		}
 	}
@@ -146,9 +173,21 @@ void DetectLineModuleExt::Init(std::string & name) {
 
 void DetectLineModuleExt::Tick() {
 	hough.doTransform();
+
 	if (++tick == TOTAL_TICK_COUNT) {
+
+		std::cout << "Plot the accumulator data structure" << std::endl;
 		plotAccumulator();
 
+		std::cout << "Use segmentation type: " << SegmentationDescription[segmentation] << std::endl;
+
+		std::cout << "Prepare the information to be able to do the segmentation" << std::endl;
+		prepareSegments();
+
+		std::cout << "Get the actual segments" << std::endl;
+		getSegments();
+
+		std::cout << "Plot the segments which should more or less reconstruct the original image" << std::endl;
 		plotSegments();
 
 		stop = true;
@@ -171,16 +210,15 @@ void DetectLineModuleExt::addSegments(Cell<DecPoint> & c, std::vector<Segment2D<
 	case LONGEST_LINE: {
 		//sort(c.points.begin(), c.points.end(), less_than_x());
 		// returns only one line segment, the one that is largest, support for this line by the points is not respected
-		DecPoint min_x, min_y, max_x, max_y;
-		min_x = min_y = max_x = max_y = c.points[0];
+		DecPoint *min_x = c.points[0], *min_y = c.points[0], *max_x = c.points[0], *max_y = c.points[0];
 		for (int i = 0; i < c.points.size(); ++i) {
-			if (c.points[i].x < min_x.x) min_x = c.points[i];
-			if (c.points[i].x > max_x.x) max_x = c.points[i];
-			if (c.points[i].y < min_y.y) min_y = c.points[i];
-			if (c.points[i].y > max_y.y) max_y = c.points[i];
+			if (c.points[i]->x < min_x->x) min_x = c.points[i];
+			if (c.points[i]->x > max_x->x) max_x = c.points[i];
+			if (c.points[i]->y < min_y->y) min_y = c.points[i];
+			if (c.points[i]->y > max_y->y) max_y = c.points[i];
 		}
-		int dx = max_x.x - min_x.x;
-		int dy = max_y.y - min_y.y;
+		int dx = max_x->x - min_x->x;
+		int dy = max_y->y - min_y->y;
 		Segment2D<DecPoint> segment;
 		if (dx > dy) {
 			segment.src = min_x;
@@ -205,15 +243,24 @@ void DetectLineModuleExt::addSegments(Cell<DecPoint> & c, std::vector<Segment2D<
 		//   .... .... ... . . .                 ... .... . . .... . . . . . .. .....
 		// we would like to obtain the extremities, points that are not "surrounded" by other points
 
-		float skew_threshold = 0.9;
-
-		// start matching points
+		Segment2D<DecPoint> segment;
 		for (int i = 0; i < c.points.size(); ++i) {
-			// if match found, indicate point as potential "end of segment" (EOS)
-			if (c.points[i].skew > skew_threshold) {
-
+			// extreme form, only consider points that have a matching "partner", we do not care about this match,
+			// but use it only to indicate that this point is probably the end of a segment...
+			if (c.points[i]->match != NULL) {
+				if (segment.src == NULL)
+					segment.src = c.points[i];
+				else {
+					if (segment.src == c.points[i]) continue;
+					if ((std::abs(segment.src->x - c.points[i]->x) < MATCH_NEIGHBOURHOOD_DEVIATION) &&
+							(std::abs(segment.src->y - c.points[i]->y) < MATCH_NEIGHBOURHOOD_DEVIATION))
+						continue;
+					segment.dest = c.points[i];
+					std::cout << "Found segment " << *(segment.src) << " - " << *(segment.dest) << std::endl;
+					sgmnts.push_back(segment);
+					break;
+				}
 			}
-
 		}
 
 		// return those points that have a high value for EOS
@@ -244,18 +291,35 @@ void DetectLineModuleExt::getSegments() {
 void DetectLineModuleExt::calculateSkew(Cell<DecPoint> * c) {
 	if (c->hits <= HIT_THRESHOLD) return;
 
-	sort(c->points.begin(), c->points.end(), x_increasing());
+	sort(c->points.begin(), c->points.end(), xref_increasing());
 
 	for (int i = 0; i < c->points.size(); ++i) {
-		float negative_skew = i / c->points.size();// many points to the right -> 0, few points -> 1
-		float positive_skew = (c->points.size() - i) / c->points.size();
-		c->points[i].skew = (negative_skew + positive_skew) - 1; //  1 ... 0 ... 1
+		float midway = (float) c->points.size() / 2;
+		c->points[i]->skew = std::fabs(i - midway) / midway;
+//		std::cout << "Calculated skew for point " << i << " is " << c->points[i]->skew << std::endl;
 	}
-	sort(c->points.begin(), c->points.end(), skew_decreasing());
+	sort(c->points.begin(), c->points.end(), skewref_decreasing());
 }
 
 void DetectLineModuleExt::findMatches(Cell<DecPoint> * self, Cell<DecPoint> * other) {
+	if (self->hits <= HIT_THRESHOLD) return;
 
+	for (int i = 0; i < self->points.size(); ++i) {
+		if (self->points[i]->skew < SKEW_THRESHOLD) break; // break, because ordered on skew
+//		std::cout << "Skew first point is above threshold: " << self->points[i]->skew << std::endl;
+		for (int j = 0; j < other->points.size(); ++j) {
+			if (other->hits <= HIT_THRESHOLD) continue;
+			if (other->points[j]->skew < SKEW_THRESHOLD) break; // break, because ordered on skew
+//			std::cout << "Found potential match!" << std::endl;
+			if ((std::abs(self->points[i]->x - other->points[j]->x) < MATCH_NEIGHBOURHOOD_DEVIATION) &&
+					(std::abs(self->points[i]->y - other->points[j]->y) < MATCH_NEIGHBOURHOOD_DEVIATION)) {
+//				std::cout << "Found match " <<
+//						self->points[i]->x << "," << self->points[i]->y << std::endl;
+				self->points[i]->match = other->points[j];
+				other->points[i]->match = self->points[j];
+			}
+		}
+	}
 }
 
 
@@ -268,10 +332,11 @@ void DetectLineModuleExt::prepareSegments() {
 	temp.resize(acc.size());
 	ref(acc.begin(), acc.end(), temp.begin());
 
+	std::cout << "Calculate skew for all points" << std::endl;
 	std::for_each(temp.begin(), temp.end(), std::bind1st(std::mem_fun(&DetectLineModuleExt::calculateSkew), this) );
 
+	std::cout << "Find matches for points in different cells" << std::endl;
 	combine_pairwise(temp.begin(), temp.end(), mem_fun_bind2 ( &DetectLineModuleExt::findMatches, *this ) );
-
 }
 
 //! Plot the accumulator values as an image
@@ -310,8 +375,17 @@ void DetectLineModuleExt::plotSegments() {
 
 	// print segments
 	for (int l = 0; l < segments.size(); l++) {
-		l_img->plotLine(segments[l].src.x, segments[l].src.y, segments[l].dest.x, segments[l].dest.y);
+		l_img->plotLine(segments[l].src->x, segments[l].src->y, segments[l].dest->x, segments[l].dest->y);
 	}
+
+//	std::vector<DecPoint*> & pnts = hough.getPoints();
+//	std::cout << "Number of points: " << pnts.size() << std::endl;
+//	for (int l = 0; l < pnts.size(); l++) {
+//		if (pnts[l]->match != NULL) {
+//			std::cout << "Match at " << pnts[l]->x << "," << pnts[l]->y << std::endl;
+//			l_img->plotCross(pnts[l]->x, pnts[l]->y, 3);
+//		}
+//	}
 
 	l_img->saveBmp("line_img.bmp");
 	delete l_img;
