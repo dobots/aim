@@ -20,6 +20,9 @@
  * @project	Specific Software Project
  */
 
+#include <algorithm>
+#include <functional>
+
 #include <DetectLineModuleExt.h>
 #include <Random.h>
 
@@ -94,16 +97,16 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
 	// loop over all patches
 	for (int x = 0; x != NR_PATCHES_WIDTH; ++x) {
 		for (int y = 0; y != NR_PATCHES_HEIGHT; ++y) {
-//			std::cout << "Get patch at " << x << "x" << y << std::endl;
-			std::vector<Point2D> & v = spatial_points.get(x,y);
+			//			std::cout << "Get patch at " << x << "x" << y << std::endl;
+			std::vector<DecPoint> & v = spatial_points.get(x,y);
 			v.clear();
 			for (int i = 0; i < PATCH_WIDTH; ++i) {
 				int xi = x * PATCH_WIDTH + i;
 				for (int j = 0; j < PATCH_HEIGHT; ++j) {
 					int yj = y * PATCH_HEIGHT + j;
-//					std::cout << "Get value at " << xi << "x" << yj << std::endl;
+					//					std::cout << "Get value at " << xi << "x" << yj << std::endl;
 					if (image->getValue(xi,yj) > 0) {
-						v.push_back(Point2D(xi,yj));
+						v.push_back(DecPoint(xi,yj));
 					}
 				}
 			}
@@ -114,7 +117,7 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
 	long int pnt_count = 0;
 	for (int x = 0; x != NR_PATCHES_WIDTH; ++x) {
 		for (int y = 0; y != NR_PATCHES_HEIGHT; ++y) {
-			std::vector<Point2D> & v = spatial_points.get(x,y);
+			std::vector<DecPoint> & v = spatial_points.get(x,y);
 			pnt_count += v.size();
 		}
 	}
@@ -126,7 +129,7 @@ void DetectLineModuleExt::loadImage(std::string file, pointcloud & spatial_point
  */
 void DetectLineModuleExt::Init(std::string & name) {
 #ifdef LINEAR
-	std::vector<Point2D> points;
+	std::vector<DecPoint> points;
 	loadImage("../data/dots.bmp", points);
 	hough.addPoints(points);
 #endif
@@ -156,7 +159,7 @@ void DetectLineModuleExt::Tick() {
  * Reasoning on the points that contributed to a cell in the accumulator. The segments should be added to the vector
  * given as argument.
  */
-void DetectLineModuleExt::addSegments(Cell & c, std::vector<Segment2D> & sgmnts) {
+void DetectLineModuleExt::addSegments(Cell<DecPoint> & c, std::vector<Segment2D<DecPoint> > & sgmnts) {
 	if (c.segments.empty()) return;
 	switch(segmentation) {
 	case ALL_POINTS: default: {
@@ -166,26 +169,57 @@ void DetectLineModuleExt::addSegments(Cell & c, std::vector<Segment2D> & sgmnts)
 		break;
 	}
 	case LONGEST_LINE: {
-		Point2D min_x, min_y, max_x, max_y = c.points[0];
+		//sort(c.points.begin(), c.points.end(), less_than_x());
+		// returns only one line segment, the one that is largest, support for this line by the points is not respected
+		DecPoint min_x, min_y, max_x, max_y;
+		min_x = min_y = max_x = max_y = c.points[0];
 		for (int i = 0; i < c.points.size(); ++i) {
 			if (c.points[i].x < min_x.x) min_x = c.points[i];
 			if (c.points[i].x > max_x.x) max_x = c.points[i];
 			if (c.points[i].y < min_y.y) min_y = c.points[i];
 			if (c.points[i].y > max_y.y) max_y = c.points[i];
 		}
+		int dx = max_x.x - min_x.x;
+		int dy = max_y.y - min_y.y;
+		Segment2D<DecPoint> segment;
+		if (dx > dy) {
+			segment.src = min_x;
+			segment.dest = max_x;
+		} else {
+			segment.src = min_y;
+			segment.dest = max_y;
+		}
+		sgmnts.push_back(segment);
 		break;
 	}
 	case DISTRIBUTION_SENSITIVE: {
 		// suppose we have points in the following pattern:
 		//   .... .... ... . . .                 ... .... . . .... . . . . . .. .....
 		// then we likely want to get two segments out of here (there is no ground truth here)
+		// this corresponds to k-clustering or even nonparametric (no k parameter) clustering
 
 		break;
 	}
 	case GLUE_POINTS: {
+		// suppose we have points in the following pattern:
+		//   .... .... ... . . .                 ... .... . . .... . . . . . .. .....
+		// we would like to obtain the extremities, points that are not "surrounded" by other points
+
+		float skew_threshold = 0.9;
+
+		// start matching points
+		for (int i = 0; i < c.points.size(); ++i) {
+			// if match found, indicate point as potential "end of segment" (EOS)
+			if (c.points[i].skew > skew_threshold) {
+
+			}
+
+		}
+
+		// return those points that have a high value for EOS
 		break;
 	}
-	}
+	} // end of switch statement
 }
 
 /**
@@ -193,13 +227,13 @@ void DetectLineModuleExt::addSegments(Cell & c, std::vector<Segment2D> & sgmnts)
  * threshold w.r.t. number of hits.
  */
 void DetectLineModuleExt::getSegments() {
-	Accumulator & acc = *hough.getAccumulator();
+	Accumulator<DecPoint> & acc = *hough.getAccumulator();
 	ASize asize = acc.getSize();
 
 	// loop over the accumulator
 	for (int i = 0; i < asize.x; ++i) {
 		for (int j = 0; j < asize.y; ++j) {
-			Cell & c = acc.get(i,j);
+			Cell<DecPoint> & c = acc.get(i,j);
 			if (c.hits > HIT_THRESHOLD) {
 				addSegments(c, segments);
 			}
@@ -207,17 +241,61 @@ void DetectLineModuleExt::getSegments() {
 	}
 }
 
+void DetectLineModuleExt::calculateSkew(Cell<DecPoint> * c) {
+	if (c->hits <= HIT_THRESHOLD) return;
+
+	sort(c->points.begin(), c->points.end(), x_increasing());
+
+	for (int i = 0; i < c->points.size(); ++i) {
+		float negative_skew = i / c->points.size();// many points to the right -> 0, few points -> 1
+		float positive_skew = (c->points.size() - i) / c->points.size();
+		c->points[i].skew = (negative_skew + positive_skew) - 1; //  1 ... 0 ... 1
+	}
+	sort(c->points.begin(), c->points.end(), skew_decreasing());
+}
+
+void DetectLineModuleExt::findMatches(Cell<DecPoint> * self, Cell<DecPoint> * other) {
+
+}
+
+
+void DetectLineModuleExt::prepareSegments() {
+	if (segmentation != GLUE_POINTS) return;
+
+	Accumulator<DecPoint> & acc = *hough.getAccumulator();
+
+	std::vector<Cell<DecPoint> * >temp;
+	temp.resize(acc.size());
+	ref(acc.begin(), acc.end(), temp.begin());
+
+	std::for_each(temp.begin(), temp.end(), std::bind1st(std::mem_fun(&DetectLineModuleExt::calculateSkew), this) );
+
+	combine_pairwise(temp.begin(), temp.end(), mem_fun_bind2 ( &DetectLineModuleExt::findMatches, *this ) );
+
+//	ASize asize = acc.getSize();
+//	for (int i = 0; i < asize.x; ++i) {
+//		for (int j = 0; j < asize.y; ++j) {
+//			Cell<DecPoint> & c = acc.get(i,j);
+//			if (c.hits > HIT_THRESHOLD) {
+//				calculateSkew(c);
+//			}
+//		}
+//	}
+
+
+}
+
 //! Plot the accumulator values as an image
 void DetectLineModuleExt::plotAccumulator() {
-	Accumulator & acc = *hough.getAccumulator();
+	Accumulator<DecPoint> & acc = *hough.getAccumulator();
 	ASize asize = acc.getSize();
 	std::cout << "Create image for accumulator of size " << asize.x << 'x' << asize.y << std::endl;
 	CRawImage *a_img = new CRawImage(asize.x, asize.y, 1);
 	for (int i = 0; i < asize.x; ++i) {
 		for (int j = 0; j < asize.y; ++j) {
-			Cell & c = acc.get(i,j);
+			Cell<DecPoint> & c = acc.get(i,j);
 			if (c.hits > HIT_THRESHOLD) {
-//					std::cout << "Hit at " << i << ',' << j << " with #hits: " << c.hits << std::endl;
+				//					std::cout << "Hit at " << i << ',' << j << " with #hits: " << c.hits << std::endl;
 				a_img->setValue(i,j,100);
 			}
 		}
@@ -228,7 +306,7 @@ void DetectLineModuleExt::plotAccumulator() {
 
 //! Plot the segments using values in the accumulator
 void DetectLineModuleExt::plotSegments() {
-	Accumulator & acc = *hough.getAccumulator();
+	Accumulator<DecPoint> & acc = *hough.getAccumulator();
 	ASize asize = acc.getSize();
 
 	CRawImage *l_img = new CRawImage(IMG_WIDTH, IMG_HEIGHT, 1);

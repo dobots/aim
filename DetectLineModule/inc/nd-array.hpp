@@ -327,6 +327,13 @@ public:
 		return dimensions.size();
 	}
 
+	typename value_container::iterator begin() { return values.begin(); }
+
+	typename value_container::const_iterator begin() const { return values.begin(); }
+
+	typename value_container::iterator end() { return values.end(); }
+
+	typename value_container::const_iterator end() const { return values.end(); }
 private:
 	//! The dimensions of the table (e.g. 2x3x2). This is represented by a a vector
 	dimension_container dimensions;

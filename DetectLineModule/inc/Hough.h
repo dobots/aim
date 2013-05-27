@@ -32,11 +32,25 @@
 #include <Accumulator.h>
 #include <HoughDefs.h>
 #include <Random.h>
-
-//! Use the nd-array also for the point cloud
-typedef nd_array < std::vector<Point2D>,short > pointcloud;
+#include <Containers.hpp>
 
 namespace dobots {
+/*
+
+template<typename P>
+void deref(const std::vector<P*> source, std::vector<P> & dest) {
+	for (int i = 0; i < source.size(); ++i) {
+		dest.push_back(*source[i]);
+	}
+};
+
+template<typename P>
+void ref(const std::vector<P> source, std::vector<P*> & dest) {
+	for (int i = 0; i < source.size(); ++i) {
+		dest.push_back(&source[i]);
+	}
+};
+*/
 
 /**
  * The Hough transform can be used to detect higher-order structures from a bunch of points, commonly called a point
@@ -45,6 +59,9 @@ namespace dobots {
 template <typename P>
 class Hough {
 public:
+	//! Use the nd-array also for the point cloud
+	typedef nd_array < std::vector<P>,short > pointcloud;
+
 	//! Default constructor expects image points in size of 640x480 and uses a Hough space of size 100x100
 	Hough(): type(RANDOMIZED_HOUGH) {
 		std::cout << "Use standard constructor for Hough transform" << std::endl;
@@ -55,7 +72,7 @@ public:
 		input_size.x = 640;
 		input_size.y = 480;
 		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
-		accumulator = new Accumulator(size);
+		accumulator = new Accumulator<P>(size);
 		use_cells = true;
 		use_random_patch_picker = false;
 	}
@@ -65,7 +82,7 @@ public:
 		clear();
 		this->input_size = input_size;
 		max_distance = std::sqrt(input_size.x*input_size.x + input_size.y*input_size.y);
-		accumulator = new Accumulator(hough_space_size);
+		accumulator = new Accumulator<P>(hough_space_size);
 		use_cells = true;
 		use_random_patch_picker = false;
 	}
@@ -82,12 +99,12 @@ public:
 	inline void setType(HoughTransformType type) { this->type = type; }
 
 	//! Add points one by one
-	void addPoint(P p) {
+	void addPoint(P * p) {
 		points.push_back(p);
 	}
 
 	//! Add points in a bunch, points should just be two or three elements, so by value, not by reference
-	void addPoints(std::vector<P> & point_cloud) {
+	void addPoints(std::vector<P*> & point_cloud) {
 		points.insert(points.end(), point_cloud.begin(), point_cloud.end());
 	}
 
@@ -110,7 +127,10 @@ public:
 	void updatePoints() {
 		points.clear();
 		for (int i = 0; i < spatial_points.size(); ++i) {
-			addPoints(spatial_points.getf(i));
+			std::vector<P> pnts = spatial_points.getf(i);
+			for (int j = 0; j < pnts.size(); ++j) {
+				addPoint(&pnts[j]);
+			}
 		}
 	}
 
@@ -121,8 +141,8 @@ public:
 		int wx = input_size.x / spatial_points.get_dimension(0);
 		int wy = input_size.y / spatial_points.get_dimension(1);
 
-		x = points[linear_e].x / wx;
-		y = points[linear_e].y / wy;
+		x = points[linear_e]->x / wx;
+		y = points[linear_e]->y / wy;
 		//		std::cout << "Got point " << points[linear_e].x << ',' << points[linear_e].y <<
 		//				" which becomes patch " << x << ',' << y << std::endl;
 	}
@@ -138,7 +158,9 @@ public:
 				pickRandomPoint(ix,iy);
 			pnts = &spatial_points.get(ix,iy);
 		} else {
-			pnts = &points;
+			pnts->resize(points.size());
+//			deref(points.begin(), points.end(), pnts->begin());
+//			deref<P>(points, *pnts);
 		}
 
 		if (pnts->size() < 3) return;
@@ -148,7 +170,7 @@ public:
 		P pnt0 = random_set[0];
 		P pnt1 = random_set[1];
 		ACoordinates c = transform(pnt0, pnt1);
-		Segment2D segment;
+		Segment2D<P> segment;
 		segment.src = pnt0;
 		segment.dest = pnt1;
 		getAccumulator()->Increment(c, segment);
@@ -299,16 +321,16 @@ public:
 	}
 
 	//! Get the accumulator, e.g. to reset it
-	inline Accumulator* getAccumulator() { return accumulator; }
+	inline Accumulator<P>* getAccumulator() { return accumulator; }
 private:
 	//! The type of Hough transform to use
 	HoughTransformType type;
 
 	//! Accumulator
-	Accumulator *accumulator;
+	Accumulator<P> *accumulator;
 
 	//! Point cloud, for now store temporary all points, and only perform transform when doTransform is called
-	std::vector<P> points;
+	std::vector<P*> points;
 
 	//! Point cloud, but in a spatial structure
 	pointcloud spatial_points;
