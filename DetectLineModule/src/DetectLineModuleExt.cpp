@@ -272,17 +272,6 @@ void DetectLineModuleExt::prepareSegments() {
 
 	combine_pairwise(temp.begin(), temp.end(), mem_fun_bind2 ( &DetectLineModuleExt::findMatches, *this ) );
 
-//	ASize asize = acc.getSize();
-//	for (int i = 0; i < asize.x; ++i) {
-//		for (int j = 0; j < asize.y; ++j) {
-//			Cell<DecPoint> & c = acc.get(i,j);
-//			if (c.hits > HIT_THRESHOLD) {
-//				calculateSkew(c);
-//			}
-//		}
-//	}
-
-
 }
 
 //! Plot the accumulator values as an image
