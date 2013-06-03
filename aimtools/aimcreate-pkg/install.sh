@@ -29,7 +29,7 @@ RUR_CONFIG_FILE_BACKENDS_CMAKE=${RUR_CONFIG_PATH}/backends.cmake
 ####################################################################################################
 
 # First, check if we have sudo rights
-if [ ! `id --user` -eq 0 ]; then
+if [ ! `id -u` -eq 0 ]; then
 	echo "[#] Sorry, super user rights needed (run with sudo)"
 	exit 1
 fi
@@ -39,9 +39,9 @@ fi
 ####################################################################################################
 
 # Create paths if not present
-mkdir --parents ${RUR_SHARE_PATH}
-mkdir --parents ${RUR_TEMPLATE_PATH}
-mkdir --parents ${RUR_CONFIG_PATH}
+mkdir -p ${RUR_SHARE_PATH}
+mkdir -p ${RUR_TEMPLATE_PATH}
+mkdir -p ${RUR_CONFIG_PATH}
 
 # If RUR_CONFIG_FILE_BACKENDS exists, get configuration data from it
 if [ -e ${RUR_CONFIG_FILE_BACKENDS} ]; then
@@ -61,7 +61,7 @@ echo "SET(BACKENDS_PATH $RUR_BACKENDS_PATH_WITHOUT_DESTDIR)" > "${RUR_CONFIG_FIL
 ####################################################################################################
 
 # Copy to system-wide directories
-cp --recursive templates/* ${RUR_TEMPLATE_PATH}
+cp -r templates/* ${RUR_TEMPLATE_PATH}
 
 # Remove files we do not need per project (and obsolete ones)
 echo "[*] Remove temporary and old files from template folder"

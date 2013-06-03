@@ -1,7 +1,7 @@
 <!-- Uses markdown syntax for neat display at github -->
 
 # AIM Tools
-AIM stands for Artificial Intelligence Modules
+AIM stands for Artificial Intelligence Modules ([AIM website](http://mrquincle.github.io/aim-bzr/)).
 
 ## What does it do?
 The AIM tools are meant for management of separate modules that each have AI functionality. They can be compared with the utilities that are provided with ROS, such as roscreate-pkg etc (of which I was not aware), or with nodejs, such as npm (of which I was neither aware). The tools work together with [rur-builder](https://github.com/mrquincle/rur-builder), a (python) backend for omniidl. 
@@ -9,7 +9,7 @@ The AIM tools are meant for management of separate modules that each have AI fun
 The current AIM tools are tailored to [YARP](http://eris.liralab.it/yarp/) and generate code that makes it easy to work with YARP as middleware. However, nothing prevents further extensions to make it easier to wrap code as ROS modules or something else, even Java. It depends on the backends provided by the forementioned rur-builder.
 
 ## Is it good?
-The maturity of this software can be improved. However, it has been used already in quite some different scenarios. One of them is to connect to the servers of an Almende spinoff in sensor data cloud services ([Sense Observation Systems](http://sense-os.nl), another use case has been the [Surveyor](http://www.surveyor.com/SRV_info.html) robots.
+The maturity of this software can be improved. However, it has been used already in quite some different scenarios. One of them is to connect to the servers of an Almende spinoff in sensor data cloud services ([Sense Observation Systems](http://sense-os.nl)), another use case has been the [Surveyor](http://www.surveyor.com/SRV_info.html) robots.
 
 ## What are the alternatives?
 There are no known alternatives. Most modular approaches tie the user to a certain middleware. 
@@ -18,11 +18,10 @@ There are no known alternatives. Most modular approaches tie the user to a certa
 The AIM tools work together with the [rur-builder](https://github.com/mrquincle/rur-builder). To install:
 
 * sudo apt-get install omniidl # the only dependency
-* cd /opt
+* cd /opt # or e.g. $HOME/aim, wherever you like to install from
 * git clone https://github.com/mrquincle/rur-builder.git
 * git clone https://github.com/mrquincle/aimtools.git
 * cd aimtools
-* cd aimcreate-pkg
 * make; sudo make install # on the question fill in the proper rur-builder/backends directory
 * cd "your workspace"
 * aimcreate-pkg YourModule # convention: all AIM binaries end with "Module"
