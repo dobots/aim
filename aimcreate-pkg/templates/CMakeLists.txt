@@ -6,9 +6,9 @@
 #               _/\/\____/\/\__/\/\/\/\__/\/\/\/\/\____/\/\/\/\/\_                       #
 #               __________________________________________________                       #
 ##########################################################################################
-# Part of RIDL, the RUR IDL builder which generates modules for middlewares, including 
-# lightweight (robotic) middleware like YARP. 
-# This makefile is part of a cmake build system. The code falls under the Lesser General 
+# Part of RIDL, the RUR IDL builder which generates modules for middlewares, including
+# lightweight (robotic) middleware like YARP.
+# This makefile is part of a cmake build system. The code falls under the Lesser General
 # Public License (LGPL GNU v3).
 
 # Author:	 Anne C. van Rossum (Almende B.V.)
@@ -34,16 +34,17 @@ MESSAGE(STATUS "Search for FindX files in ${CMAKE_SOURCE_DIR}/aim/cmake")
 
 # The macro below forces the build directory to be different from source directory:
 INCLUDE( MacroEnsureOutOfSourceBuild )
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "AUTHOR_WARNING Requires an out of source build." ) 
+MACRO_ENSURE_OUT_OF_SOURCE_BUILD ( "AUTHOR_WARNING Requires an out of source build." )
 
 # Build options
 OPTION(BUILD_YARP      "Build module with YARP" OFF)
 OPTION(BUILD_ROS       "Build module with ROS" OFF)
 OPTION(BUILD_ZEROMQ    "Build module with ZeroMQ" OFF)
+OPTION(BUILD_NODEJS    "Build module with NodeJS" OFF)
 OPTION(BUILD_STANDARD  "Default build option" ON)
 
 # Check first if on command line CMAKE has set one of the options
-IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ))
+IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ OR BUILD_NODEJS))
   # If not, load the option from file
   message(STATUS "Check ${CMAKE_SOURCE_DIR}/aim/local.cmake")
   IF (EXISTS "${CMAKE_SOURCE_DIR}/aim/local.cmake")
@@ -56,7 +57,7 @@ IF (NOT (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ))
 ENDIF()
 
 # Check again if one of the options has turned on from one of the .cmake files
-IF (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ)
+IF (BUILD_YARP OR BUILD_ROS OR BUILD_ZEROMQ OR BUILD_NODEJS)
   SET(BUILD_STANDARD OFF)
 ENDIF ()
 
@@ -69,19 +70,23 @@ IF(NOT (IS_DIRECTORY ${BACKENDS_PATH}))
 ENDIF()
 
 # Set commands for header generation
-IF (BUILD_YARP) 
+IF (BUILD_YARP)
   SET(MIDDLEWARE "yarp")
 ENDIF ()
 
-IF (BUILD_ROS) 
+IF (BUILD_ROS)
   SET(MIDDLEWARE "ros")
 ENDIF ()
 
-IF (BUILD_ZEROMQ) 
+IF (BUILD_ZEROMQ)
   SET(MIDDLEWARE "zeromq")
 ENDIF ()
 
-IF (BUILD_STANDARD) 
+IF (BUILD_NODEJS)
+  SET(MIDDLEWARE "nodejs")
+ENDIF ()
+
+IF (BUILD_STANDARD)
   SET(MIDDLEWARE "standard")
 ENDIF ()
 
@@ -92,6 +97,12 @@ SET(HEADER_FILE "aim/inc/${PROJECT_NAME}.h")
 # Actually generate the header files
 MESSAGE(STATUS "Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}\", \"${BACKENDS_PATH}\", \"${HEADER_FILE}\"")
 EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE} ${BACKENDS_PATH} ${HEADER_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+
+# NodeJS requires a cpp file
+IF (BUILD_NODEJS)
+  MESSAGE("[*] Run the rur-builder with arguments: \"${IDL_FILE}\", \"${MIDDLEWARE}_cpp\", \"${BACKENDS_PATH}\", \"${CPP_FILE}\"")
+  EXECUTE_PROCESS(COMMAND rur-builder ${IDL_FILE} ${MIDDLEWARE}_cpp ${BACKENDS_PATH} ${CPP_FILE} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+ENDIF ()
 
 # Write the (backend) configuration
 MESSAGE(STATUS "Generate aim/inc/Config.h file, that you can use in the code to know which middleware is in use")
@@ -107,7 +118,7 @@ ENDIF (BUILD_YARP)
 
 IF (BUILD_ROS)
   MESSAGE(STATUS "The project source dir: ${PROJECT_SOURCE_DIR}")
-  IF ("$ENV{ROS_ROOT}" STREQUAL "") 
+  IF ("$ENV{ROS_ROOT}" STREQUAL "")
     MESSAGE(FATAL_ERROR "Requires env. variable $ROS_ROOT. Run for example: \"source /opt/ros/groovy/setup.bash\".")
   ENDIF()
   MESSAGE(STATUS "ROS build, useful for ROS middleware")
@@ -124,7 +135,7 @@ IF (BUILD_ROS)
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/librosconsole.so")
   SET(LIBS ${LIBS} "$ENV{ROS_ROOT}/../../lib/libroscpp_serialization.so")
- 
+
   SET(PARENT_INCLUDE_DIRS ${INCLUDE_DIRS} PARENT_SCOPE)
 ENDIF (BUILD_ROS)
 
@@ -141,6 +152,11 @@ IF (BUILD_ZEROMQ)
   # Currently tacitly assuming rt is always there...
   SET(LIBS ${LIBS} rt)
 ENDIF (BUILD_ZEROMQ)
+
+IF (BUILD_NODEJS)
+  MESSAGE("[*] NodeJS build, compiles an addon")
+  MESSAGE("[*] For now: use node-gyp to build")
+ENDIF (BUILD_NODEJS)
 
 # Source directory
 SET(SOURCE_DIR "src")
