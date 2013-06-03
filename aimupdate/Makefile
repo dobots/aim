@@ -10,7 +10,8 @@ RUR_TEMPLATES=/var/lib/rur
 
 # We don't need to build anything
 all: 
-	@echo ${USER} > user.txt
+	@echo "Nothing to make, sudo make install is enough"
+	#@echo ${USER} > user.txt
 
 # We only install (need to be sudo)
 install:
