@@ -26,7 +26,7 @@ RUR_CONFIG_PATH="$DESTDIR/$RUR_CONFIG_PATH"
 ####################################################################################################
 
 # First, check if we have sudo rights
-if [ ! `id --user` -eq 0 ]; then
+if [ ! `id -u` -eq 0 ]; then
 	echo "[#] Sorry, super user rights needed (run with sudo)"
 	exit 1
 fi
@@ -41,7 +41,7 @@ fi
 # Load configuration details
 ####################################################################################################
 
-# Remove all files in ${RUR_TEMPLATE_PATH}, here we are careful not to executed any "rm -rf" 
+# Remove all files in ${RUR_TEMPLATE_PATH}, here we are careful not to executed any "rm -rf"
 # command. However, we also do not want errors popping up because a directory does not exist. Hence,
 # the mkdir commands before the rmdir commands.
 rm -f ${RUR_TEMPLATE_PATH}/cmake/*

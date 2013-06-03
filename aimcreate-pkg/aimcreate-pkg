@@ -58,18 +58,18 @@ fi
 if [[ "$1" == "-h" ]]
 then
 	echo $VERSION \- Usage
-	echo 
+	echo
 	echo "$PROGRAM \"ModuleName\" "
 	echo "$PROGRAM \"ModuleName\" -b [STANDARD|YARP|ROS|ZEROMQ]"
 	echo
-	exit 0 
-fi 
+	exit 0
+fi
 
 backend=
 if [[ "$2" == "-b" ]]
 then
 	backend=$3
-fi 
+fi
 
 ####################################################################################################
 # Specific checks
@@ -79,7 +79,7 @@ modulename="$1"
 
 aim_sanity $modulename error
 if [[ "$error" != 0 ]]; then
-	msg_error "Module name check failed, there are many reasons to construct a specific name of the form \"*Module\". The main reason here is to allow easy checks on execution on a server. Although the modules created by aimcreate-pkg should run in for example a Linux Container, remote execution of modules is key to many applications. Hence, it is nice to be able to perform some basic checking if there are no system utilities called by third parties. Although only binaries should be called that are registered by aim-registry a specific naming convention allows for an additional sanity check." 
+	msg_error "Module name check failed, there are many reasons to construct a specific name of the form \"*Module\". The main reason here is to allow easy checks on execution on a server. Although the modules created by aimcreate-pkg should run in for example a Linux Container, remote execution of modules is key to many applications. Hence, it is nice to be able to perform some basic checking if there are no system utilities called by third parties. Although only binaries should be called that are registered by aim-registry a specific naming convention allows for an additional sanity check."
 	exit 1
 fi
 
@@ -97,7 +97,7 @@ mkdir -p aim
 # Copy from template directory
 thispath=$(pwd)
 msg_info "Copy from template directory $RUR_TEMPLATE_PATH to \"$thispath\"/aim"
-cp --recursive $RUR_TEMPLATE_PATH/* aim
+cp -r $RUR_TEMPLATE_PATH/* aim
 cd aim
 
 # Adapt scripts to $modulename
@@ -118,7 +118,7 @@ mv Makefile.parent ../Makefile
 msg_info "Move idl file to separate directory"
 mkdir -p idl
 if [ -a "idl/$modulename.idl" ]; then
-	msg_info "The idl file exists already, we will not overwrite it in case it has been adapted"	
+	msg_info "The idl file exists already, we will not overwrite it in case it has been adapted"
 else
 	mv TemplateModule.idl "idl/$modulename.idl"
 fi
