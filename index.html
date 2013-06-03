@@ -29,10 +29,7 @@
       <div id="main" role="main">
         <div class="download-bar">
         <div class="inner">
-<!--          <a href="https://github.com/mrquincle/aim-bzr/tarball/master" class="download-button tar"><span>Download</span></a>
-          <a href="https://github.com/mrquincle/aim-bzr/zipball/master" class="download-button zip"><span>Download</span></a>
--->
-          <a href="https://github.com/mrquincle/aim-bzr" class="code">View AIM on GitHub</a>
+          <a href="https://github.com/dobots/aim-bzr" class="code">View AIM on GitHub</a>
         </div>
         <span class="blc"></span><span class="trc"></span>
         </div>
@@ -121,18 +118,18 @@ As you can see the generated code suddenly uses concepts that only mean somethin
 
 <p><pre><code>mkdir $HOME/aim
 cd $HOME/aim
-git clone https://github.com/mrquincle/rur-builder
+git clone https://github.com/dobots/rur-builder
 cd rur-builder
 make
 sudo make install
 cd $HOME/aim
-git clone https://github.com/mrquincle/aimtools
+git clone https://github.com/dobots/aimtools
 cd aimtools
 make
 sudo make install
 </code></pre></p>
 
-<p>Do this for all subprojects in <a href="https://github.com/mrquincle/aim-bzr">aim-bzr</a> that you want to use.</p> You should now have rur-builder, aimcreate-pkg, etc. installed on your system. Check that typing "rur-builder -h" results in a nice help message for example. Please, notice that you will manually have to install required dependencies (because you did not use the PPA), such as <b>sudo apt-get install omniidl</b> and the several middlewares (such as zeromq, yarp, and ros). 
+<p>Do this for all subprojects in <a href="https://github.com/dobots/aim-bzr">aim-bzr</a> that you want to use.</p> You should now have rur-builder, aimcreate-pkg, etc. installed on your system. Check that typing "rur-builder -h" results in a nice help message for example. Please, notice that you will manually have to install required dependencies (because you did not use the PPA), such as <b>sudo apt-get install omniidl</b> and the several middlewares (such as zeromq, yarp, and ros). 
 </p>
 
 <h4>Get some modules</h4>
@@ -141,7 +138,7 @@ sudo make install
 <pre><code>mkdir -p $HOME/workspace/aim
 echo "export AIM_WORKSPACE=$HOME/workspace/aim >> $HOME/.bashrc"
 source $HOME/.bashrc
-aimget dobots https://github.com/mrquincle/aim_modules
+aimget dobots https://github.com/dobots/aim_modules
 cd $AIM_WORKSPACE</code></pre></p>
 
 <p>Choose your workspace where you want of course, but this is how you will get started. Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
@@ -299,7 +296,7 @@ As you can see we cleaned up beforehand and we removed the "aim/local.cmake" fil
 
 <h3>How to get it?</h3>
 <p>
-You can get the code from <a href="https://github.com/mrquincle/aim-bzr">github.com</a>, but the easiest way to get the code is via <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad</a>:
+You can get the code from <a href="https://github.com/dobots/aim-bzr">github.com</a>, but the easiest way to get the code is via <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad</a>:
 
 <pre><code>sudo add-apt-repository ppa:dobots/ppa 
 sudo apt-get update
@@ -308,15 +305,13 @@ dpkg -L aim</code></pre></p>
 
 <h3>Support</h3>
 
-<p>You would like to know more? Check out the company providing all this open-source software <a href="http://www.dobots.nl">Distributed Organisms B.V.</a>, a spinoff of the Dutch research institute <a href="http://www.almende.com">Almende</a>. You can also checkout the repositories of individual authors <a href="https://github.com/vliedel" class="user-mention">Bart van Vliet</a>, <a href="https://github.com/eggerdo" class="user-mention">Dominik Egger</a> and <a href="https://github.com/mrquincle" class="user-mention">Anne van Rossum</a>.</p>
+<p>You would like to know more? Check out the company providing all this open-source software <a href="http://www.dobots.nl">Distributed Organisms B.V.</a>, a spinoff of the Dutch research institute <a href="http://www.almende.com">Almende</a>. The github repository of DO is called <a href="https://github.com/dobots" class="user-mention">dobots</a>. You can also checkout the repositories of individual authors <a href="https://github.com/vliedel" class="user-mention">Bart van Vliet</a>, <a href="https://github.com/eggerdo" class="user-mention">Dominik Egger</a> and <a href="https://github.com/mrquincle" class="user-mention">Anne van Rossum</a>.</p>
         </article>
       </div>
     </div>
     <footer>
       <div class="owner">
       <p><a href="https://github.com/mrquincle" class="avatar"><img src="https://secure.gravatar.com/avatar/36365a1f813c2fe401024f5d3552adaf?s=30&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png" width="48" height="48"/></a> <a href="https://github.com/mrquincle">mrquincle</a> maintains <a href="https://github.com/mrquincle/aim-bzr">AIM</a></p>
-
-
       </div>
       <div class="creds">
         <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="http://twitter.com/jonrohan/">Jon Rohan</a></small>
@@ -325,9 +320,6 @@ dpkg -L aim</code></pre></p>
   </div>
   <div class="current-section">
     <a href="#top">Scroll to top</a>
-<!--
-    <a href="https://github.com/mrquincle/aim-bzr/tarball/master" class="tar">tar</a><a href="https://github.com/mrquincle/aim-bzr/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
--->
     <p class="name"></p>
   </div>
 
