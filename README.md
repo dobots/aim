@@ -9,7 +9,7 @@ The AIM tools are meant for management of separate modules that each have AI fun
 The current AIM tools are tailored to [YARP](http://eris.liralab.it/yarp/) and generate code that makes it easy to work with YARP as middleware. However, nothing prevents further extensions to make it easier to wrap code as ROS modules or something else, even Java. It depends on the backends provided by the forementioned rur-builder.
 
 ## Is it good?
-The maturity of this software can be improved. However, it has been used already in quite some different scenarios. One of them is to connect to the servers of an Almende spinoff in sensor data cloud services ([Sense Observation Systems](http://sense-os.nl), another use case has been the [Surveyor](http://www.surveyor.com/SRV_info.html) robots.
+The maturity of this software can be improved. However, it has been used already in quite some different scenarios. One of them is to connect to the servers of an Almende spinoff in sensor data cloud services ([Sense Observation Systems](http://sense-os.nl)), another use case has been the [Surveyor](http://www.surveyor.com/SRV_info.html) robots.
 
 ## What are the alternatives?
 There are no known alternatives. Most modular approaches tie the user to a certain middleware. 
