@@ -35,30 +35,48 @@ namespace dobots {
  * basically just a discretization of the Hough space. For lines, which have only two parameters, you will need a 2D
  * Hough space.
  */
-class Accumulator : public nd_array<Cell,short> {
+template <typename P>
+class Accumulator : public nd_array<Cell<P>,ACCUMULATOR_DATA_TYPE> {
 public:
 	//! Default accumulator constructor
-	Accumulator(ASize size);
+	Accumulator(ASize size) {
+		this->asize.x = size.x;
+		this->asize.y = size.y;
+		std::vector<ACCUMULATOR_DATA_TYPE> dimensions; dimensions.clear();
+		dimensions.push_back(size.x);
+		dimensions.push_back(size.y);
+		this->init(dimensions);
+	}
 
 	//! Default accumulator destructor
-	~Accumulator();
+	~Accumulator() {}
 
 	/**
 	 * Increment cell in the accumulator. This assumes that the calling function knows how to map from the point cloud
 	 * to the coordinates of a given cell. The original points are also handed over to keep track of segments.
 	 */
-	void Increment(ACoordinates c, Point2D p0, Point2D p1);
+	void Increment(ACoordinates c, Segment2D<P> seg) {
+		assert (c.x >= 0 && c.x < asize.x);
+		assert (c.y >= 0 && c.y < asize.y);
+
+		Cell<P> & cell = this->get(c.x, c.y);
+		cell.hits++;
+		cell.segments.push_back(seg);
+		cell.points.push_back(seg.src);
+		cell.points.push_back(seg.dest);
+	}
 
 	/**
 	 * Reset the accumulator, for example when switching from method, but also in some methods you are required to do
 	 * so.
 	 */
-	void Reset();
+	void Reset() {}
 
-	inline ASize getSize() { return size; }
+	//! Size of the accumulator
+	inline ASize getSize() { return asize; }
 private:
 
-	ASize size;
+	ASize asize;
 };
 
 }

@@ -23,7 +23,7 @@ int CRawImage::numSaved = 0;
  * Use just a raw header so we don't get packed structs etc. By default we will assume an RGB format. Comments are
  * added to the values, because that one makes it very obfuscated where the fields are actually for.
  */
-static unsigned char header[] = {66,77, // magic word for BMP
+static VALUE_TYPE header[] = {66,77, // magic word for BMP
 		RGB_HEADER_SIZE,0,0,0, // size of the BMP file (no data is just the header)
 		0,0, // application specific
 		0,0, // application specific
@@ -53,18 +53,18 @@ static unsigned char header[] = {66,77, // magic word for BMP
 CRawImage::CRawImage(int wi, int he, int bpp): width(wi), height(he), bpp(bpp)
 {
 	size = bpp*width*height;
-	data = (unsigned char*)calloc(size,sizeof(unsigned char));
+	data = (VALUE_TYPE*)calloc(size,sizeof(VALUE_TYPE));
 	updateHeader();
 }
 
 CRawImage::CRawImage(const CRawImage & other): width(other.width), height(other.height),
 	  size(other.size), bpp(other.bpp) {
-	  data = (unsigned char*)calloc(size,sizeof(unsigned char));
+	  data = (VALUE_TYPE*)calloc(size,sizeof(VALUE_TYPE));
 	  memcpy (data, other.data, other.size);
 	  updateHeader();
 }
 
-char CRawImage::getValue(int x, int y) {
+VALUE_TYPE CRawImage::getValue(int x, int y) {
 	assert (bpp == 1);
 	assert (x >= 0 && x < width);
 	assert (y >= 0 && y < height);
@@ -96,16 +96,24 @@ Pixel CRawImage::getPixel(int x, int y, Patch & patch) {
 }
 
 void CRawImage::setPixel(int x, int y, Patch & patch, Pixel pixel) {
-//	std::cout << "Set pixel " << x << "," << y << " for patch " << patch.width << "x" << patch.height << std::endl;
+	ASSERT(bpp == 3);
 	ASSERT(x >= 0 && x < patch.width);
 	ASSERT(y >= 0 && y < patch.height);
-	int base = (y*patch.width+x)*3;
+	int base = (y*patch.width+x)*bpp;
 	patch.data[base+0] = pixel.b;
 	patch.data[base+1] = pixel.r;
 	patch.data[base+2] = pixel.g;
 }
 
-void CRawImage::setValue(int x, int y, char value) {
+void CRawImage::setValue(int x, int y, Patch & patch, VALUE_TYPE value) {
+	ASSERT(bpp == 1);
+	ASSERT(x >= 0 && x < patch.width);
+	ASSERT(y >= 0 && y < patch.height);
+	int base = (y*patch.width+x)*bpp;
+	patch.data[base] = value;
+}
+
+void CRawImage::setValue(int x, int y, VALUE_TYPE value) {
 	assert (bpp == 1);
 	assert (x >= 0 && x < width);
 	assert (y >= 0 && y < height);
@@ -119,20 +127,23 @@ void CRawImage::setValue(int x, int y, char value) {
  * That's why we now just check every individual element.
  */
 void CRawImage::getPatch(int x, int y, Patch & patch) {
-	std::cout << "Get patch at " << x << ',' << y << std::endl;
-	assert (bpp == 3);
+//	std::cout << "Get patch at " << x << ',' << y << std::endl;
 	assert (x >= 0 && x < width);
 	assert (y >= 0 && y < height);
-	patch.data = (unsigned char*)calloc(patch.width*patch.height*bpp, sizeof(unsigned char));
+	patch.data = (VALUE_TYPE*)calloc(patch.width*patch.height*bpp, sizeof(VALUE_TYPE));
 
 	for (int i = 0; i < patch.width; ++i) {
 		for (int j = 0; j < patch.height; ++j) {
-			int base = ((y+j)*width+x+i)*3;
-			Pixel pixel;
-			pixel.b = data[base+0];
-			pixel.r = data[base+1];
-			pixel.g = data[base+2];
-			setPixel(i,j, patch, pixel);
+			int base = ((y+j)*width+x+i)*bpp;
+			if (bpp == 3) {
+				Pixel pixel;
+				pixel.b = data[base+0];
+				pixel.r = data[base+1];
+				pixel.g = data[base+2];
+				setPixel(i,j, patch, pixel);
+			} else {
+				setValue(i,j,patch,data[base]);
+			}
 		}
 	}
 }
@@ -147,7 +158,7 @@ CRawImage* CRawImage::patch2Img(Patch &patch) {
 void CRawImage::refresh() {
 	size = bpp*width*height;
 	if (data != NULL) free(data);
-	data = (unsigned char*)calloc(size,sizeof(unsigned char));
+	data = (VALUE_TYPE*)calloc(size,sizeof(VALUE_TYPE));
 	std::cout << "Set size to " << width << '*' << height << '*' << bpp << std::endl;
 	updateHeader();
 }
@@ -160,17 +171,17 @@ void CRawImage::updateHeader() {
 	else
 		s = height*width*bpp+GRAY_HEADER_SIZE;
 
-	header[2] = (unsigned char)s;
-	header[3] = (unsigned char)(s >> 8);
-	header[4] = (unsigned char)(s >> 16);
+	header[2] = (VALUE_TYPE)s;
+	header[3] = (VALUE_TYPE)(s >> 8);
+	header[4] = (VALUE_TYPE)(s >> 16);
 
 	if (bpp == 3) {
-		header[10] = (unsigned char)RGB_HEADER_SIZE;
-		header[11] = (unsigned char)(RGB_HEADER_SIZE >> 8);
+		header[10] = (VALUE_TYPE)RGB_HEADER_SIZE;
+		header[11] = (VALUE_TYPE)(RGB_HEADER_SIZE >> 8);
 	} else {
 		// we make it plus 4*256 values for color pallete in grayscale case
-		header[10] = (unsigned char)GRAY_HEADER_SIZE;
-		header[11] = (unsigned char)(GRAY_HEADER_SIZE >> 8);
+		header[10] = (VALUE_TYPE)GRAY_HEADER_SIZE;
+		header[11] = (VALUE_TYPE)(GRAY_HEADER_SIZE >> 8);
 	}
 
 	header[18] = width%256;
@@ -229,7 +240,7 @@ void CRawImage::makeMonochrome() {
 	printf("Size is %i\n", size);
 	swap();
 
-	unsigned char* newData = (unsigned char*)calloc(width*height,sizeof(unsigned char));
+	VALUE_TYPE* newData = (VALUE_TYPE*)calloc(width*height,sizeof(VALUE_TYPE));
 	for (int i = 0; i < width*height; ++i) {
 		int temp = data[i*3]*30 + data[i*3+1]*59 + data[i*3+2]*11;
 		newData[i] = temp / (100);
@@ -268,12 +279,12 @@ void CRawImage::swap()
 		return;
 	}
 	if (data == NULL) return;
-	unsigned char* newData = (unsigned char*)calloc(size,sizeof(unsigned char));
+	VALUE_TYPE* newData = (unsigned char*)calloc(size,sizeof(VALUE_TYPE));
 	int span = width*bpp;
 	for (int j = 0;j<height;j++){
 		memcpy(&newData[span*j],&data[span*(height-1-j)],span);
 		for (int i = 0;i<width;i++){
-			unsigned char a = newData[(width*j+i)*3];
+			VALUE_TYPE a = newData[(width*j+i)*3];
 			newData[(width*j+i)*3] = newData[(width*j+i)*3+2];
 			newData[(width*j+i)*3+2] = a;
 		}
@@ -287,11 +298,15 @@ void CRawImage::saveBmp(const char* inName)
 	updateHeader();
 //	std::cout << __func__ << ": save" << std::endl;
 	FILE* file = fopen(inName, "wb");
+	if (file == NULL) {
+		fprintf(stderr, "Could not open file %s", inName);
+		return;
+	}
 //	std::cout << __func__ << ": save2" << std::endl;
 	swap();
 	fwrite(header,54,1,file);
 	if (bpp == 1) {
-		unsigned char *temp_palette = (unsigned char*)calloc(PALETTE_SIZE, sizeof(unsigned char));
+		VALUE_TYPE *temp_palette = (VALUE_TYPE*)calloc(PALETTE_SIZE, sizeof(VALUE_TYPE));
 		// you'll need a color palette for grayscale images.
 		for (int i = 0; i < PALETTE_SIZE / 4; ++i) {
 			temp_palette[i*4] = temp_palette[i*4+1] = temp_palette[i*4+2] = i;
@@ -344,7 +359,7 @@ bool CRawImage::loadBmp(const char* inName)
 void CRawImage::plotCenter()
 {
 	int centerWidth = 20;
-	unsigned char color[] = {255,150,150};
+	VALUE_TYPE color[] = {255,150,150};
 	for (int i = -centerWidth;i<centerWidth;i++){
 		for (int j =0;j<3;j++){
 			data[(width*(height/2+i)+width/2-centerWidth)*3+j] = color[j];
@@ -409,23 +424,35 @@ void CRawImage::plotLine(int x0, int y0, int x1, int y1) {
 //	std::cout << std::endl;
 }
 
+/**
+ * Plotting a (little) cross at position (i,j). The size of the cross is in pixels and is "just one leg" of it. The
+ * entire cross with size=3, becomes 7 pixels wide. The number of bytes per pixel, bpp can be 3 or 1.
+ */
 void CRawImage::plotCross(int i,int j,int size) {
 	int cross = 4;
 	for (int di = -size; di < size; ++di) {
 		int dii = i+di;
 		if (dii < 0) continue;
 		if (dii >= width) continue;
-		data[dii*bpp+j*width*bpp+0] = 0;
-		data[dii*bpp+j*width*bpp+1] = 0;
-		data[dii*bpp+j*width*bpp+2] = 255;
+		if (bpp == 3) {
+			data[dii*bpp+j*width*bpp+0] = 0;
+			data[dii*bpp+j*width*bpp+1] = 0;
+			data[dii*bpp+j*width*bpp+2] = 255;
+		} else {
+			data[dii*bpp+j*width*bpp+0] = 255;
+		}
 	}
 	for (int dj = -size; dj < size; ++dj) {
 		int djj = j+dj;
 		if (djj < 0) continue;
 		if (djj >= height) continue;
-		data[i*bpp+djj*width*bpp+0] = 0;
-		data[i*bpp+djj*width*bpp+1] = 0;
-		data[i*bpp+djj*width*bpp+2] = 255;
+		if (bpp == 3) {
+			data[i*bpp+djj*width*bpp+0] = 0;
+			data[i*bpp+djj*width*bpp+1] = 0;
+			data[i*bpp+djj*width*bpp+2] = 255;
+		} else {
+			data[i*bpp+djj*width*bpp+0] = 255;
+		}
 	}
 }
 
