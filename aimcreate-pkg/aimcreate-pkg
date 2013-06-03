@@ -102,14 +102,14 @@ cd aim
 
 # Adapt scripts to $modulename
 msg_info "Adapt template scripts to use $modulename"
-sed -i "s/TemplateModule/$modulename/g" TemplateModule.idl
-sed -i "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
-sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
-sed -i "s/TemplateModule/$modulename/g" TemplateModuleExt.h
-sed -i "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
-sed -i "s/TemplateModule/$modulename/g" Makefile.parent
-sed -i "s/TemplateModule/$modulename/g" package.xml
-sed -i "s/TemplateModule/$modulename/g" manifest.xml
+sed -i -e "s/TemplateModule/$modulename/g" TemplateModule.idl
+sed -i -e "s/TemplateModule/$modulename/g" TemplateModuleMain.cpp
+sed -i -e "s/TemplateModule/$modulename/g" TemplateModuleExt.cpp
+sed -i -e "s/TemplateModule/$modulename/g" TemplateModuleExt.h
+sed -i -e "s/TemplateModule/$modulename/g" CMakeLists.txt.parent
+sed -i -e "s/TemplateModule/$modulename/g" Makefile.parent
+sed -i -e "s/TemplateModule/$modulename/g" package.xml
+sed -i -e "s/TemplateModule/$modulename/g" manifest.xml
 
 msg_info "Move parent files to root directory of $modulename"
 mv CMakeLists.txt.parent ../CMakeLists.txt
