@@ -6,7 +6,8 @@
 # We don't need to build anything
 .PHONY: all
 all: 
-	@echo ${USER} > user.txt
+	@echo "Nothing to make, sudo make install is enough"
+#	@echo ${USER} > user.txt
 
 # We just run an install script (sudo is enforced in the script)
 .PHONY: install
