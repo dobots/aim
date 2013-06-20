@@ -117,8 +117,7 @@ As you can see the generated code suddenly uses concepts that only mean somethin
 <h3>Installation</h3>
 <p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace.</p>
 
-<p><pre><code>
-git clone https://github.com/dobots/rur-builder
+<p><pre><code>git clone https://github.com/dobots/rur-builder
 git clone https://github.com/dobots/aimtools
 export AIM_WORKSPACE=$HOME/aim_workspace # choose the AIM workspace where you want
 echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" # if you use bash
@@ -196,8 +195,7 @@ Like you can see there is a almost no different with the YARP example, but now t
 So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port. And we are planning on building our own home automation software, so we call our own little repository "home_automation":
 </p>
 
-<p><pre><code>
-aiminit home_automation
+<p><pre><code>aiminit home_automation
 cd $AIM_WORKSPACE/home_automation
 aimcreate-pkg MovingAverageModule
 # Now we compile our module, the default module already compiles!
@@ -271,12 +269,13 @@ aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
 The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages received: 4" and "Calculate (666+666*3)/4=666". Do not forget to upload your code now to your own github repository!
 </p>
 
-<p><pre><code>
-cd $AIM_WORKSPACE
+<p><pre><code>cd $AIM_WORKSPACE
 git add MovingAverageModule
 git commit -m "A moving average module for the AIM repository"
 git push
-# And now you can push it to for example github or bitbucket to have others use it.
+# And now you can push it to e.g. github 
+git remote add origin git@github.com:yourname/somerepos.git
+git push -u origin master
 </code></pre></p>
 
 <h3>How to get it?</h3>
