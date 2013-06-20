@@ -37,7 +37,7 @@
           <h3>Welcome to AIM</h3>
 
 <p>
-AIM stands for Artificial Intelligence Modules, but is much more than that. AIM is inspired by three recent movements in practical computer science. First, in the robotics community there is a need for a wide range of functionalities, from computer vision, navigation and mapping, to sensor fusion, and machine learning, which lead to several frameworks that allow people to collaborate: <a href="http://eris.liralab.it/yarp">YARP</a> (Yet Another Robot Platform), <a href="http://www.ros.org">ROS</a> (Robot Operating System), <a href="http://www.urbiforge.org">URBI</a> (Universal Real-time Behavior Interface) to name a few. Second, there are market infrastructures to distribute your applications: <a href="https://play.google.com">Google play</a>, <a href="http://www.apple.com/iphone/from-the-app-store/">Apple app store</a>, and repositories like the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad package archives</a> and the <a href="https://build.opensuse.org/">openSUSE build service</a>. Third, there are frameworks to allow you to implement or reveal functionality in the cloud, from <a href="http://www.zeromq.org/">ZeroMQ</a>, a distributed transport layer used in Twitter <a href="http://storm-project.net/">Storm</a>, to <a href="http://mahout.apache.org/">Mahout</a>, scalable Map/Reduce based machine learning libraries. </p>
+AIM stands for Artificial Intelligence Modules, but is much more than that. AIM is inspired by three recent movements in practical computer science. First, in the robotics community there is a need for a wide range of functionalities, from computer vision, navigation and mapping, to sensor fusion, and machine learning, which lead to several <b>middlewares</b> that allow people to collaborate: <a href="http://eris.liralab.it/yarp">YARP</a> (Yet Another Robot Platform), <a href="http://www.ros.org">ROS</a> (Robot Operating System), <a href="http://www.urbiforge.org">URBI</a> (Universal Real-time Behavior Interface) to name a few. Second, there are <b>market</b> infrastructures to distribute your applications: <a href="https://play.google.com">Google play</a>, <a href="http://www.apple.com/iphone/from-the-app-store/">Apple app store</a>, and repositories like the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad package archives</a> and the <a href="https://build.opensuse.org/">openSUSE build service</a>. Third, there are frameworks to allow you to implement or reveal functionality in the <b>cloud</b>, from <a href="http://www.zeromq.org/">ZeroMQ</a>, a distributed transport layer used in Twitter <a href="http://storm-project.net/">Storm</a>, to <a href="http://mahout.apache.org/">Mahout</a>, scalable Map/Reduce based machine learning libraries.</p>
 
 <h3>Goal</h3>
 <p>
@@ -50,18 +50,20 @@ The goal of AIM is threefold:
 
 </p>
 
+<h3>Background</h3>
+<p>
+The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/mallet/soft/architecture/genom3">Genom3</a>. Just as Genom3 it is aimed to create an infrastructure of blocks of software that somehow know how to talk to each other. Genom3 and the rur-builder does not create some additional library that has to be linked to all middlewares (YARP, ROS, URBI, AgentScape, ZeroMQ, NodeJS) which quickly becomes a pain. In contrary, Genom3 and the rur-builder perform code generation. However, different from Genom3 using the rur-builder does not actually change the code itself. We do not "enrich" the code with meta-information. The meta-information is expected to be written down in an <b>IDL file</b>. This IDL file describes the interface of a module in a general sense. This means for example (contrary to Genom3) that code completion still works: there are no meta-statements (in TCL) through the code. This has multiple advantages. a.) The indexer just works. b.) A standard backend can be used for prototyping, not requiring any middleware. c.) Code generation in the headers can be extremely flexible, e.g. implementing topics for ROS, a concept totally absent in YARP. This is hard to achieve this flexibility by meta-statements in the code itself.</p>
+
 <h3>Components</h3>
 <p>
-The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/mallet/soft/architecture/genom3">Genom3</a>. Just as Genom3 it is aimed to create an infrastructure of blocks of software that somehow know how to talk to each other. Genom3 and the rur-builder does not create some additional library that has to be linked to all middlewares (YARP, ROS, URBI, AgentScape, ZeroMQ) which quickly becomes a pain. In contrary, Genom3 and the rur-builder perform code generation. However, different from Genom3 using the rur-builder does not actually change the code itself. We do not "enrich" the code with meta-information. The meta-information is expected to be written down in a specific IDL file. This IDL file describes the interface of a module in a general sense. This means for example (contrary to Genom3) that code completion still works: there are no meta-statements (in TCL) through the code. This has multiple advantages. a.) The indexer just works. b.) A standard backend can be used for prototyping, not requiring any middleware. c.) Code generation in the headers can be extremely flexible, e.g. implementing topics for ROS, a concept totally absent in YARP. This is hard to achieve this flexibility by meta-statements in the code itself.</p>
-
-<p>
-The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
+The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, <b>NodeJS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
 </p>
 
 <p>
 The <b>aimtools</b> is a suite of tools in the same spirit as some of the tools in ROS, such as roscreate-pkg:
 <ul>
 <li><b>aimget</b>: add a github repository to your AIM workspace</li>
+<li><b>aiminit</b>: create your own github repository in your AIM workspace</li>
 <li><b>aimcreate-pkg</b>: create a new AI module</li>
 <li><b>aimregister</b>: register the module locally</li>
 <li><b>aimselect</b>: select a specific middleware to compile for</li>
@@ -112,45 +114,32 @@ The important part here is the function "void Input" defined with an additional 
 As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The #pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header.  The "module" keyword translates into a namespace.
 </p>
 
-<h4>Get the rur-builder and the aimtools</h4>
-<p>A default repository is available with modules mainly filled from <a href="http://almende.github.com/nets/">NETS</a> comprising computer vision, machine learning, prediction modules. Let us assume here we have a generic Linux version. In case of Ubuntu you can better use the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a>! With other Linux versions you can manually get the software by:
-</p>
+<h3>Installation</h3>
+<p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace.</p>
 
-<p><pre><code>mkdir $HOME/aim
-cd $HOME/aim
+<p><pre><code>
 git clone https://github.com/dobots/rur-builder
-cd rur-builder
-make
-sudo make install
-cd $HOME/aim
 git clone https://github.com/dobots/aimtools
-cd aimtools
-make
-sudo make install
+export AIM_WORKSPACE=$HOME/aim_workspace # choose the AIM workspace where you want
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" # if you use bash
 </code></pre></p>
 
-<p>Do this for all subprojects in <a href="https://github.com/dobots/aim-bzr">aim-bzr</a> that you want to use.</p> You should now have rur-builder, aimcreate-pkg, etc. installed on your system. Check that typing "rur-builder -h" results in a nice help message for example. Please, notice that you will manually have to install required dependencies (because you did not use the PPA), such as <b>sudo apt-get install omniidl</b> and the several middlewares (such as zeromq, yarp, and ros). 
-</p>
-
-<h4>Get some modules</h4>
-
-<p>To download the module repository we use aimget:</p>
-<pre><code>mkdir -p $HOME/workspace/aim
-echo "export AIM_WORKSPACE=$HOME/workspace/aim >> $HOME/.bashrc"
-source $HOME/.bashrc
-aimget dobots https://github.com/dobots/aim_modules
+<p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
+<pre><code>aimget robotics https://github.com/mrquincle/aim_modules
 cd $AIM_WORKSPACE</code></pre></p>
 
-<p>Choose your workspace where you want of course, but this is how you will get started. Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
+<p>Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
 
 <h4>Example with YARP</h4>
 
-<p>
-Now, the running of the code of these modules actually depends on the middleware of course. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. Let us assume you downloaded the AI modules to $AIM_MODULES_PATH. Then to run the modules with YARP middleware, you will need to:
+<p>The running of the code of these modules actually depends on the middleware you want to use it with. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
 </p>
-
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
-cd $AIM_MODULES_PATH
+</code></pre></p>
+
+Let us assume you downloaded the robotics AI modules as mentioned above then:
+
+<p><pre><code>cd $AIM_WORKSPACE/robotics
 aimselect ReadModule yarp
 aimmake ReadModule
 aimregister ReadModule
@@ -176,10 +165,11 @@ This will use the YARP middleware to set up a TCP connection between the WriteMo
 <p>
 Running the code with ZeroMQ instead of YARP is along similar lines. To run the same WriteModule and ReadModule with ZeroMQ, you will need to:
 </p>
-
 <p><pre><code>sudo apt-get install libzmq-dev
 sudo apt-get install libjson-spirit-dev
-cd $AIM_MODULES_PATH
+</code></pre></p>
+
+<p><pre><code>cd $AIM_WORKSPACE/robotics
 aimselect ReadModule zeromq
 aimmake ReadModule
 aimregister ReadModule  # if not done before
@@ -203,17 +193,18 @@ Like you can see there is a almost no different with the YARP example, but now t
 <h3>Create your own module</h3>
 
 <p>
-So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port.
+So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port. And we are planning on building our own home automation software, so we call our own little repository "home_automation":
 </p>
 
-<p><pre><code>cd $AIM_MODULES_PATH
+<p><pre><code>
+aiminit home_automation
+cd $AIM_WORKSPACE/home_automation
 aimcreate-pkg MovingAverageModule
-cd $AIM_MODULES_PATH/MovingAverageModule
 # Now we compile our module, the default module already compiles!
-make</code></pre></p>
+aimmake MovingAverageModule</code></pre></p>
 
 <p>
-We are now going to make our changes to the code at three places. Open $AIM_MODULES_PATH/MovingAverageModule/aim/idl/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
+We are now going to make our changes to the code at three places. Open MovingAverageModule/aim/idl/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
 </p>
 
 <p><pre><code>interface MovingAverageModule {
@@ -223,7 +214,7 @@ We are now going to make our changes to the code at three places. Open $AIM_MODU
 }</code></pre></p>
 
 <p>
-Adjust $AIM_MODULES_PATH/MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
+Adjust MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
 </p>
 
 <p><pre><code>class MovingAverageModuleExt: public MovingAverageModule {
@@ -238,7 +229,7 @@ private:
 </code></pre></p>
 
 <p>
-Adapt $AIM_MODULES_PATH/MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
+Adapt MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
 </p>
 
 <p>
@@ -259,10 +250,9 @@ Adapt $AIM_MODULES_PATH/MovingAverageModule/src/MovingAverageModuleExt.cpp subse
 You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/blob/master/MovingAverageModule/src/MovingAverageModuleExt.cpp">MovingAverageModuleExt.cpp</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
 </p>
 
-<p><pre><code>cd $AIM_MODULES_PATH/MovingAverageModule 
-echo "set(BUILD_ZEROMQ on)" > aim/local.cmake
-make
-cd $AIM_MODULES_PATH
+<p><pre><code>cd $AIM_WORKSPACE/home_automation
+aimselect MovingAverageModule zeromq
+aimmake MovingAverageModule
 aimregister MovingAverageModule
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 zmqserver
@@ -281,18 +271,13 @@ aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
 The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages received: 4" and "Calculate (666+666*3)/4=666". Do not forget to upload your code now to your own github repository!
 </p>
 
-<p><pre><code>cd $AIM_MODULES_PATH/MovingAverageModule 
-rm aim/local.cmake
-make clean
-cd $AIM_MODULES_PATH
+<p><pre><code>
+cd $AIM_WORKSPACE
 git add MovingAverageModule
 git commit -m "A moving average module for the AIM repository"
 git push
+# And now you can push it to for example github or bitbucket to have others use it.
 </code></pre></p>
-
-<p>
-As you can see we cleaned up beforehand and we removed the "aim/local.cmake" file that indicates your own preference for a middleware. If a certain module has a specific preferred middleware you can indicate this in the "aim/default.cmake" file.
-</p>
 
 <h3>How to get it?</h3>
 <p>
