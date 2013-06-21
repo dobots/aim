@@ -81,7 +81,7 @@ The <b>aimserver</b> (forthcoming) is a REST server that allows people to find A
 
 <h3>Example</h3>
 <p>
-At <a href="https://github.com/mrquincle/aim_modules">AIM modules</a> you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The <a href="https://raw.github.com/mrquincle/aim_modules/master/ReadModule/aim/idl/ReadModule.idl">IDL file</a> of the ReadModule does actually have only a few lines:</p>
+At <a href="https://github.com/dobots/aim_modules">AIM modules</a> you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The <a href="https://raw.github.com/dobots/aim_modules/master/ReadModule/aim/idl/ReadModule.idl">IDL file</a> of the ReadModule does actually have only a few lines:</p>
 
 <p>
 <pre><code>#pragma copyright LGPLv3
@@ -124,7 +124,7 @@ echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc"
 </code></pre></p>
 
 <p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
-<pre><code>aimget robotics https://github.com/mrquincle/aim_modules
+<pre><code>aimget examples https://github.com/dobots/aim_modules
 cd $AIM_WORKSPACE</code></pre></p>
 
 <p>Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
