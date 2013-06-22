@@ -99,6 +99,23 @@ p.tagline {
   background-color: #fff;
 }
 
+.tree BODY { font-family : ariel, monospace, sans-serif; }
+.tree P { font-weight: normal; font-family : ariel, monospace, sans-serif; color: black; background-color: transparent;}
+.tree B { font-weight: normal; color: black; background-color: transparent;}
+.tree A:visited { font-weight : normal; text-decoration : none; background-color : transparent; margin : 0px 0px 0px 0px; padding : 0px 0px 0px 0px; display: inline; }
+.tree A:link    { font-weight : normal; text-decoration : none; margin : 0px 0px 0px 0px; padding : 0px 0px 0px 0px; display: inline; }
+.tree A:hover   { color : #000000; font-weight : normal; text-decoration : underline; background-color : yellow; margin : 0px 0px 0px 0px; padding : 0px 0px 0px 0px; display: inline; }
+.tree A:active  { color : #000000; font-weight: normal; background-color : transparent; margin : 0px 0px 0px 0px; padding : 0px 0px 0px 0px; display: inline; }
+.tree .VERSION { font-size: small; font-family : arial, sans-serif; }
+.tree .NORM  { color: black;  background-color: transparent;}
+.tree .FIFO  { color: purple; background-color: transparent;}
+.tree .CHAR  { color: yellow; background-color: transparent;}
+.tree .DIR   { color: blue;   background-color: transparent;}
+.tree .BLOCK { color: yellow; background-color: transparent;}
+.tree .LINK  { color: aqua;   background-color: transparent;}
+.tree .SOCK  { color: fuchsia;background-color: transparent;}
+.tree .EXEC  { color: green;  background-color: transparent;}
+
 .download-bar {
   background: #222;
   border: 5px solid #444;
