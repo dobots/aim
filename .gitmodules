@@ -1,0 +1,15 @@
+[submodule "aimtools"]
+	path = aimtools
+	url = git@github.com:dobots/aimtools
+[submodule "rur-builder"]
+	path = rur-builder
+	url = git@github.com:dobots/rur-builder
+[submodule "zmqconnect"]
+	path = zmqconnect
+	url = git@github.com:dobots/zmqconnect
+[submodule "zmqserver"]
+	path = zmqserver
+	url = git@github.com:dobots/zmqserver
+[submodule "aimserver"]
+	path = aimserver
+	url = git@github.com:dobots/aimserver
