@@ -1,5 +1,0 @@
-#!/bin/bash
-
-targetdir=/usr/bin/zmqserver-dir
-
-cd $targetdir && nodejs server.js

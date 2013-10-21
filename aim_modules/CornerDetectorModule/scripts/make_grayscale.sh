@@ -1,1 +1,0 @@
-convert -type Grayscale  

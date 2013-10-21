@@ -1,5 +1,0 @@
-#!/bin/bash
-
-targetdir=/usr/share/aimserver
-
-cd $targetdir && nodejs server.js

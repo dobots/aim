@@ -1,1 +1,0 @@
-# git does not allow for empty directories, but opencv requires an include dir to compile correctly
