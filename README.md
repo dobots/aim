@@ -18,6 +18,16 @@ In the end, the code will be available to you through a market place, called [Do
 
 You can best start with the description at [https://github.com/dobots/aimtools](https://github.com/dobots/aimtools) and create your first modules. 
 
+## For AIM developers
+
+The submodules do not update themselves, you will need to update this thing. Do not forget to use --recursive on cloning, or else the submodules will not be checked out. Afterwards, a series of commands will update this repository:
+
+    git pull
+    git submodule foreach git pull origin master
+    git add -u
+    git commit -m "Update $(date). Your message."
+    git push
+
 ## Copyrights
 The copyrights (2013) belong to:
 
