@@ -55,22 +55,28 @@ The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/m
 
 <h3>Components</h3>
 <p>
-The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, <b>NodeJS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
+The current rur-builder provides functionality for different middlewares. Currently supported are <b>YARP</b>, <b>ROS</b>, <b>ZeroMQ</b>, <b>Android</b>, and <b>NodeJS</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together). When using NodeJS as middleware, the module will built as a NodeJS library. The Android middleware will create an app, where the communication makes use of Android's messenger class and relies on the Dodedodo app as nameserver.
 </p>
 
 <p>
 The <b>aimtools</b> is a suite of tools in the same spirit as some of the tools in ROS, such as roscreate-pkg:
 <ul>
+<li><b>aimbrowse</b>: search for repositories with AIM modules</li>
 <li><b>aimget</b>: add a github repository to your AIM workspace</li>
 <li><b>aiminit</b>: create your own github repository in your AIM workspace</li>
-<li><b>aimcreate-pkg</b>: create a new AI module</li>
+<li><b>aimcreate-pkg</b>: create a new AIM module</li>
+<li><b>aimcreate-relay-pkg</b>: create a new module to merge, split, or convert ports</li>
+<li><b>aimcopy</b>: copies a module</li>
+<li><b>aimupdate</b>: update a module to a newer version of AIM</li>
 <li><b>aimregister</b>: register the module locally</li>
 <li><b>aimselect</b>: select a specific middleware to compile for</li>
 <li><b>aimmake</b>: compile the module</li>
 <li><b>aimcross</b>: cross-compile the module (currently supported: blackfin; upcoming: raspberry)</li>
 <li><b>aimrun</b>: run a previously registered module</li>
 <li><b>aimconnect</b>: connect two ports on running modules</li>
-<li><b>aimstop</b>: register the module locally</li>
+<li><b>aimstop</b>: stop the module</li>
+<li><b>aimdebug</b>: create a file with useful info for an issue report</li>
+<!-- aimports, aimlogin, aimlist -->
 </ul>
 </p>
 
