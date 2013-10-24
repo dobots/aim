@@ -179,12 +179,12 @@ Running the code with ZeroMQ instead of YARP is along similar lines. To run the 
 sudo apt-get install libjson-spirit-dev
 </code></pre></p>
 
-Install the zmqserver, this requires <a href="https://github.com/joyent/node">Node.js to be installed</a>
+Install the zmqserver, this requires <a href="https://github.com/joyent/node">Node.js to be installed</a>.
 <p><pre><code>cd aim/zmqserver # From the dir where you cloned aim.git in
-
+...
 </code></pre></p>
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule zeromq
 aimmake ReadModule
 aimregister ReadModule  # if not done before
@@ -198,11 +198,11 @@ aimrun ReadModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 aimrun WriteModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
-aimconnect zmq WriteModule 0 output ReadModule 0 input
+aimconnect zeromq WriteModule 0 output ReadModule 0 input
 </code></pre></p>
 
 <p>
-Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zmq" instead of "yarp".
+Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zeromq" instead of "yarp".
 </p>
 
 <h3>Create your own module</h3>
@@ -252,8 +252,10 @@ Adapt MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
   int *value = readInput();
   if (value) {
     int i = ++message_counter;
+    std::cout << "Messages received: " << i << std::endl;
     double average = (*value + prev_average*(i-1)) / i;
-	    writeAverage(average);
+    std::cout << "Calculate (" << *value << "+" << prev_average << "*" << (i-1) << ") /" << i << "=" << average << std::endl;
+    writeAverage(average);
     prev_average = average;
   }
   sleep(1); // Requires to #include <unistd.h>
