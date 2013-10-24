@@ -116,28 +116,39 @@ As you can see the generated code suddenly uses concepts that only mean somethin
 <h3>Installation</h3>
 <p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace. You can choose it where you want it to be (and update your shell accordingly).</p>
 
-<p><pre><code>git clone https://github.com/dobots/rur-builder
-git clone https://github.com/dobots/aimtools
+<p><pre><code>git clone --recursive https://github.com/dobots/aim.git
+cd aim
+make
+sudo make install
 export AIM_WORKSPACE=$HOME/aim_workspace 
-echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE" >> $HOME/.bashrc 
 </code></pre></p>
 
 <p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
 <pre><code>aimget examples https://github.com/dobots/aim_modules
-cd $AIM_WORKSPACE</code></pre></p>
+cd $AIM_WORKSPACE/examples
+aimmake ReadModule
+aimregister ReadModule
+aimmake WriteModule
+aimregister WriteModule
+</code></pre></p>
 
 <p>Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
 
 <h4>Example with YARP</h4>
 
-<p>The running of the code of these modules actually depends on the middleware you want to use it with. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
+<p>The running of the code of these modules actually depends on the middleware you want to use it with. 
+<!--Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
 </p>
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
 </code></pre></p>
+-->
+So <a href="http://wiki.icub.org/yarpdoc/install.html" install YARP</a> first.
+</p>
 
 Let us assume you downloaded the robotics AI modules as mentioned above then:
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule yarp
 aimmake ReadModule
 aimregister ReadModule
