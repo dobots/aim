@@ -134,14 +134,23 @@ brew install omniorb
 </code></pre></p>
 
 Then install all tools.
-<p><pre><code>git clone --recursive https://github.com/dobots/aim
+<p><pre><code>git clone --recursive https://github.com/dobots/aim.git
+cd aim
+make
+sudo make install
+mkdir $HOME/aim_workspace # Or some other dir
 export AIM_WORKSPACE=$HOME/aim_workspace
-echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE" >> $HOME/.bashrc 
 </code></pre></p>
 
 <p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
 <pre><code>aimget examples https://github.com/dobots/aim_modules
-cd $AIM_WORKSPACE</code></pre></p>
+cd $AIM_WORKSPACE/examples
+aimmake ReadModule
+aimregister ReadModule
+aimmake WriteModule
+aimregister WriteModule
+</code></pre></p>
 
 <h4>Mac OS X</h4>
 <p><pre><code>git clone --recursive https://github.com/dobots/aim
@@ -153,14 +162,18 @@ echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc"
 
 <h4>Example with YARP</h4>
 
-<p>The running of the code of these modules actually depends on the middleware you want to use it with. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
+<p>The running of the code of these modules actually depends on the middleware you want to use it with. 
+<!--Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
 </p>
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
 </code></pre></p>
+-->
+So <a href="http://wiki.icub.org/yarpdoc/install.html"> install YARP</a> first.
+</p>
 
 Let us assume you downloaded the robotics AI modules as mentioned above then:
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule yarp
 aimmake ReadModule
 aimregister ReadModule
@@ -190,7 +203,12 @@ Running the code with ZeroMQ instead of YARP is along similar lines. To run the 
 sudo apt-get install libjson-spirit-dev
 </code></pre></p>
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+Install the zmqserver, this requires <a href="https://github.com/joyent/node">Node.js to be installed</a>.
+<p><pre><code>cd aim/zmqserver # From the dir where you cloned aim.git in
+...
+</code></pre></p>
+
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule zeromq
 aimmake ReadModule
 aimregister ReadModule  # if not done before
@@ -204,11 +222,11 @@ aimrun ReadModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 aimrun WriteModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
-aimconnect zmq WriteModule 0 output ReadModule 0 input
+aimconnect zeromq WriteModule 0 output ReadModule 0 input
 </code></pre></p>
 
 <p>
-Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zmq" instead of "yarp".
+Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zeromq" instead of "yarp".
 </p>
 
 <h3>Create your own module</h3>
@@ -224,7 +242,7 @@ aimcreate-pkg MovingAverageModule
 aimmake MovingAverageModule</code></pre></p>
 
 <p>
-We are now going to make our changes to the code at three places. Open MovingAverageModule/aim/idl/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
+We are now going to make our changes to the code at three places. Open MovingAverageModule/aim-config/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
 </p>
 
 <p><pre><code>interface MovingAverageModule {
@@ -234,12 +252,13 @@ We are now going to make our changes to the code at three places. Open MovingAve
 }</code></pre></p>
 
 <p>
-Adjust MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
+Adjust MovingAverageModule/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
 </p>
 
 <p><pre><code>class MovingAverageModuleExt: public MovingAverageModule {
 public:
   MovingAverageModuleExt(): message_counter(0), prev_average(0) { }
+  virtual ~MovingAverageModuleExt() { }
   void Tick();
   bool Stop();
 private:
@@ -254,20 +273,22 @@ Adapt MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
 
 <p>
 <pre><code>void MovingAverageModuleExt::Tick() {
-  MovingAverageModule::Tick();
   int *value = readInput();
   if (value) {
     int i = ++message_counter;
+    std::cout << "Messages received: " << i << std::endl;
     double average = (*value + prev_average*(i-1)) / i;
-	    writeAverage(average);
+    std::cout << "Calculate (" << *value << "+" << prev_average << "*" << (i-1) << ") /" << i << "=" << average << std::endl;
+    writeAverage(average);
     prev_average = average;
   }
-  sleep(1);
+  sleep(1); // Requires to #include <unistd.h>
 }</code></pre>
 </p>
 
 <p>
-You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/blob/master/MovingAverageModule/src/MovingAverageModuleExt.cpp">MovingAverageModuleExt.cpp</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
+<!--You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. -->
+The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/tree/master/MovingAverageModule">MovingAverageModule</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
 </p>
 
 <p><pre><code>cd $AIM_WORKSPACE/home_automation
@@ -288,7 +309,8 @@ aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
 </code></pre></p>
 
 <p>
-The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages received: 4" and "Calculate (666+666*3)/4=666". Do not forget to upload your code now to your own github repository!
+The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages 
+received: 4" and "Calculate (1+2*3)/4=1.75". Let's upload your code to your own github repository!
 </p>
 
 <p><pre><code>cd $AIM_WORKSPACE
