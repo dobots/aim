@@ -1,6 +1,6 @@
 # AIM
 
-For a proper introduction see the [AIM website](https://dobots.github.io/aim/). This AIM repository currently contains:
+For a proper introduction see the [AIM website](http://dobots.github.io/aim/). This AIM repository currently contains:
 
 * [rur-builder](https://github.com/dobots/rur-builder) to generate header files for a range of middlewares
 * [aimtools](https://github.com/dobots/aimtools), a suite of tools to create, register, copy, and connect modules
