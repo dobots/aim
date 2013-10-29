@@ -55,22 +55,28 @@ The <b>rur-builder</b> is loosely similar to <a href="http://homepages.laas.fr/m
 
 <h3>Components</h3>
 <p>
-The current rur-builder provides functionality for different backends. Currently supported are <b>YARP</b>, <b>ROS</b>, <b>NodeJS</b>, and <b>ZeroMQ</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together).
+The current rur-builder provides functionality for different middlewares. Currently supported are <b>YARP</b>, <b>ROS</b>, <b>ZeroMQ</b>, <b>Android</b>, and <b>NodeJS</b> as middleware between the different AI modules. To be able to use ZeroMQ as middleware solution a nameserver is implemented, called "zmqserver", and "zmqconnect", a connect utility (allowing exogenous coordination: start two modules separately and only later on connect them together). When using NodeJS as middleware, the module will built as a NodeJS library. The Android middleware will create an app, where the communication makes use of Android's messenger class and relies on the Dodedodo app as nameserver.
 </p>
 
 <p>
 The <b>aimtools</b> is a suite of tools in the same spirit as some of the tools in ROS, such as roscreate-pkg:
 <ul>
+<li><b>aimbrowse</b>: search for repositories with AIM modules</li>
 <li><b>aimget</b>: add a github repository to your AIM workspace</li>
 <li><b>aiminit</b>: create your own github repository in your AIM workspace</li>
-<li><b>aimcreate-pkg</b>: create a new AI module</li>
+<li><b>aimcreate-pkg</b>: create a new AIM module</li>
+<li><b>aimcreate-relay-pkg</b>: create a new module to merge, split, or convert ports</li>
+<li><b>aimcopy</b>: copies a module</li>
+<li><b>aimupdate</b>: update a module to a newer version of AIM</li>
 <li><b>aimregister</b>: register the module locally</li>
 <li><b>aimselect</b>: select a specific middleware to compile for</li>
 <li><b>aimmake</b>: compile the module</li>
 <li><b>aimcross</b>: cross-compile the module (currently supported: blackfin; upcoming: raspberry)</li>
 <li><b>aimrun</b>: run a previously registered module</li>
 <li><b>aimconnect</b>: connect two ports on running modules</li>
-<li><b>aimstop</b>: register the module locally</li>
+<li><b>aimstop</b>: stop the module</li>
+<li><b>aimdebug</b>: create a file with useful info for an issue report</li>
+<!-- aimports, aimlogin, aimlist -->
 </ul>
 </p>
 
@@ -114,30 +120,60 @@ As you can see the generated code suddenly uses concepts that only mean somethin
 </p>
 
 <h3>Installation</h3>
-<p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace. You can choose it where you want it to be (and update your shell accordingly).</p>
+<!-- <p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace. You can choose it where you want it to be (and update your shell accordingly).</p> -->
+The installation boils down to make and sudo make install after cloning the github repositories, and setting an environmental variable.
 
-<p><pre><code>git clone https://github.com/dobots/rur-builder
-git clone https://github.com/dobots/aimtools
-export AIM_WORKSPACE=$HOME/aim_workspace 
-echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
+First install OmniIdl, required by the rur-builder
+<p><b>Ubuntu</b></p>
+<p><pre><code>
+sudo apt-get install omniidl
+</code></pre></p>
+<p><b>Mac OS X</b></p>
+<p><pre><code>
+brew install omniorb
+</code></pre></p>
+
+Then install all tools.
+<p><pre><code>git clone --recursive https://github.com/dobots/aim.git
+cd aim
+make
+sudo make install
+mkdir $HOME/aim_workspace # Or some other dir
+export AIM_WORKSPACE=$HOME/aim_workspace
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE" >> $HOME/.bashrc 
 </code></pre></p>
 
 <p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
 <pre><code>aimget examples https://github.com/dobots/aim_modules
-cd $AIM_WORKSPACE</code></pre></p>
+cd $AIM_WORKSPACE/examples
+aimmake ReadModule
+aimregister ReadModule
+aimmake WriteModule
+aimregister WriteModule
+</code></pre></p>
+
+<h4>Mac OS X</h4>
+<p><pre><code>git clone --recursive https://github.com/dobots/aim
+export AIM_WORKSPACE=$HOME/aim_workspace
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
+</code></pre></p>
 
 <p>Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
 
 <h4>Example with YARP</h4>
 
-<p>The running of the code of these modules actually depends on the middleware you want to use it with. Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
+<p>The running of the code of these modules actually depends on the middleware you want to use it with. 
+<!--Let us assume you installed the framework by using the <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad PPA</a> (see below). This means you can install YARP by apt-get. 
 </p>
 <p><pre><code>sudo apt-get install libyarp libyarp-dev yarp-bin
 </code></pre></p>
+-->
+So <a href="http://wiki.icub.org/yarpdoc/install.html"> install YARP</a> first.
+</p>
 
 Let us assume you downloaded the robotics AI modules as mentioned above then:
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule yarp
 aimmake ReadModule
 aimregister ReadModule
@@ -167,7 +203,12 @@ Running the code with ZeroMQ instead of YARP is along similar lines. To run the 
 sudo apt-get install libjson-spirit-dev
 </code></pre></p>
 
-<p><pre><code>cd $AIM_WORKSPACE/robotics
+Install the zmqserver, this requires <a href="https://github.com/joyent/node">Node.js to be installed</a>.
+<p><pre><code>cd aim/zmqserver # From the dir where you cloned aim.git in
+...
+</code></pre></p>
+
+<p><pre><code>cd $AIM_WORKSPACE/examples
 aimselect ReadModule zeromq
 aimmake ReadModule
 aimregister ReadModule  # if not done before
@@ -181,11 +222,11 @@ aimrun ReadModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 aimrun WriteModule 0
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
-aimconnect zmq WriteModule 0 output ReadModule 0 input
+aimconnect zeromq WriteModule 0 output ReadModule 0 input
 </code></pre></p>
 
 <p>
-Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zmq" instead of "yarp".
+Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zeromq" instead of "yarp".
 </p>
 
 <h3>Create your own module</h3>
@@ -214,7 +255,7 @@ aimcreate-pkg MovingAverageModule
 aimmake MovingAverageModule</code></pre></p>
 
 <p>
-We are now going to make our changes to the code at three places. Open MovingAverageModule/aim/idl/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
+We are now going to make our changes to the code at three places. Open MovingAverageModule/aim-config/MovingAverageModule.idl with your favorite editor and make sure the interface definition looks like the following:
 </p>
 
 <p><pre><code>interface MovingAverageModule {
@@ -224,12 +265,13 @@ We are now going to make our changes to the code at three places. Open MovingAve
 }</code></pre></p>
 
 <p>
-Adjust MovingAverageModule/aim/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
+Adjust MovingAverageModule/inc/MovingAverageModuleExt.h to just add two private fields to the class (to count the messages, and to store the last average):
 </p>
 
 <p><pre><code>class MovingAverageModuleExt: public MovingAverageModule {
 public:
   MovingAverageModuleExt(): message_counter(0), prev_average(0) { }
+  virtual ~MovingAverageModuleExt() { }
   void Tick();
   bool Stop();
 private:
@@ -244,20 +286,22 @@ Adapt MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
 
 <p>
 <pre><code>void MovingAverageModuleExt::Tick() {
-  MovingAverageModule::Tick();
   int *value = readInput();
   if (value) {
     int i = ++message_counter;
+    std::cout << "Messages received: " << i << std::endl;
     double average = (*value + prev_average*(i-1)) / i;
-	    writeAverage(average);
+    std::cout << "Calculate (" << *value << "+" << prev_average << "*" << (i-1) << ") /" << i << "=" << average << std::endl;
+    writeAverage(average);
     prev_average = average;
   }
-  sleep(1);
+  sleep(1); // Requires to #include <unistd.h>
 }</code></pre>
 </p>
 
 <p>
-You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/blob/master/MovingAverageModule/src/MovingAverageModuleExt.cpp">MovingAverageModuleExt.cpp</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
+<!--You can see that there is a call to the parent Tick() function, this is important to be able to receive messages. -->
+The complete code you can find at the <a href="https://github.com/mrquincle/aim_modules/tree/master/MovingAverageModule">MovingAverageModule</a> on github. Running your example is in the same way as defined with the ReadModule and WriteModule example. Let us use the ZeroMQ backend (and assume that you followed the example above with the ReadModule and the WriteModule currently compiled for the ZeroMQ backend indeed):
 </p>
 
 <p><pre><code>cd $AIM_WORKSPACE/home_automation
@@ -278,7 +322,8 @@ aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
 </code></pre></p>
 
 <p>
-The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages received: 4" and "Calculate (666+666*3)/4=666". Do not forget to upload your code now to your own github repository!
+The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages 
+received: 4" and "Calculate (1+2*3)/4=1.75". Let's upload your code to your own github repository!
 </p>
 
 <p><pre><code>cd $AIM_WORKSPACE
