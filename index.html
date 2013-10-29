@@ -120,17 +120,34 @@ As you can see the generated code suddenly uses concepts that only mean somethin
 </p>
 
 <h3>Installation</h3>
-<p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace. You can choose it where you want it to be (and update your shell accordingly).</p>
+<!-- <p>The installation instructions for the rur-builder and the aimtools can be found in detail on <a href="https://github.com/dobots/aimtools">github</a>. It boils down to make and sudo make install after cloning the github repositories and setting an environmental variable to the so-called AIM workspace. You can choose it where you want it to be (and update your shell accordingly).</p> -->
+The installation boils down to make and sudo make install after cloning the github repositories, and setting an environmental variable.
 
-<p><pre><code>git clone https://github.com/dobots/rur-builder
-git clone https://github.com/dobots/aimtools
-export AIM_WORKSPACE=$HOME/aim_workspace 
+First install OmniIdl, required by the rur-builder
+<p><b>Ubuntu</b></p>
+<p><pre><code>
+sudo apt-get install omniidl
+</code></pre></p>
+<p><b>Mac OS X</b></p>
+<p><pre><code>
+brew install omniorb
+</code></pre></p>
+
+Then install all tools.
+<p><pre><code>git clone --recursive https://github.com/dobots/aim
+export AIM_WORKSPACE=$HOME/aim_workspace
 echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
 </code></pre></p>
 
 <p>Now to get some modules, we need to clone a module repository. Towards this purpose we use aimget:</p>
 <pre><code>aimget examples https://github.com/dobots/aim_modules
 cd $AIM_WORKSPACE</code></pre></p>
+
+<h4>Mac OS X</h4>
+<p><pre><code>git clone --recursive https://github.com/dobots/aim
+export AIM_WORKSPACE=$HOME/aim_workspace
+echo "export AIM_WORKSPACE=$AIM_WORKSPACE >> $HOME/.bashrc" 
+</code></pre></p>
 
 <p>Now you have downloaded a bunch of modules that you subsequently can compile and run in different ways.</p>
 
