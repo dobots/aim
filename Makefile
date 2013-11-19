@@ -9,7 +9,7 @@
 # Space-separated list of subdirectories that have to be made, the construction here is that
 # make <TAB> will allow bash-completion for individual directories.
 
-subdirs=aimtools rur-builder zmqserver aim_modules
+subdirs=aimtools rur-builder zmqserver
 
 .PHONY: subdir
 subdir: $(subdirs)
