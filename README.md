@@ -14,6 +14,9 @@ AIM is a framework to develop Artificial Intelligence software. This repository 
 
 In the end, the code will be available to you through a market place, called [Dodedodo](http:/wwww.dodedodo.com).
 
+In order to download this repository, enter the following command:
+    git clone --recursive https://github.com/dobots/aim.git
+
 ## For developers
 
 You can best start with the description at [https://github.com/dobots/aimtools](https://github.com/dobots/aimtools) and create your first modules. 
