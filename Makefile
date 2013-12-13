@@ -10,6 +10,7 @@
 # make <TAB> will allow bash-completion for individual directories.
 
 subdirs=aimtools rur-builder zmqserver
+install_subdirs=$(addsuffix .install,$(subdirs))
 
 .PHONY: subdir
 subdir: $(subdirs)
@@ -21,10 +22,12 @@ $(subdirs):
 .PHONY: all
 all: $(subdirs)
 
-install:
-	for dir in $(subdirs); do \
-		$(MAKE) install -C $$dir; \
-	done
+install-subdirs: $(install_subdirs)
+
+$(install_subdirs): %.install:
+	$(MAKE) -C $* install	
+
+install: install-subdirs
 
 clean:
 	echo "Not implemented clean targets yet"
