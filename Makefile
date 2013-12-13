@@ -25,8 +25,9 @@ all: $(subdirs)
 # handle zmqconnect separately, because it depends on the rur-builder being installed
 zmqconnect:
 	$(MAKE) -C $@
-zmqconnect.install:
-	$(MAKE) -C $@
+	
+zmqconnect.install: %.install:
+	$(MAKE) -C $* install
 
 install-subdirs: $(install_subdirs)
 
