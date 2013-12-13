@@ -4,12 +4,12 @@
 [submodule "rur-builder"]
 	path = rur-builder
 	url = https://github.com/dobots/rur-builder
-[submodule "zmqconnect"]
-	path = zmqconnect
-	url = https://github.com/dobots/zmqconnect
 [submodule "zmqserver"]
 	path = zmqserver
 	url = https://github.com/dobots/zmqserver
 [submodule "aimserver"]
 	path = aimserver
 	url = https://github.com/dobots/aimserver
+[submodule "zmqconnect"]
+	path = zmqconnect
+	url = https://github.com/dobots/zmqconnect
