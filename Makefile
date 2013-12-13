@@ -23,9 +23,11 @@ $(subdirs):
 all: $(subdirs)
 
 # handle zmqconnect separately, because it depends on the rur-builder being installed
+.PHONY: zmqconnect
 zmqconnect:
 	$(MAKE) -C $@
 	
+.PHONY: zmqconnect.install
 zmqconnect.install: %.install:
 	$(MAKE) -C $* install
 
