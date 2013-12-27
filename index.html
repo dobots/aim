@@ -132,8 +132,8 @@ Then install the AIM tools:
 
 <p><pre><code>git clone --recursive https://github.com/dobots/aim.git
 cd aim
-make
-sudo make install
+make aimtools rur-builder
+sudo make aimtools.install rur-builder.install
 mkdir $HOME/aim_workspace # Or some other dir
 export AIM_WORKSPACE=$HOME/aim_workspace
 echo "export AIM_WORKSPACE=$AIM_WORKSPACE" >> $HOME/.bashrc 
@@ -190,21 +190,29 @@ This will use the YARP middleware to set up a TCP connection between the WriteMo
 Running the code with ZeroMQ instead of YARP is along similar lines. To run the same WriteModule and ReadModule with ZeroMQ, you will need to:
 </p>
 <p><pre><code>sudo apt-get install libzmq-dev
-sudo apt-get install libjson-spirit-dev
+sudo apt-get install libboost-dev libjson-spirit-dev
 </code></pre></p>
 
+<p>
+Older versions of boost json parser require a fix as mentioned on <a href="http://stackoverflow.com/questions/18552427/boost-read-json-and-c11">stackoverflow.</a>
+</p>
+
+
 Install the zmqserver, this requires <a href="https://github.com/joyent/node">Node.js to be installed</a>.
-<p><pre><code>cd aim/zmqserver # From the dir where you cloned aim.git in
-...
+<p><pre><code>cd aim # From the dir where you cloned aim.git in
+make zmqconnect zmqserver
+sudo make zmqconnect.install zmqserver.install
 </code></pre></p>
 
 <p><pre><code>cd $AIM_WORKSPACE/examples
-aimselect ReadModule zeromq
-aimmake ReadModule
-aimregister ReadModule  # if not done before
-aimselect WriteModule zeromq
-aimmake WriteModule
-aimregister WriteModule # if not done before
+cd ReadModule
+aimselect zeromq
+aimmake
+aimregister # if not done before
+cd ../WriteModule
+aimselect zeromq
+aimmake
+aimregister # if not done before
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
 zmqserver
 # go to a separate shell (Ctrl+Shift T in gnome-terminal)
@@ -285,7 +293,7 @@ Adapt MovingAverageModule/src/MovingAverageModuleExt.cpp subsequently:
     writeAverage(average);
     prev_average = average;
   }
-  sleep(1); // Requires to #include <unistd.h>
+  sleep(1); // Requires to #include unistd.h
 }</code></pre>
 </p>
 
@@ -316,7 +324,7 @@ The output you can expect in the terminal with the MovingAverageModule (use Ctrl
 received: 4" and "Calculate (1+2*3)/4=1.75". Let's upload your code to your own github repository!
 </p>
 
-<p><pre><code>cd $AIM_WORKSPACE
+<p><pre><code>cd $AIM_WORKSPACE/home_automation
 git add MovingAverageModule
 git commit -m "A moving average module for the AIM repository"
 git push
@@ -327,7 +335,7 @@ git push -u origin master
 
 <h3>How to get it?</h3>
 <p>
-You can get the code from <a href="https://github.com/dobots/aim-bzr">github.com</a>, but the easiest way to get the code is via <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad</a>:
+You can get the code from <a href="https://github.com/dobots/aim">github.com</a>, but the easiest way to get the code is via <a href="https://launchpad.net/~dobots/+archive/ppa">Launchpad</a>:
 
 <pre><code>sudo add-apt-repository ppa:dobots/ppa 
 sudo apt-get update
