@@ -7,7 +7,7 @@ title: Introduction
 
 Artificial Intelligence Modules
 
-[View AIM on GitHub](https://github.com/dobots/aim-bzr)
+[View AIM on GitHub](https://github.com/dobots/aim)
 
 ## Welcome to AIM
 
