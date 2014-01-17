@@ -3,6 +3,10 @@ layout: default
 title: Installation
 ---
 
+# Installation
+
+The actual installation and deployment might be daunting at first. However, most of the tools here are meant to help you develop faster, not to make things harder! We use standard tooling as much as possible. For example, github for code management, the omniORB compiler for IDL file parsing, etc.
+
 ## Example
 
 At [AIM modules](https://github.com/dobots/aim_modules) you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The [IDL file](https://raw.github.com/dobots/aim_modules/master/ReadModule/aim-config/ReadModule.idl) of the ReadModule does actually have only a few lines:
@@ -97,7 +101,7 @@ Running the code with ZeroMQ instead of YARP is along similar lines. To run the 
     sudo apt-get install libboost-dev libjson-spirit-dev
     
 
-Older versions of boost json parser require a fix as mentioned on [stackoverflow.](http://stackoverflow.com/questions/18552427/boost-read-json-and-c11)
+Older versions of boost json parser require a fix as mentioned on [stackoverflow](http://stackoverflow.com/questions/18552427/boost-read-json-and-c11).
 Install the zmqserver, this requires [Node.js to be installed](https://github.com/joyent/node).
 
     cd aim # From the dir where you cloned aim.git in

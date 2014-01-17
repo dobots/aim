@@ -37,9 +37,7 @@ The code can be found at [AIM on GitHub](https://github.com/dobots/aim).
 
 The visual interface at [www.dodedodo.com](http://www.dodedodo.com/) is not required to be used. However, it is a very attractive way to quickly setup an entire infrastructure of modules across a lot of devices. As a tongue-in-cheek example, you can see this Christmas tree that sends out a message in Morse code, which is picked up by an Android smartphone.
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=6qtAuwOP9bs
-" target="_blank"><img src="http://img.youtube.com/vi/6qtAuwOP9bs/0.jpg" 
-alt="Christmas tree" width="240" height="180" border="10" /></a>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=6qtAuwOP9bs" target="_blank"><img src="http://img.youtube.com/vi/6qtAuwOP9bs/0.jpg" alt="Christmas tree" width="240" height="180" border="10" /></a>
 
 Imagine how much work that would be without an infrastructure like Dodedodo. Things like NAT traversal to cross a firewall, starting the modules in the right sequence, cross-compiling code for the Raspberry PI and the Android phone. Using the [Dodedodo](http://www.dodedodo.com/) infrastructure you can concentrate just on building the algorithms themselves.
 
