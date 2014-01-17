@@ -43,6 +43,8 @@ Imagine how much work that would be without an infrastructure like Dodedodo. Thi
 
 The infrastructure used by Dodedodo is not reinvented. Dodedodo uses XMPP, a well established protocol that has plenty of extensions for specific purposes. This means that you can manage your applications by sending chat messages! The other neat property of using well established solutions such as XMPP is that security is baked in from the start.
 
+[![Christmas tree wishing Merry Christmas](http://img.youtube.com/vi/6qtAuwOP9bs/0.jpg)](http://www.youtube.com/watch?v=6qtAuwOP9bs)
+
 ## Cross-platform support
 
 The cross-platform support is delivered by the rur-builder application (see [AIM on GitHub](https://github.com/dobots/aim)). Currently rur-builder provides functionality for different middlewares. Supported are:
@@ -55,7 +57,7 @@ The cross-platform support is delivered by the rur-builder application (see [AIM
 
 The rur-builder allows you to write exactly the same code, in C++, and it runs smoothly in all the scenarios of above. For example, if you want to use a module that does "unsupervised learning", say "k-means clustering", you do not have to change anything to run it on Android and communicate to it using "intents", or to run it as a module in your Node server installing it via npm and communicating with it using javascript function calls.
 
-### Module Management and Scheduling
+## Module Management and Scheduling
 
 Managing of modules can be done with the so-called **aim tools**. This is a suite of tools in the same spirit as for example roscreate-pkg in ROS. For more information type in **aim help**.
 
