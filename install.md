@@ -210,7 +210,7 @@ The complete code you can find at the [MovingAverageModule](https://github.com/m
     
 
 The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: \"Messages 
-received: 4\" and \"Calculate (1+2\*3)/4=1.75\". Let's upload your code to your own github repository!
+received: 4\" and \"Calculate (1+2\*3)/4=1.75\". Now upload your code to your own github repository!
 
     cd $AIM_WORKSPACE/home_automation
     git add MovingAverageModule

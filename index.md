@@ -31,6 +31,10 @@ The Dodedodo infrastructure consists of:
 * An application (coined rur-builder) that allows you to run the same code on **Android, Raspberry PI, Docker, or Ubuntu** and which also allows you a wide set of **communication schemes** (middlewares) on those platforms.
 * A tool set for **module management and scheduling**. 
 
+A visualization of the Dodedodo architecture:
+
+![Visualization of Dodedodo architecture](img/dodedodo_architecture.png "Visualization of Dodedodo architecture")
+
 The code can be found at [AIM on GitHub](https://github.com/dobots/aim).
 
 ## Drag-and-drop Interface
