@@ -7,38 +7,6 @@ title: Installation
 
 The actual installation and deployment might be daunting at first. However, most of the tools here are meant to help you develop faster, not to make things harder! We use standard tooling as much as possible. For example, github for code management, the omniORB compiler for IDL file parsing, etc.
 
-## Example
-
-At [AIM modules](https://github.com/dobots/aim_modules) you can find a ReadModule and a WriteModule that show how this framework operates. Both modules come with an IDL file (IDL stands for Interface Description Language). The [IDL file](https://raw.github.com/dobots/aim_modules/master/ReadModule/aim-config/ReadModule.idl) of the ReadModule does actually have only a few lines:
-
-    #pragma copyright LGPLv3
-    
-    // Recommended namespace: rur
-    module rur {
-    
-    // We want to be able to give our class a name
-    interface ReadModule {
-    
-      // Input from sensor as individual values
-      void Input(in long input);
-    
-    };
-    }
-
-The important part here is the function **void Input** defined with an additional keyword: **in**. This is transformed in a function description of which the following one shows the YARP-specific one:
-
-    inline int *readInput(bool blocking=true) {
-      Bottle *b = portInput->read(blocking);
-      if (b != NULL) { 
-        portInputValue = b->get(0).asInt();
-        return &portInputValue;
-      }
-      return NULL;
-    }
-
-As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the **Bottle**. You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The \#pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header. The **module** keyword translates into a namespace.
-
-## Installation
 The installation boils down to make and sudo make install after cloning the github repositories, and setting an environmental variable.
 First install OmniIdl, required by the rur-builder:
 
