@@ -76,5 +76,5 @@ Several remarks:
 
 ## See also
 
-The IDL module specification is also used for the [deployment specification](deployment_spec.md). This means you can write your proprietary code and deploy it on the Dodedodo architecture if provided with the proper deployment specification.
+The IDL module specification is also used for the [deployment specification](deployment_spec.html). This means you can write your proprietary code and deploy it on the Dodedodo architecture if provided with the proper deployment specification.
 
