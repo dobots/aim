@@ -13,7 +13,7 @@ At [AIM modules](https://github.com/dobots/aim_modules) you can find a ReadModul
 
     #pragma copyright LGPLv3
     
-    // Recommended namespace "rur"
+    // Recommended namespace: rur
     module rur {
     
     // We want to be able to give our class a name
@@ -25,7 +25,7 @@ At [AIM modules](https://github.com/dobots/aim_modules) you can find a ReadModul
     };
     }
 
-The important part here is the function "void Input" defined with an additional keyword: "in". This is transformed in a function description of which the following one shows the YARP-specific one:
+The important part here is the function **void Input** defined with an additional keyword: **in**. This is transformed in a function description of which the following one shows the YARP-specific one:
 
     inline int *readInput(bool blocking=true) {
       Bottle *b = portInput->read(blocking);
@@ -36,7 +36,7 @@ The important part here is the function "void Input" defined with an additional 
       return NULL;
     }
 
-As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the "Bottle". You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The \#pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header. The "module" keyword translates into a namespace.
+As you can see the generated code suddenly uses concepts that only mean something in YARP, such as an object called the **Bottle**. You do not need to know anything about these if you are just using the function readInput(), which is exactly what is meant by AIM allowing you to write middleware-agnostic code. The other parts of the code also appear in the generated header file (not shown). The \#pragma statements for example are transformed into comments and meant for author, copyright, date, and license information in the header. The **module** keyword translates into a namespace.
 
 ## Installation
 The installation boils down to make and sudo make install after cloning the github repositories, and setting an environmental variable.
@@ -91,7 +91,7 @@ Let us assume you downloaded the robotics AI modules as mentioned above then:
     aimconnect yarp WriteModule 0 output ReadModule 0 input
     
 
-This will use the YARP middleware to set up a TCP connection between the WriteModule and the ReadModule to send over a value. The "connect" utility needs to know which middleware is used, on the moment it will require a server to be run on the machine, but this requirement can be lifted for a distributed environment, as long as the specific "connect" implementations of the middleware knows how to find the registered ports.
+This will use the YARP middleware to set up a TCP connection between the WriteModule and the ReadModule to send over a value. The \"connect\" utility needs to know which middleware is used, on the moment it will require a server to be run on the machine, but this requirement can be lifted for a distributed environment, as long as the specific \"connect\" implementations of the middleware knows how to find the registered ports.
 
 ### Example with ZeroMQ
 
@@ -128,7 +128,7 @@ Install the zmqserver, this requires [Node.js to be installed](https://github.co
     aimconnect zeromq WriteModule 0 output ReadModule 0 input
     
 
-Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server "zmqserver" rather than "yarp server", and run aimconnect with "zeromq" instead of "yarp".
+Like you can see there is a almost no different with the YARP example, but now there is suddenly made use of ZeroMQ channels rather than YARP ones. The difference exists out of starting the right name server \"zmqserver\" rather than \"yarp server\", and run aimconnect with \"zeromq\" instead of \"yarp\".
 
 ## Create your own module
 
@@ -145,7 +145,7 @@ The type of information you have to fill in (you can always change this later an
     license="State"
     license_abbreviation="TR8OR"
 
-So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port. And we are planning on building our own home automation software, so we call our own little repository "home\_automation":
+So, how to go about to create your own module? Suppose we want to create a module that receives a value on an input port and sends a moving average on its output port. And we are planning on building our own home automation software, so we call our own little repository \"home\_automation\":
 
     aiminit home_automation
     cd $AIM_WORKSPACE/home_automation
@@ -209,8 +209,8 @@ The complete code you can find at the [MovingAverageModule](https://github.com/m
     aimconnect zeromq WriteModule 0 output MovingAverageModule 0 input
     
 
-The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: "Messages 
-received: 4" and "Calculate (1+2\*3)/4=1.75". Let's upload your code to your own github repository!
+The output you can expect in the terminal with the MovingAverageModule (use Ctrl+Page Up/Down to navigate) is something like: \"Messages 
+received: 4\" and \"Calculate (1+2\*3)/4=1.75\". Let's upload your code to your own github repository!
 
     cd $AIM_WORKSPACE/home_automation
     git add MovingAverageModule
