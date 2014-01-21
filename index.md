@@ -5,7 +5,7 @@ title: Introduction
 
 # Dodedodo - Artificial Intelligence for you!
 
-[Dodedodo](http://www.dodedodo.com/) is an **internet of things** infrastructure. More than other software packages it provides machine learning and artificial intelligence algorithms for everyone to use in their applications. But... why the internet of things? We would like answer that question with a few questions of our own:
+[Dodedodo](http://www.dodedodo.com/) is an **internet of things** infrastructure. More than other software packages it provides machine learning and artificial intelligence algorithms for everyone to use in their applications. But, why the internet of things? We would like answer that question with a few questions of our own:
 
 * Why would you want to come home to a cold house?
 * Why would you want to turn on the lights yourself?
