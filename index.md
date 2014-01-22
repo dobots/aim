@@ -4,6 +4,10 @@ title: Introduction
 ---
 
 # Dodedodo - Artificial Intelligence for you!
+<div class="highlight">
+<span>The internet of things</span><br>
+A computer on every desk and in every home. A dream came true. Computing power in the hands of every human. Nobody would have understood its implications. Now, there are two inevitable scenarios for the future. First, a computer on **every street corner**. Second, computing power **in the hands of devices**. This is the internet of things.
+</div>
 
 [Dodedodo](http://www.dodedodo.com/) is an **internet of things** infrastructure. More than other software packages it provides machine learning and artificial intelligence algorithms for everyone to use in their applications. But, why the internet of things? We would like answer that question with a few questions of our own:
 
