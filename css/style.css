@@ -1,8 +1,5 @@
 /**
- * Colors used: greenish #73b1ec, pinkish #FACAE6
- * Check: http://www.color-hex.com/color/facae6
- *
- * http://www.color-hex.com/color/73b1ec
+ * Colors used: tents of blue: http://www.color-hex.com/color/73b1ec
  * 
  * We choose shades: #73b1ec and #456a8d and #223546 (hover link)
  *
@@ -49,7 +46,7 @@ body {
 h2 {
   padding-top: 20px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #FACAE6;
+  border-bottom: 1px solid #456a8d;
   color: #73b1ec;
 }
 
