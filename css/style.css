@@ -1,8 +1,18 @@
+/**
+ * Colors used: greenish #73b1ec, pinkish #FACAE6
+ * Check: http://www.color-hex.com/color/facae6
+ *
+ * http://www.color-hex.com/color/73b1ec
+ * 
+ * We choose shades: #73b1ec and #456a8d and #223546 (hover link)
+ *
+ * Dark gray: 4d4d4d, light gray 5f5f5f
+ */
 
 html, body {
   font-family: arial, sans serif;
   font-size: 11pt;
-  color: #4D4D4D;
+  color: #4d4d4d;
   line-height: 1.7em;
   
   padding: 0;
@@ -40,15 +50,15 @@ h2 {
   padding-top: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid #FACAE6;
-  color: #2BE01B;
+  color: #73b1ec;
 }
 
 a {
-  color: #2BE01B;
+  color: #73b1ec;
   text-decoration: none;
 }
 a:hover {
-  color: #148C0A;
+  color: #456a8d;
   text-decoration: underline;
 }
 
@@ -69,7 +79,7 @@ div.nav ul li {
   text-transform: uppercase;
   font-weight: bold;
   font-size: 11pt;
-  color: #2BE01B;
+  color: #73b1ec;
 
   list-style: none;
   margin-top: 5px;  
@@ -80,17 +90,17 @@ div.nav ul li ul li {
   text-transform: none;
   font-weight: normal;
   font-size: 11pt;
-  color: #4D4D4D;
+  color: #4d4d4d;
 
   list-style: none;
 }
 
 a.nav {
-  color: #4D4D4D;
+  color: #4d4d4d;
 }
 
 a.nav:hover {
-  color: #BE1F85;
+  color: #223546;
 }
 
 
@@ -134,6 +144,6 @@ div.lastupdate {
   font-size: 75%;
   margin-top: 40px;
   
-  border-top: 1px solid #FACAE6;
-  color: #2BE01B;  
+  border-top: 1px solid #456a8d;
+  color: #73b1ec;  
 }
