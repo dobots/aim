@@ -12,7 +12,7 @@ For a proper introduction see the [AIM website](http://dobots.github.io/aim/). T
 
 AIM is a framework to develop Artificial Intelligence software. This repository contains all tools that are necessary to make this work. A subset of the *functionality* of AI modules themselves can be found in [https://github.com/dobots/aim_center](https://github.com/dobots/aim_center). Every module requires a description file, so it can also be found easy on Google or Github, e.g.: [https://github.com/search/?q=aim-config+in:path+config.aim&type=Code](https://github.com/search/?q=aim-config+in:path+config.aim&type=Code).
 
-In the end, the code will be available to you through a market place, called [Dodedodo](http:/wwww.dodedodo.com).
+In the end, the code will be available to you through a market place, called [Dodedodo](http:/www.dodedodo.com).
 
 In order to download this repository, enter the following command:
 
