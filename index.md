@@ -4,10 +4,6 @@ title: Introduction
 ---
 
 # Dodedodo - Artificial Intelligence for you!
-<div class="highlight">
-<span>The internet of things</span><br>
-A computer on every desk and in every home. A dream came true. Computing power in the hands of every human. Nobody would have understood its implications. Now, there are two inevitable scenarios for the future. First, a computer on **every street corner**. Second, computing power **in the hands of devices**. This is the internet of things.
-</div>
 
 [Dodedodo](http://www.dodedodo.com/) is an **internet of things** infrastructure. More than other software packages it provides machine learning and artificial intelligence algorithms for everyone to use in their applications. But, why the internet of things? We would like answer that question with a few questions of our own:
 
@@ -22,7 +18,12 @@ A computer on every desk and in every home. A dream came true. Computing power i
 * Why do you want to forget groceries in the supermarket?
 * Why do you want to forget your suitcase in the train?
 
-The need of new technology might not always be visible beforehand, however, actively withholding yourself from technology might have undesired side-effects. We want to give you the power of this type of pervasive technology. You want to be able to use those services, and you want to decide where your data goes, and how to process it. We would like to take you on a journey with us, to enable you to do so.
+<div class="highlight">
+<span>The internet of things</span><br>
+A computer on every desk and in every home. A dream came true. Computing power in the hands of every human. Nobody would have understood its implications. Now, there are two inevitable scenarios for the future. First, a computer on <strong>every street corner</strong>. Second, computing power <strong>in the hands of devices</strong>. This is the internet of things.
+</div>
+
+The need of new technology might not always be visible beforehand, however, actively withholding yourself from technology might have undesired side-effects. We want to give **you** the power of this type of pervasive technology. You want to be able to use those services, and you want to decide where your data goes, and how to process it. We would like to take you on a journey with us, to enable you to do so.
 
 ## Infrastructure
 
