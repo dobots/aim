@@ -9,7 +9,7 @@ The [module specification](module_spec.html) and the [deployment specification](
 
 ## Specification details
 
-The current **protocol specification** is written in such way that it can be interpreted and written by the user. It is plain text, not JSON, which would require the user to add all kind of curly brackets to the commands. Note, that the user does not need to use these commands. A very easy interface hiding these complexities is found on [Dodedodo](http://www.dodedodo.com)..
+The current **protocol specification** is written in such way that it can be interpreted and written by the user. It is plain text, not JSON, which would require the user to add all kind of curly brackets to the commands. Note, that the user does not need to use these commands. A very easy interface hiding these complexities is found on [Dodedodo](http://www.dodedodo.com).
 
 The protocol is defined over XMPP, a normal XMPP client such as Empathy or Pidgin can be used to send the commands. The syntax is like this:
 
