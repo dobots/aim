@@ -103,22 +103,18 @@ a.nav:hover {
   color: #223546;
 }
 
-
-table.example {
+table {
   border-collapse: collapse;
+  margin: 10px 0;
 }
-
-th.example {
-  font-weight: normal;
-  border: 1px solid lightgray;
-  background-color: #E5E5E5;
-  text-align: left;
-  vertical-align: top;
-  padding: 5px;
+th {
+    background-color: #e5e5e5;
 }
-td.example {
-  border: 1px solid lightgray;
-  padding: 5px;
+th, td {
+    border: 1px solid lightgray;
+    padding: 5px 10px;
+    text-align: left;
+    vertical-align: top;
 }
 
 pre, code {
@@ -128,9 +124,13 @@ pre, code {
 pre {
   line-height: 1.5em;
   overflow-x: auto; 
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   border: 1px solid lightgray;
   padding: 5px;
+}
+
+pre .nt {
+    color: gray;
 }
 
 pre.example {
