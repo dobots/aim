@@ -80,31 +80,31 @@ The protocol is defined over XMPP, a normal XMPP client such as Empathy or Pidgi
 
 A module is deployed according to the deployment description (in json), see the [deployment specification](deployment_spec.html).
 
-### Start
+### Start {#Start}
 
 A modoule does not run by default. It is started by this command.
 
-### Connect
+### Connect {#Connect}
 
 A module is (different from an agent) unaware of the modules it is connected to. This scheme is called \"exogenous coordination\". It means that an external entity connects the ports on modules to each other. This comes with the benefit that there no programming logic ends up within each agent about how to find other agents, how to connect to them, etcetera.
 
-### Stop
+### Stop {#Stop}
 
 A module can be stopped. It will be deallocated and requires starting before it can do anything again.
 
-### Uninstall
+### Uninstall {#Uninstall}
 
 The counterpart of deployment.
 
-### Status
+### Status {#Status}
 
 Status messages can be send on a general level, on the level of a module name, the level of a module instance, or the level of a module port.
 
-### List
+### List {#List}
 
 Knowing the list of modules that are available to you.
 
-### Data
+### Data {#Data}
 
 The format of the data send over XMPP. Note that this is not the only method to communicate between modules. 
 
