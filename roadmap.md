@@ -24,7 +24,7 @@ Currently the Dodedodo infrastructure uses gateways on devices that enable estab
 
 * **Protocol conversion**: the data needs to be converted from the inter-device protocol (e.g. XMPP) to the intra-device protocol (e.g. Intents, or YARP over TCP)
 * **Remote control**: the start, stop, connect, deploy, etc. commands as defined in the [protocol spec](protocol_spec.html) need to executed
-* **Data forwarding**: data meant for two modules is transferred through a third
+* **Data forwarding**: data meant to be communicated between two modules is transferred through a third
 
 Separation of these different components allow for a neat modularization and each component might be treated as just another Dodedodo module. This would lead to more flexibility with respect to inter-device protocol support and a better maintainable ecosystem.
 
