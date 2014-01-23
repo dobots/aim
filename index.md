@@ -49,7 +49,7 @@ The Dodedodo infrastructure exists out of a rich toolset. It is not created as a
 
 The Dodedodo infrastructure consists of:
 
-* A visual, web-based **drag-and-drop interface** at [www.dodedodo.com](http://www.dodedodo.com/)
+* A visual, web-based **drag-and-drop interface** at [www.dodedodo.com](http://www.dodedodo.com/).
 * An infrastructure for **real-time streaming** between devices (using at this moment XMPP).
 * An application (coined rur-builder) that allows you to run the same code on **Android, Raspberry PI, Docker, or Ubuntu** and which also allows you a wide set of **communication schemes** (middlewares) on those platforms.
 * A tool set for **module management and scheduling**. 
@@ -76,11 +76,11 @@ The infrastructure used by Dodedodo is not reinvented. Dodedodo uses XMPP, a wel
 
 The cross-platform support is delivered by the rur-builder application (see [AIM on GitHub](https://github.com/dobots/aim)). Currently rur-builder provides functionality for different middlewares. Supported are:
 
-* **YARP**, Yet Another Robot Platform, a middleware on top of TCP, UDP, and a few other options
-* **ROS**, Robotic Operating System, the most widely used robotic software ecosystem
-* **ZeroMQ**, a middleware that adds neat abstractions for distributed communication structures
-* **Android**, the well-known virtual machine where application communicate with \"intents\"
-* **NodeJS**, the software that together with npm shook up the javascript world
+* **YARP**, Yet Another Robot Platform, a middleware on top of TCP, UDP, and a few other options.
+* **ROS**, Robotic Operating System, the most widely used robotic software ecosystem.
+* **ZeroMQ**, a middleware that adds neat abstractions for distributed communication structures.
+* **Android**, the well-known virtual machine where application communicate with \"intents\".
+* **NodeJS**, the software that together with npm shook up the javascript world.
 
 The rur-builder allows you to write exactly the same code, in C++, and it runs smoothly in all the scenarios of above. For example, if you want to use a module that does \"unsupervised learning\", say \"k-means clustering\", you do not have to change anything to run it on Android and communicate to it using \"intents\", or to run it as a module in your Node server installing it via npm and communicating with it using javascript function calls.
 
