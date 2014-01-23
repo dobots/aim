@@ -7,15 +7,11 @@ title: Introduction
 
 [Dodedodo](http://www.dodedodo.com/) is an **internet of things** infrastructure. More than other software packages it provides machine learning and artificial intelligence algorithms for everyone to use in their applications. But, why the internet of things? We would like answer that question with a few questions of our own:
 
-* Why would you want to come home to a cold house?
 * Why would you want to turn on the lights yourself?
 * Why would you want to forget to turn off the heating?
 * Why would you want to clean your house yourself?
 * Why would you not want to know if your grandma fell?
-* Why would you not want to know if there is a burglar in your home?
 * Why would you want to have dead plants?
-* Why would you not want to find out that your dog hurt itself by accident?
-* Why do you want to forget groceries in the supermarket?
 * Why do you want to forget your suitcase in the train?
 
 <div class="highlight">
@@ -24,6 +20,28 @@ A computer on every desk and in every home. A dream came true. Computing power i
 </div>
 
 The need of new technology might not always be visible beforehand, however, actively withholding yourself from technology might have undesired side-effects. We want to give **you** the power of this type of pervasive technology. You want to be able to use those services, and you want to decide where your data goes, and how to process it. We would like to take you on a journey with us, to enable you to do so.
+
+## Properties
+
+The [Dodedodo](http://www.dodedodo.com/) infrastructure is different from most machine-to-machine framework. As also explained on our [roadmap](roadmap.html), we believe that devices in the internet of things will have the same high bandwidth requirements as humans. The \"normal\" internet allows for **offloading** intelligence to humans. However, if devices start to talk to each other, this will become different. To be useful these devices need to be **smart**, they cannot afford to remain ignorant. This means that the requirements will quickly go beyond very low-bandwidth solutions and it is much wiser to use existing infrastructure for video and audio also between machines. Note, that this does not preclude using low-energy low-bandwith devices in the periphery (we have expertise with ZigBee, Bluetooth LE, and Myrianed (ultra-low-energy) networks). 
+
+So, why the [Dodedodo](http://www.dodedodo.com/) infrastructure?
+
+* Write once, deploy everywhere.
+* Effortlessly connect devices on the fly.
+* Share and reuse artificial intelligence algorithms.
+* No vendor lock-in.
+* Monetize your algorithms through frequency of usage.
+* Strong commitment to open source technology.
+* Seamless integration with github.
+* Unlocking specialized software, e.g. ROS (navigation, localization software).
+
+There are many interpretations of a framework like this. Perhaps some short phrases will be clarifying this new platform:
+
+* Dodedodo is an **app market** for **all** your devices. 
+* Dodedodo modularizes apps: **parts of apps** can be written, exchanged, sold, replaced.
+* Dodedodo allows you to use your **own** devices as a **personal cloud**.
+* Dodedodo implements **VoIP** for your devices.
 
 ## Infrastructure
 

@@ -31,7 +31,7 @@ An IDL file describes the module with only that much detail that is necessary fo
       void Input(in long input);
       
       // Output, the moving average
-      // backend zeromq
+      // @backend zeromq
       void Average(out long output);
     
     };
@@ -56,7 +56,7 @@ The interface has a single requirement, it has to end with **Module**.
 
 ### Methods
 
-The methods have normal signatures as in for example C++ or Java, but with a twist. There is an additional keyword: **in** or **out**. The methods in the AIM framework are also called **ports** that make this directional property clear. A method is transformed into a function that can be called from C++ code:
+The methods have normal signatures as in for example C++ or Java, but with a twist. There is an additional keyword: **in** or **out**. The methods in the AIM framework are also called **ports** that make this directional property clear. A method declaration is transformed into a standard C++ method:
 
     inline int *readInput(bool blocking=true) {
       ...
@@ -72,7 +72,7 @@ Several remarks:
 
 * A read method can be called in a **blocking** or **nonblocking** fashion. If called in a blocking fashion the developer of the module is responsible for being able to read other ports using a threading library. 
 * A write method is **nonblocking**, returns true if successful, and dereferences the entity in its argument to be sent. It does not deallocate the entity, so that the user has the ability to reuse parts of it.
-* In a rare situation it is possible to write a module to communicate within one middleware and have only a few functions communicating using another middleware. This is indicated in a comment above the method, here **backend zeromq**.
+* In a rare situation it is possible to write a module to communicate within one middleware and have only a few methods communicating using another middleware. The comment **@backend zeromq** means that this method will always be using the zeromq backend irrespective of the middleware used for the rest of the methods.
 
 ## See also
 
