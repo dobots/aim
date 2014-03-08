@@ -5,7 +5,7 @@ For a proper introduction see the [AIM website](http://dobots.github.io/aim/). T
 * [rur-builder](https://github.com/dobots/rur-builder) to generate header files for a range of middlewares
 * [aimtools](https://github.com/dobots/aimtools), a suite of tools to create, register, copy, and connect modules
 * [zmqserver](https://github.com/dobots/zmqserver), a nameserver for ZeroMQ connections
-* [zmqconnect](https://github.com/dobots/zmqconnect), a exogenous coordination method to connect two modules with each other
+* [zmqconnect](https://github.com/dobots/zmqconnect), an exogenous coordination method to connect two modules with each other
 * [aimserver](https://github.com/dobots/aimserver), a REST interface for the aimtools
 
 ## For users
