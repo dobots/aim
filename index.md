@@ -103,9 +103,9 @@ Managing of modules can be done with the so-called **aim tools**. This is a suit
 
 ## Support {#support}
 
-You would like to know more? Check out the company providing all this open-source software [Distributed Organisms B.V.](http://www.dobots.nl), a spinoff of the Dutch research institute [Almende](http://www.almende.com). The github repository of DO is called [dobots](https://github.com/dobots). You can also checkout the repositories of individual authors [Bart van Vliet](https://github.com/vliedel), [Dominik Egger](https://github.com/eggerdo) and [Anne van Rossum](https://github.com/mrquincle).
+You would like to know more? Check out the company providing all this open-source software [Distributed Organisms B.V.](http://www.dobots.nl), a spinoff of the Dutch research institute [Almende](http://www.almende.com). The github repository of DoBots is called [dobots](https://github.com/dobots). You can also checkout the repositories of individual authors [Bart van Vliet](https://github.com/vliedel), [Dominik Egger](https://github.com/eggerdo) and [Anne van Rossum](https://github.com/mrquincle).
 
 ## Open source {#opensource}
 
-Our software is offered as open-source software under LGPLv3 or Apache license. Distributed Organisms B.V. (or Dobots) is an Almende spin-off. This group uses this software in all kind of commercial products, which allows us to provide it for free to the community at large.
+Our software is offered as open-source software under LGPLv3 or Apache license. Distributed Organisms B.V. (or DoBots) is an Almende spin-off. This group uses this software in all kind of commercial products, which allows us to provide it for free to the community at large.
 
