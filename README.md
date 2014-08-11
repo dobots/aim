@@ -40,4 +40,3 @@ The copyrights (2013) belong to:
 - Almende B.V., http://www.almende.com and DO bots B.V., http://www.dobots.nl
 - Rotterdam, The Netherlands
 
-[![Analytics](https://ga-beacon.appspot.com/UA-46821459-1/dobots/aim)](https://github.com/dobots/aim)
