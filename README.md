@@ -33,10 +33,10 @@ The submodules do not update themselves, you will need to update this thing. Do 
     git push
 
 ## Copyrights
-The copyrights (2013) belong to:
+The copyrights (2014) belong to:
 
 - License: LGPL v.3
 - Author: Anne van Rossum
-- Almende B.V., http://www.almende.com and DO bots B.V., http://www.dobots.nl
+- Almende B.V., http://www.almende.com and DoBots B.V., http://www.dobots.nl
 - Rotterdam, The Netherlands
 
