@@ -4,6 +4,7 @@
 [submodule "rur-builder"]
 	path = rur-builder
 	url = https://github.com/dobots/rur-builder
+	branch = master
 [submodule "zmqserver"]
 	path = zmqserver
 	url = https://github.com/dobots/zmqserver
